@@ -1,0 +1,2200 @@
+{
+  "#define": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#elif": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#else": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#endif": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#error": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#if": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#ifdef": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#ifndef": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#import": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#include": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#line": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#pragma": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#undef": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "#using": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "CFRelease": {
+    "classification": "EClassification_Function",
+    "example": true
+  },
+  "CFStr": {
+    "classification": "EClassification_Type"
+  },
+  "CFStr256": {
+    "classification": "EClassification_Type",
+    "example": true
+  },
+  "CFUStr": {
+    "classification": "EClassification_Type"
+  },
+  "CFUStr256": {
+    "classification": "EClassification_Type",
+    "example": true
+  },
+  "CFWStr": {
+    "classification": "EClassification_Type"
+  },
+  "CFWStr256": {
+    "classification": "EClassification_Type",
+    "example": true
+  },
+  "CTest": {
+    "classification": "EClassification_Type",
+    "example": true
+  },
+  "DTest": {
+    "classification": "EClassification_Macro",
+    "example": true
+  },
+  "ETest_Value": {
+    "classification": "EClassification_Enumerator",
+    "example": true
+  },
+  "FTest": {
+    "classification": "EClassification_Type_Function",
+    "example": true
+  },
+  "ICTest": {
+    "classification": "EClassification_Type_Interface",
+    "example": true
+  },
+  "NSTest": {
+    "classification": "EClassification_Type",
+    "example": true
+  },
+  "NTest": {
+    "classification": "EClassification_Namespace",
+    "example": true
+  },
+  "NULL": {
+    "classification": "EClassification_KeywordBulitInConstants"
+  },
+  "TCTest": {
+    "classification": "EClassification_TemplateType",
+    "example": true
+  },
+  "TFTest": {
+    "classification": "EClassification_TemplateType",
+    "example": true
+  },
+  "TICTest": {
+    "classification": "EClassification_TemplateType_Interface",
+    "example": true
+  },
+  "Test": {
+    "classification": "EClassification_Variable",
+    "example": true
+  },
+  "UITest": {
+    "classification": "EClassification_Type",
+    "example": true
+  },
+  "[[": {
+    "classification": "EClassification_KeywordPropertyModifiersBrackets"
+  },
+  "]]": {
+    "classification": "EClassification_KeywordPropertyModifiersBrackets"
+  },
+  "_Test": {
+    "classification": "EClassification_FunctionParameter",
+    "example": true
+  },
+  "__abstract": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__alignof": {
+    "classification": "EClassification_KeywordIntrospection"
+  },
+  "__asm": {
+    "classification": "EClassification_KeywordOptimization"
+  },
+  "__assume": {
+    "classification": "EClassification_KeywordOptimization"
+  },
+  "__attribute__": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__based": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__box": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__cdecl": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__declspec": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__delegate": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__event": {
+    "classification": "EClassification_KeywordOther"
+  },
+  "__except": {
+    "classification": "EClassification_KeywordExceptionHandling"
+  },
+  "__fastcall": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__finally": {
+    "classification": "EClassification_KeywordExceptionHandling"
+  },
+  "__forceinline": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__gc": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__hook": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__identifier": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__if_exists": {
+    "classification": "EClassification_KeywordOther"
+  },
+  "__if_not_exists": {
+    "classification": "EClassification_KeywordOther"
+  },
+  "__inline": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__int16": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "__int32": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "__int64": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "__int8": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "__interface": {
+    "classification": "EClassification_KeywordOther"
+  },
+  "__leave": {
+    "classification": "EClassification_KeywordExceptionHandling"
+  },
+  "__m128": {
+    "classification": "EClassification_KeywordBulitInVectorTypes"
+  },
+  "__m128d": {
+    "classification": "EClassification_KeywordBulitInVectorTypes"
+  },
+  "__m128i": {
+    "classification": "EClassification_KeywordBulitInVectorTypes"
+  },
+  "__m64": {
+    "classification": "EClassification_KeywordBulitInVectorTypes"
+  },
+  "__multiple_inheritance": {
+    "classification": "EClassification_KeywordOther"
+  },
+  "__nogc": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__noop": {
+    "classification": "EClassification_KeywordOther"
+  },
+  "__pin": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__pragma": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__property": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__raise": {
+    "classification": "EClassification_KeywordExceptionHandling"
+  },
+  "__restrict__": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__sealed": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__single_inheritance": {
+    "classification": "EClassification_KeywordOther"
+  },
+  "__stdcall": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__super": {
+    "classification": "EClassification_KeywordOther"
+  },
+  "__thiscall": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__try": {
+    "classification": "EClassification_KeywordExceptionHandling"
+  },
+  "__try_cast": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__unaligned": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "__unhook": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__uuidof": {
+    "classification": "EClassification_KeywordIntrospection"
+  },
+  "__value": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "__virtual_inheritance": {
+    "classification": "EClassification_KeywordOther"
+  },
+  "__w64": {
+    "classification": "EClassification_KeywordBulitInVectorTypes"
+  },
+  "__wchar_t": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "_fTest": {
+    "classification": "EClassification_FunctionParameter_Functor",
+    "example": true
+  },
+  "_oTest": {
+    "classification": "EClassification_FunctionParameter_Output",
+    "example": true
+  },
+  "_ofTest": {
+    "classification": "EClassification_FunctionParameter_Output_Functor",
+    "example": true
+  },
+  "abstract": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "add_const": {
+    "classification": "EClassification_TemplateType"
+  },
+  "add_cv": {
+    "classification": "EClassification_TemplateType"
+  },
+  "add_lvalue_reference": {
+    "classification": "EClassification_TemplateType"
+  },
+  "add_pointer": {
+    "classification": "EClassification_TemplateType"
+  },
+  "add_rvalue_reference": {
+    "classification": "EClassification_TemplateType"
+  },
+  "add_volatile": {
+    "classification": "EClassification_TemplateType"
+  },
+  "aint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "align_cacheline": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "aligned_storage": {
+    "classification": "EClassification_TemplateType"
+  },
+  "aligned_union": {
+    "classification": "EClassification_TemplateType"
+  },
+  "alignment_of": {
+    "classification": "EClassification_TemplateType"
+  },
+  "allocate_shared": {
+    "classification": "EClassification_Function"
+  },
+  "allocator": {
+    "classification": "EClassification_TemplateType"
+  },
+  "allocator_type": {
+    "classification": "EClassification_Type"
+  },
+  "array": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "assert": {
+    "classification": "EClassification_Macro"
+  },
+  "assign": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "assume": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "assure_used": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "at": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "atomic": {
+    "classification": "EClassification_TemplateType"
+  },
+  "atomic_flag": {
+    "classification": "EClassification_Type"
+  },
+  "auto": {
+    "classification": "EClassification_KeywordAuto"
+  },
+  "auto_ptr_ref": {
+    "classification": "EClassification_TemplateType"
+  },
+  "back": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "basic_filebuf": {
+    "classification": "EClassification_TemplateType"
+  },
+  "basic_fstream": {
+    "classification": "EClassification_TemplateType"
+  },
+  "basic_ifstream": {
+    "classification": "EClassification_TemplateType"
+  },
+  "basic_ofstream": {
+    "classification": "EClassification_TemplateType"
+  },
+  "basic_string": {
+    "classification": "EClassification_TemplateType"
+  },
+  "before_begin": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "bind": {
+    "classification": "EClassification_Function"
+  },
+  "bint": {
+    "classification": "EClassification_KeywordBulitInTypes"
+  },
+  "bool": {
+    "classification": "EClassification_KeywordBulitInTypes"
+  },
+  "break": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "bucket": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "bucket_count": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "bucket_size": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "cConcept": {
+    "classification": "EClassification_Concept",
+    "example": true
+  },
+  "c_Test": {
+    "classification": "EClassification_ConstantVariable",
+    "example": true
+  },
+  "c_str": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "calling_convention_c": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "capacity": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "carries_dependency": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "case": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "catch": {
+    "classification": "EClassification_KeywordExceptionHandling"
+  },
+  "cbefore_begin": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "cdecl": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "ch16": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "ch32": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "ch8": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "char": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "char16_t": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "char32_t": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "char_traits": {
+    "classification": "EClassification_TemplateType"
+  },
+  "char_type": {
+    "classification": "EClassification_Type"
+  },
+  "class": {
+    "classification": "EClassification_KeywordTypeSpecification"
+  },
+  "clear": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "common_type": {
+    "classification": "EClassification_TemplateType"
+  },
+  "compare": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "compare_exchange_strong": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "compare_exchange_weak": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "conditional": {
+    "classification": "EClassification_TemplateType"
+  },
+  "const": {
+    "classification": "EClassification_KeywordQualifier"
+  },
+  "const_cast": {
+    "classification": "EClassification_KeywordCasts"
+  },
+  "const_iterator": {
+    "classification": "EClassification_Type"
+  },
+  "const_local_iterator": {
+    "classification": "EClassification_Type"
+  },
+  "const_pointer": {
+    "classification": "EClassification_Type"
+  },
+  "const_pointer_cast": {
+    "classification": "EClassification_Function"
+  },
+  "const_reference": {
+    "classification": "EClassification_Type"
+  },
+  "const_reverse_iterator": {
+    "classification": "EClassification_Type"
+  },
+  "constant_int64": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "constant_uint64": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "constexpr": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "continue": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "copy": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "count": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "d_Test": {
+    "classification": "EClassification_MacroParameter",
+    "example": true
+  },
+  "data": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "decay": {
+    "classification": "EClassification_TemplateType"
+  },
+  "decltype": {
+    "classification": "EClassification_KeywordIntrospection"
+  },
+  "declval": {
+    "classification": "EClassification_Function"
+  },
+  "default": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "default_delete": {
+    "classification": "EClassification_TemplateType"
+  },
+  "define": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "defined": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "delegate": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "delete": {
+    "classification": "EClassification_KeywordNewDelete"
+  },
+  "deprecated": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "deque": {
+    "classification": "EClassification_TemplateType"
+  },
+  "difference_type": {
+    "classification": "EClassification_Type"
+  },
+  "dllexport": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "dllimport": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "do": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "double": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "dynamic_cast": {
+    "classification": "EClassification_KeywordCasts"
+  },
+  "dynamic_pointer_cast": {
+    "classification": "EClassification_Function"
+  },
+  "elif": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "else": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "emplace": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "emplace_after": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "emplace_back": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "emplace_front": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "emplace_hint": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "empty": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "enable_if": {
+    "classification": "EClassification_TemplateType"
+  },
+  "enable_shared_from_this": {
+    "classification": "EClassification_TemplateType"
+  },
+  "endif": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "enum": {
+    "classification": "EClassification_KeywordTypeSpecification"
+  },
+  "equal_range": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "erase": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "erase_after": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "error": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "event": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "exchange": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "explicit": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "extent": {
+    "classification": "EClassification_TemplateType"
+  },
+  "extern": {
+    "classification": "EClassification_KeywordStorageClass"
+  },
+  "fTest": {
+    "classification": "EClassification_Variable_Functor",
+    "example": true
+  },
+  "f_Test": {
+    "classification": "EClassification_MemberFunctionPublic",
+    "example": true
+  },
+  "f_rTest": {
+    "classification": "EClassification_MemberFunctionPublic_Recursive",
+    "example": true
+  },
+  "fallthrough": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "false": {
+    "classification": "EClassification_KeywordBulitInConstants"
+  },
+  "false_type": {
+    "classification": "EClassification_Type"
+  },
+  "fastcall": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "fetch_add": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "fetch_and": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "fetch_or": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "fetch_sub": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "fetch_xor": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "fg_Test": {
+    "classification": "EClassification_Function",
+    "example": true
+  },
+  "fg_rTest": {
+    "classification": "EClassification_Function_Recursive",
+    "example": true
+  },
+  "fgr_Test": {
+    "classification": "EClassification_Function_Recursive",
+    "example": true
+  },
+  "filebuf": {
+    "classification": "EClassification_Type"
+  },
+  "fill": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "final": {
+    "classification": "EClassification_KeywordVirtual"
+  },
+  "finally": {
+    "classification": "EClassification_KeywordExceptionHandling"
+  },
+  "find": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "find_first_not_of": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "find_first_of": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "find_last_of": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "fint_last_not_of": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "fl_Test": {
+    "classification": "EClassification_Variable_Functor",
+    "example": true
+  },
+  "float": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "for": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "forward": {
+    "classification": "EClassification_Function"
+  },
+  "forward_as_tuple": {
+    "classification": "EClassification_Function"
+  },
+  "forward_list": {
+    "classification": "EClassification_TemplateType"
+  },
+  "fp1024": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp128": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp16": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp2048": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp256": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp32": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp4096": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp512": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp64": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp8": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp80": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "fp_Test": {
+    "classification": "EClassification_MemberFunctionPrivate",
+    "example": true
+  },
+  "fp_rTest": {
+    "classification": "EClassification_MemberFunctionPrivate_Recursive",
+    "example": true
+  },
+  "fpr_Test": {
+    "classification": "EClassification_MemberFunctionPrivate_Recursive",
+    "example": true
+  },
+  "fr_Test": {
+    "classification": "EClassification_MemberFunctionPublic_Recursive",
+    "example": true
+  },
+  "friend": {
+    "classification": "EClassification_KeywordAccess"
+  },
+  "friend_as": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "front": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "fs_Test": {
+    "classification": "EClassification_MemberStaticFunctionPublic",
+    "example": true
+  },
+  "fs_rTest": {
+    "classification": "EClassification_MemberStaticFunctionPublic_Recursive",
+    "example": true
+  },
+  "fsg_Test": {
+    "classification": "EClassification_StaticFunction",
+    "example": true
+  },
+  "fsg_rTest": {
+    "classification": "EClassification_StaticFunction_Recursive",
+    "example": true
+  },
+  "fsgr_Test": {
+    "classification": "EClassification_StaticFunction_Recursive",
+    "example": true
+  },
+  "fsp_Test": {
+    "classification": "EClassification_MemberStaticFunctionPrivate",
+    "example": true
+  },
+  "fsp_rTest": {
+    "classification": "EClassification_MemberStaticFunctionPrivate_Recursive",
+    "example": true
+  },
+  "fspr_Test": {
+    "classification": "EClassification_MemberStaticFunctionPrivate_Recursive",
+    "example": true
+  },
+  "fsr_Test": {
+    "classification": "EClassification_MemberStaticFunctionPublic_Recursive",
+    "example": true
+  },
+  "fstream": {
+    "classification": "EClassification_Type"
+  },
+  "function": {
+    "classification": "EClassification_TemplateType"
+  },
+  "function_does_not_return": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "g_Test": {
+    "classification": "EClassification_GlobalVariable",
+    "example": true
+  },
+  "g_fTest": {
+    "classification": "EClassification_GlobalVariable_Functor",
+    "example": true
+  },
+  "gc_Test": {
+    "classification": "EClassification_GlobalConstant",
+    "example": true
+  },
+  "gcnew": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "generic": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "get_allocator": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "get_deleter": {
+    "classification": "EClassification_Function"
+  },
+  "getline": {
+    "classification": "EClassification_Function"
+  },
+  "goto": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "gs_Test": {
+    "classification": "EClassification_GlobalStaticVariable",
+    "example": true
+  },
+  "gs_fTest": {
+    "classification": "EClassification_GlobalStaticVariable_Functor",
+    "example": true
+  },
+  "has_virtual_destructor": {
+    "classification": "EClassification_TemplateType"
+  },
+  "hash_fuction": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "hasher": {
+    "classification": "EClassification_Type"
+  },
+  "if": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "ifdef": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "ifndef": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "ifstream": {
+    "classification": "EClassification_Type"
+  },
+  "ignore": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "import": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "include": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "initonly": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "inline": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_always": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_always_debug": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_always_lambda": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_extralarge": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_large": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_medium": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_never": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_never_debug": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_small": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "insert": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "insert_after": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "int": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int1024": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int128": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int16": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int160": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int2048": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int256": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int32": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int4096": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int512": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int64": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int8": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int80": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int8192": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "int_type": {
+    "classification": "EClassification_Type"
+  },
+  "integral_constant": {
+    "classification": "EClassification_TemplateType"
+  },
+  "interface": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "interior_ptr": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "intrinsic": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "is_abstract": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_arithmetic": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_array": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_assignable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_base_of": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_class": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_compound": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_const": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_convertible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_copy_assignable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_copy_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_default_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_destructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_empty": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_enum": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_floating_point": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_function": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_fundamental": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_integral": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_literal_type": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_lock_free": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "is_lvalue_reference": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_member_function_pointer": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_member_object_pointer": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_member_pointer": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_move_assignable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_move_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_nothrow_assignable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_nothrow_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_nothrow_copy_assignable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_nothrow_copy_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_nothrow_default_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_nothrow_destructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_nothrow_move_assignable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_nothrow_move_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_object": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_pod": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_pointer": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_polymorphic": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_reference": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_rvalue_reference": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_same": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_scalar": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_signed": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_standard_layout": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivial": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivially_assignable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivially_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivially_copy_assignable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivially_copy_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivially_copyable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivially_default_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivially_destructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivially_move_assignable": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_trivially_move_constructible": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_union": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_unsigned": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_void": {
+    "classification": "EClassification_TemplateType"
+  },
+  "is_volatile": {
+    "classification": "EClassification_TemplateType"
+  },
+  "iterator": {
+    "classification": "EClassification_Type"
+  },
+  "kCFCompareCaseInsensitive": {
+    "classification": "EClassification_Enumerator",
+    "example": true
+  },
+  "key_comp": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "key_compare": {
+    "classification": "EClassification_Type"
+  },
+  "key_eq": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "key_equal": {
+    "classification": "EClassification_Type"
+  },
+  "key_type": {
+    "classification": "EClassification_Type"
+  },
+  "length": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "likely": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "line": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "list": {
+    "classification": "EClassification_TemplateType"
+  },
+  "literal": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "load": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "load_factor": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "local_iterator": {
+    "classification": "EClassification_Type"
+  },
+  "long": {
+    "classification": "EClassification_KeywordBulitInTypeModifiers"
+  },
+  "lower_bound": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "m_Test": {
+    "classification": "EClassification_MemberVariablePublic",
+    "example": true
+  },
+  "m_fTest": {
+    "classification": "EClassification_MemberVariablePublic_Functor",
+    "example": true
+  },
+  "make_pair": {
+    "classification": "EClassification_Function"
+  },
+  "make_shared": {
+    "classification": "EClassification_Function"
+  },
+  "make_signed": {
+    "classification": "EClassification_TemplateType"
+  },
+  "make_tuple": {
+    "classification": "EClassification_Function"
+  },
+  "make_unsigned": {
+    "classification": "EClassification_TemplateType"
+  },
+  "map": {
+    "classification": "EClassification_TemplateType"
+  },
+  "mapped_type": {
+    "classification": "EClassification_Type"
+  },
+  "max": {
+    "classification": "EClassification_Function"
+  },
+  "max_bucket_count": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "max_load_factor": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "max_size": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "maybe_unused": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "mc_Test": {
+    "classification": "EClassification_MemberConstantPublic",
+    "example": true
+  },
+  "mcp_Test": {
+    "classification": "EClassification_MemberConstantPrivate",
+    "example": true
+  },
+  "memory_order": {
+    "classification": "EClassification_Enum"
+  },
+  "memory_order_acq_rel": {
+    "classification": "EClassification_Enumerator"
+  },
+  "memory_order_acquire": {
+    "classification": "EClassification_Enumerator"
+  },
+  "memory_order_consume": {
+    "classification": "EClassification_Enumerator"
+  },
+  "memory_order_relaxed": {
+    "classification": "EClassification_Enumerator"
+  },
+  "memory_order_release": {
+    "classification": "EClassification_Enumerator"
+  },
+  "memory_order_seq_cst": {
+    "classification": "EClassification_Enumerator"
+  },
+  "merge": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "min": {
+    "classification": "EClassification_Function"
+  },
+  "mint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "module_export": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "module_import": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "move": {
+    "classification": "EClassification_Function"
+  },
+  "move_if_noexcept": {
+    "classification": "EClassification_Function"
+  },
+  "mp_Test": {
+    "classification": "EClassification_MemberVariablePrivate",
+    "example": true
+  },
+  "mp_fTest": {
+    "classification": "EClassification_MemberVariablePrivate_Functor",
+    "example": true
+  },
+  "ms_Test": {
+    "classification": "EClassification_MemberStaticVariablePublic",
+    "example": true
+  },
+  "ms_fTest": {
+    "classification": "EClassification_MemberStaticVariablePublic_Functor",
+    "example": true
+  },
+  "msp_Test": {
+    "classification": "EClassification_MemberStaticVariablePrivate",
+    "example": true
+  },
+  "msp_fTest": {
+    "classification": "EClassification_MemberStaticVariablePrivate_Functor",
+    "example": true
+  },
+  "multimap": {
+    "classification": "EClassification_TemplateType"
+  },
+  "multiset": {
+    "classification": "EClassification_TemplateType"
+  },
+  "mutable": {
+    "classification": "EClassification_KeywordStorageClass"
+  },
+  "naked": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "namespace": {
+    "classification": "EClassification_KeywordNamespace"
+  },
+  "new": {
+    "classification": "EClassification_KeywordNewDelete"
+  },
+  "no_unique_address": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "nodiscard": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "noexcept": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "noinline": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "noreturn": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "nothrow": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "novtable": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "npos": {
+    "classification": "EClassification_MemberConstantPublic"
+  },
+  "nullptr": {
+    "classification": "EClassification_KeywordBulitInConstants"
+  },
+  "o_Test": {
+    "classification": "EClassification_FunctionParameter_Output",
+    "example": true
+  },
+  "o_fTest": {
+    "classification": "EClassification_FunctionParameter_Output_Functor",
+    "example": true
+  },
+  "off_type": {
+    "classification": "EClassification_Type"
+  },
+  "ofstream": {
+    "classification": "EClassification_Type"
+  },
+  "once": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "only_parameters_aliased": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "operator": {
+    "classification": "EClassification_KeywordOperator"
+  },
+  "optimize_for_synchronized": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "override": {
+    "classification": "EClassification_KeywordVirtual"
+  },
+  "owner_less": {
+    "classification": "EClassification_TemplateType"
+  },
+  "p_Test": {
+    "classification": "EClassification_FunctionParameter_Pack",
+    "example": true
+  },
+  "p_fTest": {
+    "classification": "EClassification_FunctionParameter_Pack_Functor",
+    "example": true
+  },
+  "p_oTest": {
+    "classification": "EClassification_FunctionParameter_Output_Pack",
+    "example": true
+  },
+  "p_ofTest": {
+    "classification": "EClassification_FunctionParameter_Output_Pack_Functor",
+    "example": true
+  },
+  "pair": {
+    "classification": "EClassification_TemplateType"
+  },
+  "po_Test": {
+    "classification": "EClassification_FunctionParameter_Output_Pack",
+    "example": true
+  },
+  "po_fTest": {
+    "classification": "EClassification_FunctionParameter_Output_Pack_Functor",
+    "example": true
+  },
+  "pointer": {
+    "classification": "EClassification_Type"
+  },
+  "pop": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "pop_back": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "pop_front": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "pos_type": {
+    "classification": "EClassification_Type"
+  },
+  "pragma": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "priority_queue": {
+    "classification": "EClassification_TemplateType"
+  },
+  "private": {
+    "classification": "EClassification_KeywordAccess"
+  },
+  "property": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "protected": {
+    "classification": "EClassification_KeywordAccess"
+  },
+  "public": {
+    "classification": "EClassification_KeywordAccess"
+  },
+  "pure": {
+    "classification": "EClassification_KeywordPure"
+  },
+  "push": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "push_back": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "push_front": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "queue": {
+    "classification": "EClassification_TemplateType"
+  },
+  "rank": {
+    "classification": "EClassification_TemplateType"
+  },
+  "ref": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "reference": {
+    "classification": "EClassification_Type"
+  },
+  "register": {
+    "classification": "EClassification_KeywordStorageClass"
+  },
+  "rehash": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "reinterpret_cast": {
+    "classification": "EClassification_KeywordCasts"
+  },
+  "remove": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "remove_all_extents": {
+    "classification": "EClassification_TemplateType"
+  },
+  "remove_const": {
+    "classification": "EClassification_TemplateType"
+  },
+  "remove_cv": {
+    "classification": "EClassification_TemplateType"
+  },
+  "remove_extent": {
+    "classification": "EClassification_TemplateType"
+  },
+  "remove_if": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "remove_pointer": {
+    "classification": "EClassification_TemplateType"
+  },
+  "remove_reference": {
+    "classification": "EClassification_TemplateType"
+  },
+  "remove_volatile": {
+    "classification": "EClassification_TemplateType"
+  },
+  "reserve": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "resize": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "result_of": {
+    "classification": "EClassification_TemplateType"
+  },
+  "return": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "return_not_aliased": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "reverse": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "reverse_iterator": {
+    "classification": "EClassification_Type"
+  },
+  "rfind": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "s_Test": {
+    "classification": "EClassification_StaticVariable",
+    "example": true
+  },
+  "s_fTest": {
+    "classification": "EClassification_StaticVariable_Functor",
+    "example": true
+  },
+  "safecast": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "sealed": {
+    "classification": "EClassification_KeywordVirtual"
+  },
+  "selectany": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "set": {
+    "classification": "EClassification_TemplateType"
+  },
+  "shared_ptr": {
+    "classification": "EClassification_TemplateType"
+  },
+  "short": {
+    "classification": "EClassification_KeywordBulitInTypeModifiers"
+  },
+  "shrink_to_fit": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "signed": {
+    "classification": "EClassification_KeywordBulitInTypeModifiers"
+  },
+  "size": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "size_t": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "size_type": {
+    "classification": "EClassification_Type"
+  },
+  "sizeof": {
+    "classification": "EClassification_KeywordIntrospection"
+  },
+  "smint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "sort": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "splice": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "splice_after": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "stack": {
+    "classification": "EClassification_TemplateType"
+  },
+  "state_type": {
+    "classification": "EClassification_Type"
+  },
+  "static": {
+    "classification": "EClassification_KeywordStorageClass"
+  },
+  "static_assert": {
+    "classification": "EClassification_KeywordStaticAssert"
+  },
+  "static_cast": {
+    "classification": "EClassification_KeywordCasts"
+  },
+  "static_pointer_cast": {
+    "classification": "EClassification_Function"
+  },
+  "std": {
+    "classification": "EClassification_Namespace"
+  },
+  "stdcall": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "store": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "str_utf16": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "str_utf32": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "str_utf8": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "string": {
+    "classification": "EClassification_Type"
+  },
+  "struct": {
+    "classification": "EClassification_KeywordTypeSpecification"
+  },
+  "substr": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "switch": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "t_CTest": {
+    "classification": "EClassification_TemplateTypeParam_Class",
+    "example": true
+  },
+  "t_FTest": {
+    "classification": "EClassification_TemplateTypeParam_Function",
+    "example": true
+  },
+  "t_TCTest": {
+    "classification": "EClassification_TemplateTemplateParam",
+    "example": true
+  },
+  "t_TFTest": {
+    "classification": "EClassification_TemplateTemplateParam",
+    "example": true
+  },
+  "t_Test": {
+    "classification": "EClassification_TemplateNonTypeParam",
+    "example": true
+  },
+  "template": {
+    "classification": "EClassification_KeywordTemplate"
+  },
+  "tf_CTest": {
+    "classification": "EClassification_FunctionTemplateTypeParam_Class",
+    "example": true
+  },
+  "tf_FTest": {
+    "classification": "EClassification_FunctionTemplateTypeParam_Function",
+    "example": true
+  },
+  "tf_TCTest": {
+    "classification": "EClassification_FunctionTemplateTemplateParam",
+    "example": true
+  },
+  "tf_TFTest": {
+    "classification": "EClassification_FunctionTemplateTemplateParam",
+    "example": true
+  },
+  "tf_Test": {
+    "classification": "EClassification_FunctionTemplateNonTypeParam",
+    "example": true
+  },
+  "tfp_CTest": {
+    "classification": "EClassification_FunctionTemplateTypeParam_Class_Pack",
+    "example": true
+  },
+  "tfp_FTest": {
+    "classification": "EClassification_FunctionTemplateTypeParam_Function_Pack",
+    "example": true
+  },
+  "tfp_TCTest": {
+    "classification": "EClassification_FunctionTemplateTemplateParam_Pack",
+    "example": true
+  },
+  "tfp_TFTest": {
+    "classification": "EClassification_FunctionTemplateTemplateParam_Pack",
+    "example": true
+  },
+  "tfp_Test": {
+    "classification": "EClassification_FunctionTemplateNonTypeParam_Pack",
+    "example": true
+  },
+  "this": {
+    "classification": "EClassification_KeywordThis"
+  },
+  "thread": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "throw": {
+    "classification": "EClassification_KeywordExceptionHandling"
+  },
+  "tie": {
+    "classification": "EClassification_Function"
+  },
+  "top": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "tp_CTest": {
+    "classification": "EClassification_TemplateTypeParam_Class_Pack",
+    "example": true
+  },
+  "tp_FTest": {
+    "classification": "EClassification_TemplateTypeParam_Function_Pack",
+    "example": true
+  },
+  "tp_TCTest": {
+    "classification": "EClassification_TemplateTemplateParam_Pack",
+    "example": true
+  },
+  "tp_TFTest": {
+    "classification": "EClassification_TemplateTemplateParam_Pack",
+    "example": true
+  },
+  "tp_Test": {
+    "classification": "EClassification_TemplateNonTypeParam_Pack",
+    "example": true
+  },
+  "traits_type": {
+    "classification": "EClassification_Type"
+  },
+  "true": {
+    "classification": "EClassification_KeywordBulitInConstants"
+  },
+  "true_type": {
+    "classification": "EClassification_Type"
+  },
+  "try": {
+    "classification": "EClassification_KeywordExceptionHandling"
+  },
+  "tuple": {
+    "classification": "EClassification_TemplateType"
+  },
+  "tuple_cat": {
+    "classification": "EClassification_Function"
+  },
+  "type": {
+    "classification": "EClassification_Type"
+  },
+  "typedef": {
+    "classification": "EClassification_KeywordTypedef"
+  },
+  "typeid": {
+    "classification": "EClassification_KeywordIntrospection"
+  },
+  "typename": {
+    "classification": "EClassification_KeywordTypename"
+  },
+  "u16string": {
+    "classification": "EClassification_Type"
+  },
+  "u32string": {
+    "classification": "EClassification_Type"
+  },
+  "uaint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uch16": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "uch32": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "uch8": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "ufp1024": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp128": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp16": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp2048": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp256": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp32": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp4096": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp512": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp64": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp8": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "ufp80": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "uint1024": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint128": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint16": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint160": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint2048": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint256": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint32": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint4096": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint512": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint64": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint8": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint80": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "uint8192": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "umint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "undef": {
+    "classification": "EClassification_PreprocessorDirective"
+  },
+  "underlying_type": {
+    "classification": "EClassification_TemplateType"
+  },
+  "union": {
+    "classification": "EClassification_KeywordTypeSpecification"
+  },
+  "unique": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "unique_ptr": {
+    "classification": "EClassification_TemplateType"
+  },
+  "unlikely": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "unordered_map": {
+    "classification": "EClassification_TemplateType"
+  },
+  "unordered_multimap": {
+    "classification": "EClassification_TemplateType"
+  },
+  "unordered_multiset": {
+    "classification": "EClassification_TemplateType"
+  },
+  "unordered_set": {
+    "classification": "EClassification_TemplateType"
+  },
+  "unsigned": {
+    "classification": "EClassification_KeywordBulitInTypeModifiers"
+  },
+  "upper_bound": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "using": {
+    "classification": "EClassification_KeywordUsing"
+  },
+  "uuid": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "value": {
+    "classification": "EClassification_KeywordCLR"
+  },
+  "value_comp": {
+    "classification": "EClassification_MemberFunctionPublic"
+  },
+  "value_compare": {
+    "classification": "EClassification_Type"
+  },
+  "value_type": {
+    "classification": "EClassification_Type"
+  },
+  "variable_not_aliased": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "vector": {
+    "classification": "EClassification_TemplateType"
+  },
+  "virtual": {
+    "classification": "EClassification_KeywordVirtual"
+  },
+  "void": {
+    "classification": "EClassification_KeywordBulitInTypes"
+  },
+  "volatile": {
+    "classification": "EClassification_KeywordQualifier"
+  },
+  "wchar_t": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "weak_ptr": {
+    "classification": "EClassification_TemplateType"
+  },
+  "wfilebuf": {
+    "classification": "EClassification_Type"
+  },
+  "wfstream": {
+    "classification": "EClassification_Type"
+  },
+  "while": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "wifstream": {
+    "classification": "EClassification_Type"
+  },
+  "wofstream": {
+    "classification": "EClassification_Type"
+  },
+  "wstring": {
+    "classification": "EClassification_Type"
+  },
+  "yield_cpu": {
+    "classification": "EClassification_KeywordControlStatement"
+  },
+  "zamint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zbint": {
+    "classification": "EClassification_KeywordBulitInTypes"
+  },
+  "zbool": {
+    "classification": "EClassification_KeywordBulitInTypes"
+  },
+  "zch16": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "zch32": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "zch8": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "zfp1024": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp128": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp16": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp2048": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp256": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp32": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp4096": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp512": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp64": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp8": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zfp80": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zint1024": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint128": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint16": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint160": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint2048": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint256": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint32": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint4096": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint512": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint64": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint8": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint80": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zint8192": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zmint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zsmint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuamint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuch16": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "zuch32": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "zuch8": {
+    "classification": "EClassification_KeywordBulitInCharacterTypes"
+  },
+  "zufp1024": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp128": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp16": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp2048": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp256": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp32": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp4096": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp512": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp64": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp8": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zufp80": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "zuint1024": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint128": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint16": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint160": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint2048": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint256": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint32": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint4096": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint512": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint64": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint8": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint80": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zuint8192": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  },
+  "zumint": {
+    "classification": "EClassification_KeywordBulitInIntegerTypes"
+  }
+}

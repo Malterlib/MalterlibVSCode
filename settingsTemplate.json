@@ -1,0 +1,100 @@
+{
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+        {
+            "scope": [
+                "malterlib.constant",
+                "malterlib.keyword.js.bultinconstant",
+                "malterlib.constant.enumerator",
+                "malterlib.keyword.builtinconstant",
+                "variable.other.enummember"
+            ],
+            "settings": {
+                "foreground": "#ff85c9"
+            }
+        },
+        {
+            "scope": [
+                "punctuation.definition.dictionary.begin.json.comments",
+                "punctuation.separator.dictionary.pair",
+                "punctuation.definition.array.end",
+                "storage.type",
+                "keyword.other",
+                "keyword.operator",
+                "keyword.operator.comparison",
+                "keyword.operator.comparison.cpp"
+            ],
+            "settings": {
+                "foreground": "#ffffff"
+            }
+        },
+        {
+            "scope": [
+                "string.quoted.single",
+                "string.quoted.single punctuation.definition.string.begin",
+                "string.quoted.single punctuation.definition.string.end"
+            ],
+            "settings": {
+                "foreground": "#ff48f0"
+            }
+        },
+        {
+            "scope": [
+                "string",
+                "string.quoted punctuation.definition.string.begin",
+                "string.quoted punctuation.definition.string.end"
+            ],
+            "settings": {
+                "foreground": "#009eff"
+            }
+        },
+        {
+            "scope": [
+                "entity.name.type",
+                "entity.name.type.class"
+            ],
+            "settings": {
+                "foreground": "#b8aaff"
+            }
+        },
+        {
+            "scope": [
+                "entity.name.function"
+            ],
+            "settings": {
+                "foreground": "#26ff00"
+            }
+        },
+        {
+            "scope": [
+                "constant.numeric",
+                "keyword.other.unit"
+            ],
+            "settings": {
+                "foreground": "#ff0080"
+            }
+        },
+        {
+            "scope": [
+                "comment",
+                "punctuation.definition.comment",
+                "comment.line.double-slash"
+            ],
+            "settings": {
+                "foreground": "#898989",
+                "fontStyle": ""
+            }
+        },
+
+        {
+            "scope": [
+                "storage.type.class.doxygen"
+            ],
+            "settings": {
+                "foreground": "#f070b6",
+                "fontStyle": ""
+            }
+        }
+    ]
+  }
+}

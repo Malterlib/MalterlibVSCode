@@ -1,0 +1,512 @@
+{
+  "name": "malterlib-syntax-coloring",
+  "displayName": "Malterlib Syntax Coloring",
+  "description": "Malterlib syntax highlighting extension",
+  "publisher": "Malterlib",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Malterlib/MalterlibVSCode.git"
+  },
+  "version": "1.0.0",
+  "engines": {
+    "vscode": ">=1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:c",
+    "onLanguage:cpp"
+  ],
+  "main": "./dist/extension.js",
+  "scripts": {
+    "compile": "npm run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "vscode:prepublish": "npm run package",
+    "package": "npm run check-types && node esbuild.js --production"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.25.6",
+    "eslint": "^9.25.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.8.3"
+  },
+  "enabledApiProposals": [
+    "documentFiltersExclusive"
+  ],
+  "icon": "icon.png",
+  "contributes": {
+    "semanticTokenTypes": [
+      {
+        "id": "malterlib-unknown",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-type",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-namespace",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-type-param-class",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-non-type-param",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-template-param",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-template-type-param-class",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-template-non-type-param",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-template-template-param",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-type",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-enumerator",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-parameter",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-parameter-output",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-parameter-output-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-parameter-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-macro-parameter",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-function-private",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-function-public",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-static-function-private",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-static-function-public",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-variable-private",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-variable-public",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-static-variable-private",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-static-variable-public",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-static-function",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-global-variable",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-global-static-variable",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-constant-private",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-constant-public",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-global-constant",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-typedef",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-enum",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-macro",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-concept",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-operator",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-preprocessor-escape",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-preprocessor-operator",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-comment-background",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-comment-foreground",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-documentation-comment-foreground",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-documentation-comment-foreground-keyword",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-comment-url",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-string",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-character",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-number",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-plain-text",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-variable",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-variable-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-static-variable",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-constant-variable",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-builtin-constants",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-control-statement",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-storage-class",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-exception-handling",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-introspection",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-static-assert",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-optimization",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-new-delete",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-clr",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-other",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-type-specification",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-namespace",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-template",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-function",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-in",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-typedef",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-using",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-this",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-operator",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-virtual",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-casts",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-pure",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-builtin-types",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-builtin-character-types",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-builtin-integer-types",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-builtin-vector-types",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-builtin-type-modifiers",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-builtin-float-types",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-property-modifiers",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-auto",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-typename",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-access",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-qualifier",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-non-type-param-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-template-non-type-param-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-type-param-class-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-template-param-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-type-param-function",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-type-param-function-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-template-type-interface",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-type-interface",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-type-function",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-template-type-param-class-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-template-type-param-function-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-template-template-param-pack",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-template-type-param-function",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-static-function-recursive",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-recursive",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-static-function-private-recursive",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-function-private-recursive",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-static-function-public-recursive",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-function-public-recursive",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-parameter-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-parameter-pack-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-parameter-output-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-function-parameter-output-pack-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-variable-public-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-variable-private-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-static-variable-public-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-member-static-variable-private-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-global-static-variable-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-global-variable-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-static-variable-functor",
+        "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-preprocessor-directive",
+        "description": "Malterlib token"
+      }
+    ]
+  }
+}

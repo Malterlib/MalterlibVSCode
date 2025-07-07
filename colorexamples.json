@@ -1,0 +1,297 @@
+[
+  {
+    "color": "#ffffff",
+    "examples": [
+      "for",
+      "if",
+      "while",
+      "do",
+      "const_cast",
+      "__abstract",
+      "__except",
+      "__alignof",
+      "namespace",
+      "delete",
+      "operator",
+      "__asm",
+      "__event",
+      "pure",
+      "static_assert",
+      "extern",
+      "template",
+      "this",
+      "class",
+      "typedef",
+      "using",
+      "final",
+      "#define"
+    ]
+  },
+  {
+    "color": "#c0c0c0",
+    "examples": [
+      "typename",
+      "inline"
+    ]
+  },
+  {
+    "color": "#808080",
+    "examples": [
+      "\\"
+    ]
+  },
+  {
+    "color": "#ffc8ca",
+    "examples": [
+      "public",
+      "private",
+      "protected",
+      "friend"
+    ]
+  },
+  {
+    "color": "#ffb680",
+    "examples": [
+      "const",
+      "volatile"
+    ]
+  },
+  {
+    "color": "#ff5966",
+    "examples": [
+      "int",
+      "bool",
+      "void",
+      "uint32",
+      "__wchar_t",
+      "double",
+      "long",
+      "__m128"
+    ]
+  },
+  {
+    "color": "#ff5bad",
+    "examples": [
+      "t_Test",
+      "tp_Test"
+    ]
+  },
+  {
+    "color": "#ff8ac5",
+    "examples": [
+      "gc_Test",
+      "ETest_Value",
+      "mc_Test",
+      "gc_Test",
+      "c_Test",
+      "true",
+      "false",
+      "nullptr"
+    ]
+  },
+  {
+    "color": "#ffb7db",
+    "examples": [
+      "tf_Test",
+      "tfp_Test"
+    ]
+  },
+  {
+    "color": "#d785ff",
+    "examples": [
+      "NTest"
+    ]
+  },
+  {
+    "color": "#8269ff",
+    "examples": [
+      "t_CTest",
+      "t_FTest",
+      "t_TCTest",
+      "tp_CTest",
+      "tp_FTest",
+      "tp_TCTest"
+    ]
+  },
+  {
+    "color": "#cdc3ff",
+    "examples": [
+      "tf_CTest",
+      "tf_FTest",
+      "tf_TCTest",
+      "tfp_CTest",
+      "tfp_FTest",
+      "tfp_TCTest"
+    ]
+  },
+  {
+    "color": "#b8aaff",
+    "examples": [
+      "ICTest",
+      "CTest",
+      "FTest",
+      "TCTest",
+      "TICTest",
+      "ETest"
+    ]
+  },
+  {
+    "color": "#dbd3ff",
+    "examples": [
+      "auto"
+    ]
+  },
+  {
+    "color": "#00e4e6",
+    "examples": [
+      "_fTest"
+      , "p_fTest"
+    ]
+  },
+  {
+    "color": "#36e8cd",
+    "examples": [
+      "o_fTest"
+      , "po_fTest"
+    ]
+  },
+  {
+    "color": "#00edae",
+    "examples": [
+      "fTest"
+    ]
+  },
+  {
+    "color": "#00f265",
+    "examples": [
+      "m_fTest"
+    ]
+  },
+  {
+    "color": "#4fc17e",
+    "examples": [
+      "mp_fTest"
+    ]
+  },
+  {
+    "color": "#26ff00",
+    "examples": [
+      "f_Test",
+      "fs_Test",
+      "f_rTest",
+      "fs_rTest"
+    ]
+  },
+  {
+    "color": "#1cb900",
+    "examples": [
+      "fg_Test",
+      "fsg_Test",
+      "fg_rTest",
+      "fsg_rTest"
+    ]
+  },
+  {
+    "color": "#8dd580",
+    "examples": [
+      "fp_Test",
+      "fsp_Test",
+      "fp_rTest",
+      "fsp_rTest"
+    ]
+  },
+  {
+    "color": "#e6ff00",
+    "examples": [
+      "_Test",
+      "p_Test"
+    ]
+  },
+  {
+    "color": "#fff54b",
+    "examples": [
+      "o_Test",
+      "po_Test"
+    ]
+  },
+  {
+    "color": "#ffd700",
+    "examples": [
+      "Var"
+    ]
+  },
+  {
+    "color": "#ffa600",
+    "examples": [
+      "m_Test"
+    ]
+  },
+  {
+    "color": "#ff7700",
+    "examples": [
+      "DTest"
+    ]
+  },
+  {
+    "color": "#ffbc81",
+    "examples": [
+      "d_Test"
+    ]
+  },
+  {
+    "color": "#d56955",
+    "examples": [
+      "msp_Test",
+      "msp_fTest"
+    ]
+  },
+  {
+    "color": "#ff3f1c",
+    "examples": [
+      "ms_Test",
+      "ms_fTest"
+    ]
+  },
+  {
+    "color": "#e13819",
+    "examples": [
+      "g_Test",
+      "gs_Test",
+      "g_fTest",
+      "gs_fTest",
+      "s_Test",
+      "s_fTest"
+    ]
+  },
+  {
+    "color": "#ffb680",
+    "examples": [
+      "cComparable"
+    ]
+  },
+  {
+    "color": "#ca97b1",
+    "examples": [
+      "mcp_Test"
+    ]
+  },
+  {
+    "color": "#c59d53",
+    "examples": [
+      "mp_Test"
+    ]
+  },
+  {
+    "color": "#c59d53",
+    "examples": [
+      "mp_Test"
+    ]
+  },
+  {
+    "color": "#909090",
+    "examples": [
+      "[[",
+      "]]"
+    ]
+  }  
+]

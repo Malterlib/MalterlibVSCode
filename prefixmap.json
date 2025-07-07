@@ -1,0 +1,358 @@
+{
+  "": {
+    "classification": "EClassification_Variable",
+    "variable": true
+  },
+  "C": {
+    "classification": "EClassification_Type",
+    "variable": false
+  },
+  "CF": {
+    "classification": "EClassification_Function",
+    "variable": false
+  },
+  "CFStr": {
+    "classification": "EClassification_Type",
+    "variable": false
+  },
+  "CFUStr": {
+    "classification": "EClassification_Type",
+    "variable": false
+  },
+  "CFWStr": {
+    "classification": "EClassification_Type",
+    "variable": false
+  },
+  "D": {
+    "classification": "EClassification_Macro",
+    "variable": false
+  },
+  "E": {
+    "classification": "EClassification_Enumerator",
+    "variable": false
+  },
+  "F": {
+    "classification": "EClassification_Type_Function",
+    "variable": false
+  },
+  "IC": {
+    "classification": "EClassification_Type_Interface",
+    "variable": false
+  },
+  "N": {
+    "classification": "EClassification_Namespace",
+    "variable": false
+  },
+  "NS": {
+    "classification": "EClassification_Type",
+    "variable": false
+  },
+  "TC": {
+    "classification": "EClassification_TemplateType",
+    "variable": false
+  },
+  "TF": {
+    "classification": "EClassification_TemplateType",
+    "variable": false
+  },
+  "TIC": {
+    "classification": "EClassification_TemplateType_Interface",
+    "variable": false
+  },
+  "UI": {
+    "classification": "EClassification_Type",
+    "variable": false
+  },
+  "_": {
+    "classification": "EClassification_FunctionParameter",
+    "variable": true
+  },
+  "_f": {
+    "classification": "EClassification_FunctionParameter_Functor",
+    "variable": false
+  },
+  "_o": {
+    "classification": "EClassification_FunctionParameter_Output",
+    "variable": true
+  },
+  "_of": {
+    "classification": "EClassification_FunctionParameter_Output_Functor",
+    "variable": false
+  },
+  "c": {
+    "classification": "EClassification_Concept",
+    "variable": false
+  },
+  "c_": {
+    "classification": "EClassification_ConstantVariable",
+    "variable": true
+  },
+  "d_": {
+    "classification": "EClassification_MacroParameter",
+    "variable": true
+  },
+  "f": {
+    "classification": "EClassification_Variable_Functor",
+    "variable": false
+  },
+  "f_": {
+    "classification": "EClassification_MemberFunctionPublic",
+    "variable": false
+  },
+  "f_r": {
+    "classification": "EClassification_MemberFunctionPublic_Recursive",
+    "variable": false
+  },
+  "fg_": {
+    "classification": "EClassification_Function",
+    "variable": false
+  },
+  "fg_r": {
+    "classification": "EClassification_Function_Recursive",
+    "variable": false
+  },
+  "fgr_": {
+    "classification": "EClassification_Function_Recursive",
+    "variable": false
+  },
+  "fl_": {
+    "classification": "EClassification_Variable_Functor",
+    "variable": false
+  },
+  "fp_": {
+    "classification": "EClassification_MemberFunctionPrivate",
+    "variable": false
+  },
+  "fp_r": {
+    "classification": "EClassification_MemberFunctionPrivate_Recursive",
+    "variable": false
+  },
+  "fpr_": {
+    "classification": "EClassification_MemberFunctionPrivate_Recursive",
+    "variable": false
+  },
+  "fr_": {
+    "classification": "EClassification_MemberFunctionPublic_Recursive",
+    "variable": false
+  },
+  "fs_": {
+    "classification": "EClassification_MemberStaticFunctionPublic",
+    "variable": false
+  },
+  "fs_r": {
+    "classification": "EClassification_MemberStaticFunctionPublic_Recursive",
+    "variable": false
+  },
+  "fsg_": {
+    "classification": "EClassification_StaticFunction",
+    "variable": false
+  },
+  "fsg_r": {
+    "classification": "EClassification_StaticFunction_Recursive",
+    "variable": false
+  },
+  "fsgr_": {
+    "classification": "EClassification_StaticFunction_Recursive",
+    "variable": false
+  },
+  "fsp_": {
+    "classification": "EClassification_MemberStaticFunctionPrivate",
+    "variable": false
+  },
+  "fsp_r": {
+    "classification": "EClassification_MemberStaticFunctionPrivate_Recursive",
+    "variable": false
+  },
+  "fspr_": {
+    "classification": "EClassification_MemberStaticFunctionPrivate_Recursive",
+    "variable": false
+  },
+  "fsr_": {
+    "classification": "EClassification_MemberStaticFunctionPublic_Recursive",
+    "variable": false
+  },
+  "g_": {
+    "classification": "EClassification_GlobalVariable",
+    "variable": true
+  },
+  "g_f": {
+    "classification": "EClassification_GlobalVariable_Functor",
+    "variable": false
+  },
+  "gc_": {
+    "classification": "EClassification_GlobalConstant",
+    "variable": true
+  },
+  "gs_": {
+    "classification": "EClassification_GlobalStaticVariable",
+    "variable": true
+  },
+  "gs_f": {
+    "classification": "EClassification_GlobalStaticVariable_Functor",
+    "variable": false
+  },
+  "k": {
+    "classification": "EClassification_Enumerator",
+    "variable": false
+  },
+  "m_": {
+    "classification": "EClassification_MemberVariablePublic",
+    "variable": true
+  },
+  "m_f": {
+    "classification": "EClassification_MemberVariablePublic_Functor",
+    "variable": false
+  },
+  "mc_": {
+    "classification": "EClassification_MemberConstantPublic",
+    "variable": true
+  },
+  "mcp_": {
+    "classification": "EClassification_MemberConstantPrivate",
+    "variable": true
+  },
+  "mp_": {
+    "classification": "EClassification_MemberVariablePrivate",
+    "variable": true
+  },
+  "mp_f": {
+    "classification": "EClassification_MemberVariablePrivate_Functor",
+    "variable": false
+  },
+  "ms_": {
+    "classification": "EClassification_MemberStaticVariablePublic",
+    "variable": true
+  },
+  "ms_f": {
+    "classification": "EClassification_MemberStaticVariablePublic_Functor",
+    "variable": false
+  },
+  "msp_": {
+    "classification": "EClassification_MemberStaticVariablePrivate",
+    "variable": true
+  },
+  "msp_f": {
+    "classification": "EClassification_MemberStaticVariablePrivate_Functor",
+    "variable": false
+  },
+  "o_": {
+    "classification": "EClassification_FunctionParameter_Output",
+    "variable": true
+  },
+  "o_f": {
+    "classification": "EClassification_FunctionParameter_Output_Functor",
+    "variable": false
+  },
+  "p_": {
+    "classification": "EClassification_FunctionParameter_Pack",
+    "variable": true
+  },
+  "p_f": {
+    "classification": "EClassification_FunctionParameter_Pack_Functor",
+    "variable": false
+  },
+  "p_o": {
+    "classification": "EClassification_FunctionParameter_Output_Pack",
+    "variable": true
+  },
+  "p_of": {
+    "classification": "EClassification_FunctionParameter_Output_Pack_Functor",
+    "variable": false
+  },
+  "po_": {
+    "classification": "EClassification_FunctionParameter_Output_Pack",
+    "variable": true
+  },
+  "po_f": {
+    "classification": "EClassification_FunctionParameter_Output_Pack_Functor",
+    "variable": false
+  },
+  "s_": {
+    "classification": "EClassification_StaticVariable",
+    "variable": true
+  },
+  "s_f": {
+    "classification": "EClassification_StaticVariable_Functor",
+    "variable": false
+  },
+  "t_": {
+    "classification": "EClassification_TemplateNonTypeParam",
+    "variable": true
+  },
+  "t_C": {
+    "classification": "EClassification_TemplateTypeParam_Class",
+    "variable": false
+  },
+  "t_F": {
+    "classification": "EClassification_TemplateTypeParam_Function",
+    "variable": false
+  },
+  "t_TC": {
+    "classification": "EClassification_TemplateTemplateParam",
+    "variable": false
+  },
+  "t_TF": {
+    "classification": "EClassification_TemplateTemplateParam",
+    "variable": false
+  },
+  "tf_": {
+    "classification": "EClassification_FunctionTemplateNonTypeParam",
+    "variable": true
+  },
+  "tf_C": {
+    "classification": "EClassification_FunctionTemplateTypeParam_Class",
+    "variable": false
+  },
+  "tf_F": {
+    "classification": "EClassification_FunctionTemplateTypeParam_Function",
+    "variable": false
+  },
+  "tf_TC": {
+    "classification": "EClassification_FunctionTemplateTemplateParam",
+    "variable": false
+  },
+  "tf_TF": {
+    "classification": "EClassification_FunctionTemplateTemplateParam",
+    "variable": false
+  },
+  "tfp_": {
+    "classification": "EClassification_FunctionTemplateNonTypeParam_Pack",
+    "variable": true
+  },
+  "tfp_C": {
+    "classification": "EClassification_FunctionTemplateTypeParam_Class_Pack",
+    "variable": false
+  },
+  "tfp_F": {
+    "classification": "EClassification_FunctionTemplateTypeParam_Function_Pack",
+    "variable": false
+  },
+  "tfp_TC": {
+    "classification": "EClassification_FunctionTemplateTemplateParam_Pack",
+    "variable": false
+  },
+  "tfp_TF": {
+    "classification": "EClassification_FunctionTemplateTemplateParam_Pack",
+    "variable": false
+  },
+  "tp_": {
+    "classification": "EClassification_TemplateNonTypeParam_Pack",
+    "variable": true
+  },
+  "tp_C": {
+    "classification": "EClassification_TemplateTypeParam_Class_Pack",
+    "variable": false
+  },
+  "tp_F": {
+    "classification": "EClassification_TemplateTypeParam_Function_Pack",
+    "variable": false
+  },
+  "tp_TC": {
+    "classification": "EClassification_TemplateTemplateParam_Pack",
+    "variable": false
+  },
+  "tp_TF": {
+    "classification": "EClassification_TemplateTemplateParam_Pack",
+    "variable": false
+  }
+}

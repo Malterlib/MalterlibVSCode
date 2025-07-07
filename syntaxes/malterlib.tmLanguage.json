@@ -1,0 +1,1055 @@
+{
+  "scopeName": "malterlib.injection",
+  "injectionSelector": "L:source.c -meta.preprocessor -string -comment, L:source.cpp -meta.preprocessor -string -comment",
+  "patterns": [
+    {
+      "match": "(\\b(?:defined|include|define|ifndef|import|pragma|endif|error|ifdef|undef|elif|line|once)\\b|#(?:include|define|ifndef|import|pragma|endif|error|ifdef|undef|using|elif|else|line|if)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-preprocessor-directive"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:const_reverse_iterator|const_local_iterator|reverse_iterator|const_reference|difference_type|allocator_type|const_iterator|local_iterator|const_pointer|value_compare|atomic_flag|key_compare|mapped_type|traits_type|false_type|state_type|value_type|char_type|key_equal|reference|size_type|true_type|u16string|u32string|wifstream|wofstream|ifstream|int_type|iterator|key_type|off_type|ofstream|pos_type|wfilebuf|wfstream|filebuf|fstream|pointer|wstring|CFUStr|CFWStr|hasher|string|CFStr|type)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-type"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:nullptr|false|NULL|true)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-builtin-constants"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:\\[\\[|\\]\\])\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-property-modifiers-brackets"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:__identifier|interior_ptr|__abstract|__delegate|__property|__try_cast|friend_as|interface|__sealed|__unhook|abstract|delegate|initonly|safecast|__value|generic|literal|__hook|__nogc|__box|__pin|array|event|gcnew|value|__gc|ref)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-clr"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:__alignof|__uuidof|decltype|sizeof|typeid)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-introspection"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:__assume|__asm)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-optimization"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:optimize_for_synchronized|function_does_not_return|only_parameters_aliased|calling_convention_c|inline_always_lambda|variable_not_aliased|inline_always_debug|carries_dependency|inline_never_debug|return_not_aliased|inline_extralarge|no_unique_address|align_cacheline|__attribute__|__forceinline|inline_always|inline_medium|module_export|module_import|__restrict__|inline_large|inline_never|inline_small|maybe_unused|__unaligned|assure_used|fallthrough|__declspec|__fastcall|__thiscall|deprecated|__stdcall|constexpr|dllexport|dllimport|intrinsic|nodiscard|selectany|str_utf16|str_utf32|__inline|__pragma|explicit|fastcall|noexcept|noinline|noreturn|novtable|property|str_utf8|__based|__cdecl|nothrow|stdcall|ignore|inline|thread|cdecl|naked|uuid)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-property-modifiers"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:__multiple_inheritance|__virtual_inheritance|__single_inheritance|__if_not_exists|__if_exists|__interface|__event|__super|__noop)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-other"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:__finally|__except|__leave|__raise|finally|__try|catch|throw|try)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-exception-handling"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:zuint1024|zuint2048|zuint4096|zuint8192|uint1024|uint2048|uint4096|uint8192|zint1024|zint2048|zint4096|zint8192|zuint128|zuint160|zuint256|zuint512|__int16|__int32|__int64|int1024|int2048|int4096|int8192|uint128|uint160|uint256|uint512|zint128|zint160|zint256|zint512|zuamint|zuint16|zuint32|zuint64|zuint80|__int8|int128|int160|int256|int512|size_t|uint16|uint32|uint64|uint80|zamint|zint16|zint32|zint64|zint80|zsmint|zuint8|zumint|int16|int32|int64|int80|smint|uaint|uint8|umint|zint8|zmint|aint|int8|mint|int)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-builtin-integer-types"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:__m128d|__m128i|__m128|__m64|__w64)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-builtin-vector-types"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:__wchar_t|char16_t|char32_t|wchar_t|zuch16|zuch32|uch16|uch32|zch16|zch32|zuch8|ch16|ch32|char|uch8|zch8|ch8)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-builtin-character-types"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:is_trivially_default_constructible|is_nothrow_default_constructible|is_trivially_copy_constructible|is_trivially_move_constructible|is_nothrow_copy_constructible|is_nothrow_move_constructible|is_trivially_copy_assignable|is_trivially_move_assignable|is_member_function_pointer|is_nothrow_copy_assignable|is_nothrow_move_assignable|is_trivially_constructible|is_trivially_destructible|is_default_constructible|is_member_object_pointer|is_nothrow_constructible|enable_shared_from_this|is_nothrow_destructible|is_trivially_assignable|has_virtual_destructor|is_copy_constructible|is_move_constructible|is_nothrow_assignable|is_trivially_copyable|add_lvalue_reference|add_rvalue_reference|is_lvalue_reference|is_rvalue_reference|is_copy_assignable|is_move_assignable|is_standard_layout|remove_all_extents|unordered_multimap|unordered_multiset|integral_constant|is_floating_point|is_member_pointer|is_constructible|remove_reference|aligned_storage|is_destructible|is_literal_type|remove_volatile|underlying_type|basic_ifstream|basic_ofstream|default_delete|is_convertible|is_fundamental|is_polymorphic|priority_queue|remove_pointer|aligned_union|basic_filebuf|basic_fstream|is_arithmetic|is_assignable|make_unsigned|remove_extent|unordered_map|unordered_set|add_volatile|alignment_of|auto_ptr_ref|basic_string|forward_list|is_reference|remove_const|add_pointer|char_traits|common_type|conditional|is_abstract|is_compound|is_function|is_integral|is_unsigned|is_volatile|make_signed|is_base_of|is_pointer|is_trivial|owner_less|shared_ptr|unique_ptr|add_const|allocator|enable_if|is_object|is_scalar|is_signed|remove_cv|result_of|function|is_array|is_class|is_const|is_empty|is_union|multimap|multiset|weak_ptr|is_enum|is_same|is_void|add_cv|atomic|extent|is_pod|vector|decay|deque|queue|stack|tuple|list|pair|rank|map|set)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-type"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:dynamic_pointer_cast|static_pointer_cast|const_pointer_cast|forward_as_tuple|move_if_noexcept|allocate_shared|get_deleter|make_shared|make_tuple|make_pair|tuple_cat|declval|forward|getline|bind|move|max|min|tie)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:assert)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-macro"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:compare_exchange_strong|compare_exchange_weak|find_first_not_of|fint_last_not_of|max_bucket_count|max_load_factor|cbefore_begin|emplace_after|emplace_front|find_first_of|get_allocator|shrink_to_fit|before_begin|bucket_count|emplace_back|emplace_hint|find_last_of|hash_fuction|insert_after|is_lock_free|splice_after|bucket_size|equal_range|erase_after|load_factor|lower_bound|upper_bound|push_front|value_comp|fetch_add|fetch_and|fetch_sub|fetch_xor|pop_front|push_back|remove_if|capacity|exchange|fetch_or|key_comp|max_size|pop_back|compare|emplace|reserve|reverse|assign|bucket|insert|key_eq|length|rehash|remove|resize|splice|substr|unique|c_str|clear|count|empty|erase|front|merge|rfind|store|back|copy|data|fill|find|load|push|size|sort|pop|top|at)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-function-public"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:constant_uint64|constant_int64|yield_cpu|continue|unlikely|default|assume|likely|return|switch|break|while|case|else|goto|for|do|if)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-control-statement"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:auto)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-auto"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:zbint|zbool|bint|bool|void)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-builtin-types"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:struct|class|union|enum)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-type-specification"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:volatile|const)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-qualifier"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:reinterpret_cast|dynamic_cast|static_cast|const_cast)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-casts"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:delete|new)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-new-delete"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:zufp1024|zufp2048|zufp4096|ufp1024|ufp2048|ufp4096|zfp1024|zfp2048|zfp4096|zufp128|zufp256|zufp512|double|fp1024|fp2048|fp4096|ufp128|ufp256|ufp512|zfp128|zfp256|zfp512|zufp16|zufp32|zufp64|zufp80|float|fp128|fp256|fp512|ufp16|ufp32|ufp64|ufp80|zfp16|zfp32|zfp64|zfp80|zufp8|fp16|fp32|fp64|fp80|ufp8|zfp8|fp8)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-builtin-float-types"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:register|mutable|extern|static)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-storage-class"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:override|virtual|sealed|final)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-virtual"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:protected|private|friend|public)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-access"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:unsigned|signed|short|long)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-builtin-type-modifiers"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:memory_order)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-enum"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:memory_order_acq_rel|memory_order_acquire|memory_order_consume|memory_order_relaxed|memory_order_release|memory_order_seq_cst)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-enumerator"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:namespace)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-namespace"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:npos)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-constant-public"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:operator)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-operator"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:pure)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-pure"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:static_assert)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-static-assert"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:std)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-namespace"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:template)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-template"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:this)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-this"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:typedef)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-typedef"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:typename)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-typename"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:using)\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-keyword-using"
+        }
+      }
+    },
+    {
+      "match": "(\\bCFUStr[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-type"
+        }
+      }
+    },
+    {
+      "match": "(\\bCFWStr[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-type"
+        }
+      }
+    },
+    {
+      "match": "(\\btfp_TC[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-template-param-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\btfp_TF[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-template-param-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\bCFStr[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-type"
+        }
+      }
+    },
+    {
+      "match": "(\\bfsg_r[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-static-function-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfsgr_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-static-function-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfsp_r[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-function-private-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfspr_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-function-private-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bmsp_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-variable-private-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\btf_TC[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-template-param"
+        }
+      }
+    },
+    {
+      "match": "(\\btf_TF[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-template-param"
+        }
+      }
+    },
+    {
+      "match": "(\\btfp_C[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-type-param-class-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\btfp_F[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-type-param-function-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\btp_TC[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-template-param-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\btp_TF[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-template-param-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\bfg_r[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfgr_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfp_r[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-function-private-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfpr_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-function-private-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfs_r[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-function-public-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfsg_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-static-function"
+        }
+      }
+    },
+    {
+      "match": "(\\bfsp_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-function-private"
+        }
+      }
+    },
+    {
+      "match": "(\\bfsr_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-function-public-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bgs_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-global-static-variable-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bmcp_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-constant-private"
+        }
+      }
+    },
+    {
+      "match": "(\\bmp_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-variable-private-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bms_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-variable-public-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bmsp_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-variable-private"
+        }
+      }
+    },
+    {
+      "match": "(\\bp_of[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-output-pack-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bpo_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-output-pack-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bt_TC[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-template-param"
+        }
+      }
+    },
+    {
+      "match": "(\\bt_TF[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-template-param"
+        }
+      }
+    },
+    {
+      "match": "(\\btf_C[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-type-param-class"
+        }
+      }
+    },
+    {
+      "match": "(\\btf_F[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-type-param-function"
+        }
+      }
+    },
+    {
+      "match": "(\\btfp_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-non-type-param-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\btp_C[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-type-param-class-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\btp_F[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-type-param-function-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\bTIC[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-type-interface"
+        }
+      }
+    },
+    {
+      "match": "(\\b_of[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-output-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bf_r[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-function-public-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfg_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function"
+        }
+      }
+    },
+    {
+      "match": "(\\bfl_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-variable-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bfp_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-function-private"
+        }
+      }
+    },
+    {
+      "match": "(\\bfr_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-function-public-recursive"
+        }
+      }
+    },
+    {
+      "match": "(\\bfs_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-function-public"
+        }
+      }
+    },
+    {
+      "match": "(\\bg_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-global-variable-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bgc_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-global-constant"
+        }
+      }
+    },
+    {
+      "match": "(\\bgs_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-global-static-variable"
+        }
+      }
+    },
+    {
+      "match": "(\\bm_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-variable-public-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bmc_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-constant-public"
+        }
+      }
+    },
+    {
+      "match": "(\\bmp_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-variable-private"
+        }
+      }
+    },
+    {
+      "match": "(\\bms_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-static-variable-public"
+        }
+      }
+    },
+    {
+      "match": "(\\bo_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-output-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bp_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-pack-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bp_o[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-output-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\bpo_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-output-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\bs_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-static-variable-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bt_C[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-type-param-class"
+        }
+      }
+    },
+    {
+      "match": "(\\bt_F[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-type-param-function"
+        }
+      }
+    },
+    {
+      "match": "(\\btf_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-template-non-type-param"
+        }
+      }
+    },
+    {
+      "match": "(\\btp_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-non-type-param-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\bCF[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function"
+        }
+      }
+    },
+    {
+      "match": "(\\bIC[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-type-interface"
+        }
+      }
+    },
+    {
+      "match": "(\\bNS[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-type"
+        }
+      }
+    },
+    {
+      "match": "(\\bTC[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-type"
+        }
+      }
+    },
+    {
+      "match": "(\\bTF[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-type"
+        }
+      }
+    },
+    {
+      "match": "(\\bUI[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-type"
+        }
+      }
+    },
+    {
+      "match": "(\\b_f[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\b_o[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-output"
+        }
+      }
+    },
+    {
+      "match": "(\\bc_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-constant-variable"
+        }
+      }
+    },
+    {
+      "match": "(\\bd_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-macro-parameter"
+        }
+      }
+    },
+    {
+      "match": "(\\bf_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-function-public"
+        }
+      }
+    },
+    {
+      "match": "(\\bg_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-global-variable"
+        }
+      }
+    },
+    {
+      "match": "(\\bm_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-member-variable-public"
+        }
+      }
+    },
+    {
+      "match": "(\\bo_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-output"
+        }
+      }
+    },
+    {
+      "match": "(\\bp_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter-pack"
+        }
+      }
+    },
+    {
+      "match": "(\\bs_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-static-variable"
+        }
+      }
+    },
+    {
+      "match": "(\\bt_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-template-non-type-param"
+        }
+      }
+    },
+    {
+      "match": "(\\bC[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-type"
+        }
+      }
+    },
+    {
+      "match": "(\\bD[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-macro"
+        }
+      }
+    },
+    {
+      "match": "(\\bE[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-enumerator"
+        }
+      }
+    },
+    {
+      "match": "(\\bF[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-type-function"
+        }
+      }
+    },
+    {
+      "match": "(\\bN[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-namespace"
+        }
+      }
+    },
+    {
+      "match": "(\\b_[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-function-parameter"
+        }
+      }
+    },
+    {
+      "match": "(\\bc[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-concept"
+        }
+      }
+    },
+    {
+      "match": "(\\bf[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-variable-functor"
+        }
+      }
+    },
+    {
+      "match": "(\\bk[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-enumerator"
+        }
+      }
+    },
+    {
+      "match": "(\\b[A-Za-z0-9_]+\\b)",
+      "captures": {
+        "1": {
+          "name": "malterlib-variable"
+        }
+      }
+    }
+  ],
+  "repository": {}
+}
