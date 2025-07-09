@@ -40,7 +40,8 @@ Here are the recommmended colors you can put into your settings.json file:
           "keyword.operator.assignment.c",
           "keyword.operator.c",
           "keyword.operator.assignment.compound",
-          "entity.other.attribute-name"
+          "entity.other.attribute-name",
+          "entity.name.operator.cpp"
         ],
         "settings": {
           "foreground": "#ffffff"

@@ -12,7 +12,7 @@ esbuild.js
 node_modules
 out/
 scripts/
-syntaxes/
+syntaxes/malterlib.tmLanguage.json
 *.vsix
 colorexamples.json
 settingsTemplate.json
