@@ -1,0 +1,671 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Malterlib Build",
+    "scopeName": "source.malterlibbuild",
+    "fileTypes": [
+        "MTarget",
+        "MBuildSystem",
+        "OldMBuildSystem",
+        "MSettings",
+        "MHeader",
+        "MInclude",
+        "MGeneratorSettings",
+        "MDependency",
+        "MWorkspace",
+        "MWorkspaceHeader",
+        "MSettingsHeader"
+    ],
+    "patterns": [
+        {
+            "include": "#main"
+        }
+    ],
+    "repository": {
+        "main": {
+            "patterns": [
+                {
+                    "match": "(^|\\s)\\\\(true|false)?($|\\s)",
+                    "name": "malterlib.variable"
+                },
+                {
+                    "match": "%(Target|Group|Workspace|File|Dependency|GeneratorSetting|GenerateFile|Import|Repository|CreateTemplate)",
+                    "captures": {
+                        "1": {
+                            "name": "malterlib.entity.explicit"
+                        }
+                    }
+                },
+                {
+                    "match": "(Target|Group|Workspace|File|Dependency|GeneratorSetting|GenerateFile|Import|Repository|CreateTemplate):(?! )",
+                    "captures": {
+                        "1": {
+                            "name": "malterlib.entity.explicit"
+                        }
+                    }
+                },
+                {
+                    "match": "\\*([A-Z][a-zA-Z0-9_]*)",
+                    "captures": {
+                        "1": {
+                            "name": "malterlib.tuple.explicit"
+                        }
+                    }
+                },
+                {
+                    "match": "(Property|Compile|Target|Workspace|Dependency|GenerateFile|Import|Repository|CreateTemplate|Group|Builtin|Type|GeneratorSetting)(\\s*$|\\.)",
+                    "captures": {
+                        "1": {
+                            "name": "malterlib.namespace.explicit"
+                        }
+                    }
+                },
+                {
+                    "match": "\\b(GreaterThan|GreaterThanEqual|LessThan|LessThanEqual|Equal|NotEqual|Not|And|Or)\\b",
+                    "name": "malterlib.function.global.explicit"
+                },
+                {
+                    "match": "\\b(ExecuteCommand|GeneratedFiles|SourceFiles|ReadFile|FileExists|DirectoryExists|FileOrDirectoryExists|FindFilesIn|FindDirectoriesIn|FindFilesRecursiveIn|FindDirectoriesRecursiveIn|LinkExists|ResolveSymbolicLink)\\b",
+                    "name": "malterlib.function.global.explicit"
+                },
+                {
+                    "match": "\\b(ForEach|ContainsListElement|Length|IsEmpty|Unique|RemoveDuplicates|Sort|Concat)\\b",
+                    "name": "malterlib.function.global.explicit"
+                },
+                {
+                    "match": "\\b(Error|ErrorWithPositions|Log|LogWithSequence|Warning|MalterlibTime|DateTime|HashUUID|HashSHA256|IsDefined|Switch|SwitchWithError|SwitchWithDefault)\\b",
+                    "name": "malterlib.function.global.explicit"
+                },
+                {
+                    "match": "\\b(RelativeBase|GetLastPaths|RemoveStartPaths|GetPath|GetFile|GetExtension|GetFileNoExt|GetDrive|AppendPath|MakeRelative|MakeAbsolute|IsAbsolute|WindowsPath|UnixPath|NativePath|ShortenPath)\\b",
+                    "name": "malterlib.function.global.explicit"
+                },
+                {
+                    "match": "\\b(GetProperty|OverridingType|WithPositionOverridingType|WithPosition|HasProperty|HasEntity|IsString|IsValid|IsNull|IsStringArray|IsInteger|IsFloat|IsBoolean|IsObject|IsArray|IsDate|IsBinary|IsUserType|AsString|AsInteger|AsFloat|AsBoolean|HasMember|RemoveUndefined)\\b",
+                    "name": "malterlib.function.global.explicit"
+                },
+                {
+                    "match": "\\b(ToString|ToStringCompact|EJSONToString|EJsonToString|JSONToString|JsonToString|ParseEJSON|ParseEJson|ParseJSON|ParseJson|Split|Join|Escape|EscapeHost|EscapeWindows|EscapeBash|Trim|Replace|ReplaceChars|FindGetLine|Find|FindNoCase|StartsWith|EndsWith|RemoveSuffix|RemovePrefix|Format|ParseFormatString|Parse|Sanitize|EscapeMSBuild)\\b",
+                    "name": "malterlib.function.global.explicit"
+                },
+                {
+                    "match": "\\b(ReadWindowsRegistry)\\b",
+                    "name": "malterlib.function.global.explicit"
+                },
+                {
+                    "match": "\\b(friend|private|public|protected)\\b",
+                    "name": "malterlib.keyword.access"
+                },
+                {
+                    "match": "\\b(const|volatile)\\b",
+                    "name": "malterlib.keyword.qualifiers"
+                },
+                {
+                    "match": "\\b(register|static|extern|mutable)\\b",
+                    "name": "malterlib.keyword.storageclass"
+                },
+                {
+                    "match": "\\b(any)\\b",
+                    "name": "malterlib.keyword.builtintype"
+                },
+                {
+                    "match": "\\b(bool|void|bint|zbint|zbool)\\b",
+                    "name": "malterlib.keyword.builtintype"
+                },
+                {
+                    "match": "\\?",
+                    "name": "malterlib.keyword.operator"
+                },
+                {
+                    "include": "source.c#comments"
+                },
+                {
+                    "include": "source.c#operators"
+                },
+                {
+                    "include": "#numbers"
+                },
+                {
+                    "include": "#strings"
+                },
+                {
+                    "match": "\\b(friend|private|public|protected)\\b",
+                    "name": "malterlib.keyword.access"
+                },
+                {
+                    "match": "\\b(const|volatile)\\b",
+                    "name": "malterlib.keyword.qualifiers"
+                },
+                {
+                    "match": "\\b(register|static|extern|mutable)\\b",
+                    "name": "malterlib.keyword.storageclass"
+                },
+                {
+                    "match": "\\b(any)\\b",
+                    "name": "malterlib.keyword.builtintype"
+                },
+                {
+                    "match": "\\b(bool|void|bint|zbint|zbool)\\b",
+                    "name": "malterlib.keyword.builtintype"
+                },
+                {
+                    "match": "\\b(char|__wchar_t|wchar_t|ch8|ch16|ch32|uch8|uch16|uch32|zch8|zch16|zch32|zuch8|zuch16|zuch32|char16_t|char32_t|zuch32|string)\\b",
+                    "name": "malterlib.keyword.builtincharactertype"
+                },
+                {
+                    "match": "\\b(int|size_t|__int16|__int32|__int64|__int8|zuint320|zuint512|zuint1024|zuint2048|zuint4096|zuint8192|zuint8|zuint16|zuint32|zuint64|zuint80|zuint128|zuint160|zuint256|zint320|zint512|zint1024|zint2048|zint4096|zint8192|zint8|zint16|zint32|zint64|zint80|zint128|zint160|zint256|uint8|uint16|uint32|uint64|uint80|uint128|uint160|uint256|uint320|uint512|uint1024|uint2048|uint4096|uint8192|int8|int16|int32|int64|int80|int128|int160|int256|int320|int512|int1024|int2048|int4096|int8192|mint|smint|umint|aint|uaint|zmint|zumint|zsmint|zamint|zuamint)\\b",
+                    "name": "malterlib.keyword.builtinintegertype"
+                },
+                {
+                    "match": "\\b(long|short|signed|unsigned)\\b",
+                    "name": "malterlib.keyword.builtintypemodifier"
+                },
+                {
+                    "match": "\\b(__m128|__m64|__w64|__m128i|__m128d)\\b",
+                    "name": "malterlib.keyword.builtinvectortype"
+                },
+                {
+                    "match": "\\b(float|double|fp8|fp16|fp32|fp64|fp80|fp128|fp256|fp512|fp1024|fp2048|fp4096|ufp8|ufp16|ufp32|ufp64|ufp80|ufp128|ufp256|ufp512|ufp1024|ufp2048|ufp4096|zfp8|zfp16|zfp32|zfp64|zfp80|zfp128|zfp256|zfp512|zfp1024|zfp2048|zfp4096|zufp8|zufp16|zufp32|zufp64|zufp80|zufp128|zufp256|zufp512|zufp1024|zufp2048|zufp4096)\\b",
+                    "name": "malterlib.keyword.builtinfloattype"
+                },
+                {
+                    "match": "\\b(false|true|nullptr|NULL)\\b",
+                    "name": "constant.language.c malterlib.keyword.builtinconstant"
+                },
+                {
+                    "match": "\\b(null|undefined|Infinity|NaN|E|LN2|LN10|LOG2E|LOG10E|MAX_VALUE|MIN_VALUE|NEGATIVE_INFINITY|PI|POSITIVE_INFINITY|SQRT1_2|SQRT2)\\b",
+                    "name": "malterlib.keyword.js.bultinconstant"
+                },
+                {
+                    "match": "\\b(_|__)\\b",
+                    "name": "malterlib.keyword.jsonconstants"
+                },
+                {
+                    "match": "\\b(try|throw|catch|__try|__except|__finally|__leave|__raise|finally)\\b",
+                    "name": "malterlib.keyword.exceptionhandling"
+                },
+                {
+                    "match": "\\b(__alignof|sizeof|decltype|__uuidof|typeid)\\b",
+                    "name": "malterlib.keyword.introspection"
+                },
+                {
+                    "match": "\\b(typeof|instanceof)\\b",
+                    "name": "malterlib.keyword.js.introspection"
+                },
+                {
+                    "match": "\\b(static_assert)\\b",
+                    "name": "malterlib.keyword.staticassert"
+                },
+                {
+                    "match": "\\b(while|for|goto|if|do|break|case|continue|default|else|return|switch|assume|yield_cpu|constant_int64|constant_uint64)\\b",
+                    "name": "malterlib.keyword.controlstatement"
+                },
+                {
+                    "match": "\\b(__asm|__assume)\\b",
+                    "name": "malterlib.keyword.optimization"
+                },
+                {
+                    "match": "\\b(__unaligned|__declspec|__based|deprecated|dllexport|dllimport|naked|noinline|noreturn|nothrow|noexcept|novtable|property|selectany|maybe_unused|nodiscard|likely|unlikely|thread|uuid|explicit|__forceinline|__inline|inline|__cdecl|__thiscall|__fastcall|__stdcall|calling_convention_c|cdecl|stdcall|fastcall|inline_small|inline_always|inline_never|inline_never_debug|inline_medium|inline_large|inline_extralarge|inline_always_debug|module_export|module_import|only_parameters_aliased|malloc_like|return_not_aliased|function_does_not_return|variable_not_aliased|constexpr|__pragma|__attribute__|__restrict__|assure_used|align_cacheline|intrinsic|no_unique_address)\\b",
+                    "name": "malterlib.keyword.propertymodifier"
+                },
+                {
+                    "match": "\\b(delete|new)\\b",
+                    "name": "malterlib.keyword.newdelete"
+                },
+                {
+                    "match": "\\b(__abstract|abstract|__box|__delegate|__gc|__hook|__nogc|__pin|__property|__sealed|__try_cast|__unhook|__value|event|__identifier|friend_as|interface|interior_ptr|gcnew|generic|initonly|literal|ref|safecast)\\b",
+                    "name": "malterlib.keyword.clr"
+                },
+                {
+                    "match": "\\b(__event|__if_exists|__if_not_exists|__interface|__multiple_inheritance|__single_inheritance|__virtual_inheritance|__super|__noop)\\b",
+                    "name": "malterlib.keyword.other"
+                },
+                {
+                    "match": "\\b(union|class|enum|struct)\\b",
+                    "name": "malterlib.keyword.typespecification"
+                },
+                {
+                    "match": "\\b(namespace)\\b",
+                    "name": "malterlib.keyword.namespace"
+                },
+                {
+                    "match": "\\b(typename|type|one_of)\\b",
+                    "name": "malterlib.keyword.typename"
+                },
+                {
+                    "match": "\\b(template)\\b",
+                    "name": "malterlib.keyword.template"
+                },
+                {
+                    "match": "\\b(function|in)\\b",
+                    "name": "malterlib.keyword.js.function"
+                },
+                {
+                    "match": "\\b(typedef)\\b",
+                    "name": "malterlib.keyword.typedef"
+                },
+                {
+                    "match": "\\b(using)\\b",
+                    "name": "malterlib.keyword.using"
+                },
+                {
+                    "match": "\\b(auto)\\b",
+                    "name": "malterlib.keyword.auto"
+                },
+                {
+                    "match": "\\b(var)\\b",
+                    "name": "malterlib.keyword.js.var"
+                },
+                {
+                    "match": "\\b(this|self)\\b",
+                    "name": "malterlib.keyword.this"
+                },
+                {
+                    "match": "\\b(operator)\\b",
+                    "name": "malterlib.keyword.operator"
+                },
+                {
+                    "match": "\\b(final|sealed|override|virtual)\\b",
+                    "name": "malterlib.keyword.virtual"
+                },
+                {
+                    "match": "\\b(const_cast|dynamic_cast|reinterpret_cast|static_cast)\\b",
+                    "name": "malterlib.keyword.casts"
+                },
+                {
+                    "match": "\\b(ignore)\\b",
+                    "name": "malterlib.keyword.ignore"
+                },
+                {
+                    "match": "\\b(define|error|import|undef|elif|if|include|using|else|ifdef|line|endif|ifndef|pragma)\\b",
+                    "name": "malterlib.keyword.preprocessordirective"
+                },
+                {
+                    "match": "\\b(less|greater|equivalent|equal|unordered)\\b",
+                    "name": "malterlib.constant"
+                },
+                {
+                    "match": "\\b(c_|gc_|mc_)[bcfinptr]?[A-Z][a-zA-Z0-9_]+\\b",
+                    "name": "malterlib.constant"
+                },
+                {
+                    "match": "\\b(E[A-Z][a-zA-Z0-9_]+_[a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.constant.enumerator"
+                },
+                {
+                    "match": "\\b(mcp_[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.constant.private"
+                },
+                {
+                    "match": "\\b((tf_C|tf_F|tf_TC|tfp_C|tfp_F|tfp_TC)[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.functiontemplatetypeparam"
+                },
+                {
+                    "match": "\\b((t_C|t_F|t_TC|tp_C|tp_F|tp_TC)[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.templatetypeparam"
+                },
+                {
+                    "match": "\\b((t_|tp_)[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.constant.template"
+                },
+                {
+                    "match": "\\b((tf_|tfp_)[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.constant.templatefunction"
+                },
+                {
+                    "match": "\\b(N[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.namespace"
+                },
+                {
+                    "match": "\\b(std|experimental)\\b",
+                    "name": "malterlib.namespace.explicit"
+                },
+                {
+                    "match": "(CMake[a-zA-Z_]([a-zA-Z0-9_]|\\\\.)*)",
+                    "name": "malterlib.variable"
+                },
+                {
+                    "match": "\\b((E|C|F|IC|TC|TIC)[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.type"
+                },
+                {
+                    "match": "\\b(coroutine_traits|coroutine_handle|suspend_always|suspend_never|promise_type|noop_coroutine_promise|noop_coroutine_handle|exception_ptr)\\b",
+                    "name": "malterlib.type.explicit"
+                },
+                {
+                    "match": "\\b(m_f[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.functor.member"
+                },
+                {
+                    "match": "\\b(mp_f[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.functor.member.private"
+                },
+                {
+                    "match": "\\b(m_[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.member"
+                },
+                {
+                    "match": "\\b(mp_[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.member.private"
+                },
+                {
+                    "match": "\\b((f[A-Z][a-zA-Z0-9_]+)|(fl_[A-Z][a-zA-Z0-9_]+))\\b",
+                    "name": "malterlib.functor.local"
+                },
+                {
+                    "match": "\\b((_f|p_f)[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.functor.param"
+                },
+                {
+                    "match": "\\b((o_f|w_f|po_f|pw_f|_of|p_of)[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.functor.param.output"
+                },
+                {
+                    "match": "\\b((f_|fr_|f_r|fs_|fsr_|fs_r)[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.function"
+                },
+                {
+                    "match": "\\b(await_transform|await_ready|await_suspend|await_resume|get_return_object|return_value|return_void|yield_value|initial_suspend|final_suspend|unhandled_exception|from_promise|address|resume|destroy|done|promise)\\b",
+                    "name": "malterlib.function.explicit"
+                },
+                {
+                    "match": "\\b((fp_|fpr_|fp_r|fsp_|fspr_|fsp_r)[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.function.private"
+                },
+                {
+                    "match": "\\b((fg_|fgr_|fg_r|fsg_|fsgr_|fsg_r)[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.function"
+                },
+                {
+                    "match": "\\b(D[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "entity.name.function.preprocessor malterlib.macro"
+                },
+                {
+                    "match": "\\b(constant_int64|constant_uint64|str_utf8|str_utf16|str_utf32)\\b",
+                    "name": "malterlib.macro.explicit"
+                },
+                {
+                    "match": "\\b(d_[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.macro.parameter"
+                },
+                {
+                    "match": "\\b((_|p_)[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.function.parameter"
+                },
+                {
+                    "match": "\\b((o_|w_|po_|pw_|_o|p_o)[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.function.parameter.output"
+                },
+                {
+                    "match": "\\b(ms_[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.member.static"
+                },
+                {
+                    "match": "\\b(msp_[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.member.static.private"
+                },
+                {
+                    "match": "\\b((gs_|g_|s_)[bcfinptr]?[A-Z][a-zA-Z0-9_]+)\\b",
+                    "name": "malterlib.global"
+                },
+                {
+                    "match": "([a-zA-Z_]([a-zA-Z0-9_]|\\\\.)*)",
+                    "name": "malterlib.variable"
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "include": "#unique-numbers"
+                },
+                {
+                    "include": "source.c#numbers"
+                }
+            ]
+        },
+        "unique-numbers": {
+            "patterns": [
+                {
+                    "match": "(?x)(?:(?:(?:\\b\\d(?:[\\d']*\\d)?\\.\\d(?:[\\d']*\\d)?|\\B\\.\\d(?:[\\d']*\\d)?)(?:[Ee][+-]?\\d(?:[\\d']*\\d)?)?(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\\w*))?\\b|(?:\\b\\d(?:[\\d']*\\d)?\\.)(?:\\B|(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\\w*))\\b|(?:[Ee][+-]?\\d(?:[\\d']*\\d)?)(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\\w*))?\\b)|\\b\\d(?:[\\d']*\\d)?(?:[Ee][+-]?\\d(?:[\\d']*\\d)?)(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\\w*))?\\b)|\\b(?:(?:[1-9](?:[\\d']*\\d)?|0(?:[0-7']*[0-7])?|0[Xx][\\da-fA-F](?:[\\da-fA-F']*[\\da-fA-F])?|0[Bb][01](?:[01']*[01])?)(?:(?:l{1,2}|L{1,2})[uU]?|[uU](?:l{0,2}|L{0,2})|(?:i[fl]?|h|min|[mun]?s|_\\w*))?)\\b)(?!\\.)",
+                    "name": "constant.numeric.malterlib-build"
+                }
+            ]
+        },
+        "unique-strings": {
+            "begin": "((?:L|u8|u|U)?R)(\"([^\\(\\)\\\\ ]{0,16})\\()",
+            "beginCaptures": {
+                "1": {
+                    "name": "storage.type.string.malterlib-build"
+                },
+                "2": {
+                    "name": "punctuation.definition.string.begin.malterlib-build"
+                }
+            },
+            "end": "\\)\\3\"",
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.definition.string.end.malterlib-build"
+                }
+            },
+            "name": "string.quoted.double.malterlib-build",
+            "patterns": [
+                {
+                    "include": "#string-content"
+                }
+            ]
+        },
+        "string-content": {
+            "patterns": [
+                {
+                    "match": "\\\\\\n",
+                    "name": "constant.character.escape.newline.malterlib-build"
+                },
+                {
+                    "match": "\\\\\\r",
+                    "name": "constant.character.escape.newline.malterlib-build"
+                },
+                {
+                    "match": "\\\\(?:x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}\\r|.)",
+                    "name": "constant.character.escape.malterlib-build"
+                },
+                {
+                    "match": "@@",
+                    "name": "constant.character.escape.malterlib-build"
+                }
+            ]
+        },
+        "eval-strings": {
+            "begin": "`",
+            "beginCaptures": {
+                "0": {
+                    "name": "punctuation.definition.string.begin.malterlib-build"
+                }
+            },
+            "end": "`",
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.definition.string.end.malterlib-build"
+                }
+            },
+            "name": "string.quoted.eval.malterlib-build",
+            "patterns": [
+                {
+                    "begin": "@\\(",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.template-expression.begin.malterlib-build"
+                        }
+                    },
+                    "end": "\\)",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.template-expression.end.malterlib-build"
+                        }
+                    },
+                    "name": "meta.template.expression.malterlib-build",
+                    "patterns": [
+                        {
+                            "include": "#eval-strings-inner"
+                        }
+                    ]
+                },
+                {
+                    "include": "#string-content"
+                }
+            ]
+        },
+        "eval-strings-inner": {
+            "patterns": [
+                {
+                    "include": "#main"
+                },
+                {
+                    "begin": "\\(",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.template-expression.begin.malterlib-build.inner"
+                        }
+                    },
+                    "end": "\\)",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.template-expression.end.malterlib-build.inner"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#eval-strings-inner"
+                        }
+                    ]
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "include": "#eval-strings"
+                },
+                {
+                    "include": "#unique-strings"
+                },
+                {
+                    "include": "source.c#strings"
+                }
+            ]
+        },
+        "preprocessor-line-continuation": {
+            "patterns": [
+                {
+                    "match": "(\\\\)$\\n",
+                    "captures": {
+                        "1": {
+                            "name": "punctuation.separator.continuation.c"
+                        }
+                    }
+                },
+                {
+                    "match": "\\\\(\\s+?)$",
+                    "captures": {
+                        "1": {
+                            "name": "invalid.illegal.space-after-continuation.c"
+                        }
+                    }
+                }
+            ]
+        },
+        "preprocessor-line-ending": {
+            "patterns": [
+                {
+                    "match": "$\\n",
+                    "name": ""
+                }
+            ]
+        },
+        "preprocessor-comments": {
+            "patterns": [
+                {
+                    "begin": "/\\*",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.comment.c"
+                        }
+                    },
+                    "end": "\\*/",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.comment.c"
+                        }
+                    },
+                    "name": "comment.block.c",
+                    "patterns": [
+                        {
+                            "include": "#preprocessor-comments"
+                        }
+                    ]
+                },
+                {
+                    "begin": "//",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.comment.c"
+                        }
+                    },
+                    "end": "(?=\\n)",
+                    "name": "comment.line.double-slash.c",
+                    "patterns": []
+                }
+            ]
+        },
+        "preprocessor-other": {
+            "begin": "^\\s*(#\\s*(?:include|include_next|import))\\b",
+            "beginCaptures": {
+                "1": {
+                    "name": "keyword.control.import.include.c"
+                }
+            },
+            "end": "(?=\\n)",
+            "name": "meta.preprocessor.include.c",
+            "patterns": [
+                {
+                    "include": "#preprocessor-line-continuation"
+                },
+                {
+                    "include": "#preprocessor-line-ending"
+                },
+                {
+                    "include": "#preprocessor-comments"
+                },
+                {
+                    "begin": "\"",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.begin.c"
+                        }
+                    },
+                    "end": "\"",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.c"
+                        }
+                    },
+                    "name": "string.quoted.double.include.c"
+                },
+                {
+                    "begin": "<",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.begin.c"
+                        }
+                    },
+                    "end": ">",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.c"
+                        }
+                    },
+                    "name": "string.quoted.other.lt-gt.include.c"
+                }
+            ]
+        }
+    }
+}

@@ -18,11 +18,18 @@
           "punctuation.definition.dictionary.begin.json.comments",
           "punctuation.separator.dictionary.pair",
           "punctuation.definition.array.end",
+          "punctuation.definition.template-expression.begin",
+          "punctuation.definition.template-expression.end",
           "storage.type",
+          "keyword",
           "keyword.other",
           "keyword.operator",
           "keyword.operator.comparison",
-          "keyword.operator.comparison.cpp"
+          "keyword.operator.comparison.cpp",
+          "keyword.operator.assignment.c",
+          "keyword.operator.c",
+          "keyword.operator.assignment.compound",
+          "entity.other.attribute-name"
         ],
         "settings": {
           "foreground": "#ffffff"
@@ -46,6 +53,14 @@
         ],
         "settings": {
           "foreground": "#00a5ff"
+        }
+      },
+      {
+        "scope": [
+          "constant.character.escape"
+        ],
+        "settings": {
+          "foreground": "#70d1ff"
         }
       },
       {
@@ -92,6 +107,357 @@
         "settings": {
           "foreground": "#ff6bba",
           "fontStyle": ""
+        }
+      },
+      {
+        "scope": [
+          "support.type.property-name.json"
+        ],
+        "settings": {
+          "foreground": "#ff9e00"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.variable"
+        ],
+        "settings": {
+          "foreground": "#ffd500"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.entity.explicit"
+        ],
+        "settings": {
+          "foreground": "#ffa200"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.tuple.explicit"
+        ],
+        "settings": {
+          "foreground": "#ed6451"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.namespace",
+          "malterlib.namespace.explicit"
+        ],
+        "settings": {
+          "foreground": "#e982ff"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.function.global.explicit"
+        ],
+        "settings": {
+          "foreground": "#00c000"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.keyword.access"
+        ],
+        "settings": {
+          "foreground": "#ffc6c9"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.keyword.qualifiers"
+        ],
+        "settings": {
+          "foreground": "#ffb379"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.keyword"
+        ],
+        "settings": {
+          "foreground": "#ffffff"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.keyword.builtintype",
+          "malterlib.keyword.builtincharactertype",
+          "malterlib.keyword.builtinintegertype",
+          "malterlib.keyword.builtintypemodifier",
+          "malterlib.keyword.builtinvectortype",
+          "malterlib.keyword.builtinfloattyp"
+        ],
+        "settings": {
+          "foreground": "#ff5264"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.constant",
+          "malterlib.keyword.js.bultinconstant",
+          "malterlib.constant.enumerator",
+          "constant.language",
+          "constant.other"
+        ],
+        "settings": {
+          "foreground": "#ff85c9"
+        }
+      },
+      {
+        "scope": [
+          "punctuation.separator.continuation.c"
+        ],
+        "settings": {
+          "foreground": "#808080"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.keyword.propertymodifier.brackets"
+        ],
+        "settings": {
+          "foreground": "#909090"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.keyword.propertymodifier",
+          "malterlib.keyword.typename"
+        ],
+        "settings": {
+          "foreground": "#c0c0c0"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.keyword.typename"
+        ],
+        "settings": {
+          "foreground": "#c0c0c0"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.keyword.auto"
+        ],
+        "settings": {
+          "foreground": "#ddd3ff"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.constant.private"
+        ],
+        "settings": {
+          "foreground": "#d595b3"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.constant.template"
+        ],
+        "settings": {
+          "foreground": "#ff54b2"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.constant.templatefunction"
+        ],
+        "settings": {
+          "foreground": "#ffb4dd"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.templatetypeparam"
+        ],
+        "settings": {
+          "foreground": "#8868ff"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.functiontemplatetypeparam"
+        ],
+        "settings": {
+          "foreground": "#cfc3ff"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.type",
+          "malterlib.type.explicit"
+        ],
+        "settings": {
+          "foreground": "#bba9ff"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.concept"
+        ],
+        "settings": {
+          "foreground": "#ffb379"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.member"
+        ],
+        "settings": {
+          "foreground": "#ffa200"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.member.private"
+        ],
+        "settings": {
+          "foreground": "#ce9b4b"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.member.private"
+        ],
+        "settings": {
+          "foreground": "#ce9b4b"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.functor.local"
+        ],
+        "settings": {
+          "foreground": "#00f7ac"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.functor.param"
+        ],
+        "settings": {
+          "foreground": "#00eeeb"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.functor.param.output"
+        ],
+        "settings": {
+          "foreground": "#0eefce"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.functor.member"
+        ],
+        "settings": {
+          "foreground": "#00fc5c"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.functor.member.private"
+        ],
+        "settings": {
+          "foreground": "#35c67a"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.function",
+          "malterlib.function.explicit"
+        ],
+        "settings": {
+          "foreground": "#00ff00"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.function.private"
+        ],
+        "settings": {
+          "foreground": "#7dd879"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.function.global",
+          "malterlib.function.global.explicit"
+        ],
+        "settings": {
+          "foreground": "#00c000"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.macro",
+          "malterlib.macro.explicit"
+        ],
+        "settings": {
+          "foreground": "#ff7100"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.macro.parameter"
+        ],
+        "settings": {
+          "foreground": "#ffb97a"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.function.parameter"
+        ],
+        "settings": {
+          "foreground": "#e0ff00"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.function.parameter.output"
+        ],
+        "settings": {
+          "foreground": "#fff53a"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.member.static"
+        ],
+        "settings": {
+          "foreground": "#ff3715"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.member.static.private"
+        ],
+        "settings": {
+          "foreground": "#ed6451"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.global"
+        ],
+        "settings": {
+          "foreground": "#ff3113"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.variable"
+        ],
+        "settings": {
+          "foreground": "#ffd500"
         }
       }
     ]

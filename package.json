@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/Malterlib/MalterlibVSCode.git"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": ">=1.80.0"
   },
@@ -16,7 +16,8 @@
   ],
   "activationEvents": [
     "onLanguage:c",
-    "onLanguage:cpp"
+    "onLanguage:cpp",
+    "onLanguage:malterlib-build"
   ],
   "main": "./dist/extension.js",
   "scripts": {
@@ -506,6 +507,32 @@
       {
         "id": "malterlib-preprocessor-directive",
         "description": "Malterlib token"
+      }
+    ],
+    "languages": [
+      {
+        "id": "malterlib-build",
+        "aliases": ["Malterlib Build", "malterlib-build"],
+        "extensions": [
+          ".MTarget",
+          ".MBuildSystem",
+          ".OldMBuildSystem",
+          ".MSettings",
+          ".MHeader",
+          ".MInclude",
+          ".MGeneratorSettings",
+          ".MDependency",
+          ".MWorkspace",
+          ".MWorkspaceHeader",
+          ".MSettingsHeader"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "malterlib-build",
+        "scopeName": "source.malterlibbuild",
+        "path": "./syntaxes/malterlib-build.tmLanguage.json"
       }
     ]
   }
