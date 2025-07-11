@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./.venv/bin/python3
 """Extract ms_PrefixMap entries (prefix, classification, variable?) from HighlighterrCxx.cpp.
 Outputs prefixmap.json in workspace root.
 """

@@ -1,4 +1,5 @@
 {
+    "editor.highlightingColorSpace": "display-p3",
     "editor.tokenColorCustomizations": {
         "textMateRules": [
             {

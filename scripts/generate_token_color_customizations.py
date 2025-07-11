@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./.venv/bin/python3
 """
 Generate a VS Code editor.tokenColorCustomizations JSON from colorexamples.json and the classification data files.
 """
@@ -223,6 +223,7 @@ settings_obj_srgb["editor.semanticTokenColorCustomizations"] = {
     "enabled": True,
     "rules": result_srgb
 }
+settings_obj_srgb["editor.highlightingColorSpace"] = "srgb"
 
 SETTINGS_PATH = ROOT / "settings.json"
 SETTINGS_SRGB_PATH = ROOT / "settingsSRGB.json"

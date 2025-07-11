@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./.venv/bin/python3
 """Parse HighlighterrCxx.h to enumerate all EClassification values and map them to
 malterlib TextMate scopes. Writes classifications.json in repo root.
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./.venv/bin/python3
 """Convenience wrapper to refresh all generated artefacts (prefixmap, keywords,
 classifications, grammar) and then run coverage verification.
 

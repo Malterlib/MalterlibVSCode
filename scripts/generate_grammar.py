@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./.venv/bin/python3
 """Generate syntaxes/malterlib.tmLanguage.json from prefixmap.json, keywords.json and classifications.json.
 
 Usage: python3 scripts/generate_grammar.py

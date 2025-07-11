@@ -12,6 +12,11 @@ Here are the recommmended colors you can put into your settings.json file:
 {RecommendedSettings}
 ```
 
+If you have a Visual Studio Code that doesn't support changing color space (or if you prefer sRGB):
+```
+{RecommendedSettingsSRGB}
+```
+
 ## Release Notes
 
 Users appreciate release notes as you update your extension.

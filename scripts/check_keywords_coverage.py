@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./.venv/bin/python3
 """Check coverage of keywords.json entries by malterlib.tmLanguage.json regex patterns.
 
 Usage: python3 scripts/check_keywords_coverage.py

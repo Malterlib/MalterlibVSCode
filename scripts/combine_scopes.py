@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./.venv/bin/python3
 """
 Combine keywords.json, prefixmap.json, and classifications.json into a single scopes.json file for direct use in the extension.
 """

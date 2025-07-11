@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./.venv/bin/python3
 """Extract keywords from HighlighterrCxx.cpp f_AddDefaultKeyword_* calls (non-JS) and output keywords.json."""
 import re, json, pathlib, sys
 

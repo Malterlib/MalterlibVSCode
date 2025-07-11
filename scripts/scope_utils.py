@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./.venv/bin/python3
 """Shared helper to convert EClassification_* names to malterlib.* TextMate scopes."""
 import re
 from functools import lru_cache
