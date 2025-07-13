@@ -19,6 +19,7 @@ async function waitForExtension(name: string, retries: number = 10) {
 	}
 	await ext.activate();
 }
+
 export async function activate(context: vscode.ExtensionContext) {
 	await waitForExtension('llvm-vs-code-extensions.vscode-clangd');
 //	await waitForExtension('ms-vscode.cpptools');
@@ -101,9 +102,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (matchOtherPrefix(name, prefix)) {
 					// Special case for E/CF
 					if (i === 1 && prefix === 'E' && !name.includes('_'))
-						return prefixMapInfo[i][prefix]; // Enum
+						return "malterlib-enum"; // Enum
 					if (i === 2 && prefix === 'CF' && name.endsWith('Ref'))
-						return prefixMapInfo[i][prefix]; // CoreFoundation type
+						return "malterlib-type"; // CoreFoundation type
 					return prefixMapInfo[i][prefix];
 				}
 			}
@@ -230,12 +231,53 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const provider = new MalterlibProvider();
 	const langs = [{scheme: '*', language:'c' }, {scheme: '*', language:'cpp' }];
-	for (const sel of langs)
-		context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider(sel, provider, legend));
+	
+	// Register providers
+	const disposables: vscode.Disposable[] = [];
+	
+	function registerProviders() {
+		// Dispose existing providers
+		disposables.forEach(d => d.dispose());
+		disposables.length = 0;
+		
+		// Check if semantic coloring is enabled
+		const config = vscode.workspace.getConfiguration('malterlib');
+		const enableSemanticColoring = config.get<boolean>('enableSemanticColoring', true);
+		
+		if (enableSemanticColoring) {
+			// Register new providers only when enabled
+			for (const sel of langs) {
+				const disposable = vscode.languages.registerDocumentSemanticTokensProvider(sel, provider, legend);
+				disposables.push(disposable);
+			}
+		}
+	}
+	
+	// Initial registration
+	registerProviders();
+	
+	// Listen for configuration changes
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration('malterlib.enableSemanticColoring')) {
+				output.appendLine(`Semantic coloring setting changed. Re-registering providers...`);
+				registerProviders();
+				
+				// The semantic tokens will update automatically when the provider is re-registered
+				// No need for additional refresh commands
+			}
+		})
+	);
+	
+	// Clean up disposables on deactivation
+	context.subscriptions.push({
+		dispose: () => {
+			disposables.forEach(d => d.dispose());
+		}
+	});
 	
 	setTimeout(() => {
-		for (const sel of langs)
-			context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider(sel, provider, legend));
+		registerProviders();
 	}, 1000);
 }
 

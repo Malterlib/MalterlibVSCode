@@ -61,35 +61,35 @@
                 },
                 {
                     "match": "\\b(GreaterThan|GreaterThanEqual|LessThan|LessThanEqual|Equal|NotEqual|Not|And|Or)\\b",
-                    "name": "malterlib.function.global.explicit"
+                    "name": "malterlib.function.explicit"
                 },
                 {
                     "match": "\\b(ExecuteCommand|GeneratedFiles|SourceFiles|ReadFile|FileExists|DirectoryExists|FileOrDirectoryExists|FindFilesIn|FindDirectoriesIn|FindFilesRecursiveIn|FindDirectoriesRecursiveIn|LinkExists|ResolveSymbolicLink)\\b",
-                    "name": "malterlib.function.global.explicit"
+                    "name": "malterlib.function.explicit"
                 },
                 {
                     "match": "\\b(ForEach|ContainsListElement|Length|IsEmpty|Unique|RemoveDuplicates|Sort|Concat)\\b",
-                    "name": "malterlib.function.global.explicit"
+                    "name": "malterlib.function.explicit"
                 },
                 {
                     "match": "\\b(Error|ErrorWithPositions|Log|LogWithSequence|Warning|MalterlibTime|DateTime|HashUUID|HashSHA256|IsDefined|Switch|SwitchWithError|SwitchWithDefault)\\b",
-                    "name": "malterlib.function.global.explicit"
+                    "name": "malterlib.function.explicit"
                 },
                 {
                     "match": "\\b(RelativeBase|GetLastPaths|RemoveStartPaths|GetPath|GetFile|GetExtension|GetFileNoExt|GetDrive|AppendPath|MakeRelative|MakeAbsolute|IsAbsolute|WindowsPath|UnixPath|NativePath|ShortenPath)\\b",
-                    "name": "malterlib.function.global.explicit"
+                    "name": "malterlib.function.explicit"
                 },
                 {
                     "match": "\\b(GetProperty|OverridingType|WithPositionOverridingType|WithPosition|HasProperty|HasEntity|IsString|IsValid|IsNull|IsStringArray|IsInteger|IsFloat|IsBoolean|IsObject|IsArray|IsDate|IsBinary|IsUserType|AsString|AsInteger|AsFloat|AsBoolean|HasMember|RemoveUndefined)\\b",
-                    "name": "malterlib.function.global.explicit"
+                    "name": "malterlib.function.explicit"
                 },
                 {
                     "match": "\\b(ToString|ToStringCompact|EJSONToString|EJsonToString|JSONToString|JsonToString|ParseEJSON|ParseEJson|ParseJSON|ParseJson|Split|Join|Escape|EscapeHost|EscapeWindows|EscapeBash|Trim|Replace|ReplaceChars|FindGetLine|Find|FindNoCase|StartsWith|EndsWith|RemoveSuffix|RemovePrefix|Format|ParseFormatString|Parse|Sanitize|EscapeMSBuild)\\b",
-                    "name": "malterlib.function.global.explicit"
+                    "name": "malterlib.function.explicit"
                 },
                 {
                     "match": "\\b(ReadWindowsRegistry)\\b",
-                    "name": "malterlib.function.global.explicit"
+                    "name": "malterlib.function.explicit"
                 },
                 {
                     "match": "\\b(friend|private|public|protected)\\b",
@@ -361,15 +361,15 @@
                 },
                 {
                     "match": "\\b((f_|fr_|f_r|fs_|fsr_|fs_r)[A-Z][a-zA-Z0-9_]+)\\b",
-                    "name": "malterlib.function"
+                    "name": "malterlib.member.function.public"
                 },
                 {
                     "match": "\\b(await_transform|await_ready|await_suspend|await_resume|get_return_object|return_value|return_void|yield_value|initial_suspend|final_suspend|unhandled_exception|from_promise|address|resume|destroy|done|promise)\\b",
-                    "name": "malterlib.function.explicit"
+                    "name": "malterlib.member.function.public.explicit"
                 },
                 {
                     "match": "\\b((fp_|fpr_|fp_r|fsp_|fspr_|fsp_r)[A-Z][a-zA-Z0-9_]+)\\b",
-                    "name": "malterlib.function.private"
+                    "name": "malterlib.member.function.private"
                 },
                 {
                     "match": "\\b((fg_|fgr_|fg_r|fsg_|fsgr_|fsg_r)[A-Z][a-zA-Z0-9_]+)\\b",

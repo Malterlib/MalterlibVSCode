@@ -1283,6 +1283,15 @@
   "mapped_type": {
     "classification": "EClassification_Type"
   },
+  "mark_artificial": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "mark_no_coroutine_debug": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "mark_nodebug": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
   "max": {
     "classification": "EClassification_Function"
   },

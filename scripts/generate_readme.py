@@ -9,6 +9,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 TEMPLATE_PATH = ROOT / "README-template.md"
 SETTINGS_PATH = ROOT / "settings.json"
 SETTINGS_SRGB_PATH = ROOT / "settingsSRGB.json"
+CLANGD_PATH = ROOT / ".clangd"
 OUT_PATH = ROOT / "README.md"
 
 with TEMPLATE_PATH.open("r", encoding="utf-8") as f:
@@ -18,11 +19,26 @@ with SETTINGS_PATH.open("r", encoding="utf-8") as f:
 with SETTINGS_SRGB_PATH.open("r", encoding="utf-8") as f:
     settings_srgb = json.load(f)
 
+# .clangd may not exist yet; handle gracefully
+clangd_content = ""
+if CLANGD_PATH.exists():
+    clangd_content = CLANGD_PATH.read_text(encoding="utf-8")
+else:
+    placeholder = "{RecommendedClangD}"
+    print(f"Warning: {CLANGD_PATH.relative_to(ROOT)} not found; {placeholder} placeholder will be empty.")
+
 settings_str = json.dumps(settings, indent=2)
 settings_srgb_str = json.dumps(settings_srgb, indent=2)
 
-readme = template.replace("{RecommendedSettings}", settings_str)
-readme = readme.replace("{RecommendedSettingsSRGB}", settings_srgb_str)
+def filter_indented_lines(s):
+    return "\n".join(line for line in s.splitlines() if line.startswith("  "))
+
+settings_str_indented = filter_indented_lines(settings_str)
+settings_srgb_str_indented = filter_indented_lines(settings_srgb_str)
+
+readme = template.replace("{RecommendedSettings}", settings_str_indented)
+readme = readme.replace("{RecommendedSettingsSRGB}", settings_srgb_str_indented)
+readme = readme.replace("{RecommendedClangD}", clangd_content.strip())
 
 with OUT_PATH.open("w", encoding="utf-8") as f:
     f.write(readme)

@@ -11,9 +11,10 @@ SCRIPTS = [
     "scripts/parse_prefix_map.py",
     "scripts/generate_classifications.py",
     "scripts/extract_keywords.py",
-    "scripts/generate_grammar.py",
-    "scripts/generate_token_color_customizations.py",
+    "scripts/generate_settings_from_theme.py",
     "scripts/combine_scopes.py",
+    "scripts/convert_theme_to_srgb.py",
+    "scripts/generate_clangd_config.py",
     "scripts/generate_readme.py",
 ]
 
@@ -23,6 +24,3 @@ for script in SCRIPTS:
     if res.returncode != 0:
         print(f"Script {script} failed", file=sys.stderr)
         sys.exit(res.returncode)
-
-print("\n==> Running coverage check")
-subprocess.run([sys.executable, "scripts/check_keywords_coverage.py"], cwd=ROOT) 

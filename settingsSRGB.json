@@ -1,21 +1,32 @@
 {
-  "editor.highlightingColorSpace": "srgb",
+  "workbench.highlightingColorSpace": "srgb",
   "editor.tokenColorCustomizations": {
     "textMateRules": [
       {
         "scope": [
-          "malterlib.constant",
-          "malterlib.keyword.js.bultinconstant",
-          "malterlib.constant.enumerator",
-          "malterlib.keyword.builtinconstant",
-          "variable.other.enummember"
-        ],
-        "settings": {
-          "foreground": "#ff80cd"
-        }
-      },
-      {
-        "scope": [
+          "malterlib.preprocessor.directive",
+          "malterlib.keyword",
+          "malterlib.keyword.casts",
+          "malterlib.keyword.clr",
+          "malterlib.keyword.control.statement",
+          "malterlib.keyword.exception.handling",
+          "malterlib.keyword.function",
+          "malterlib.keyword.in",
+          "malterlib.keyword.introspection",
+          "malterlib.keyword.namespace",
+          "malterlib.keyword.new.delete",
+          "malterlib.keyword.operator",
+          "malterlib.keyword.optimization",
+          "malterlib.keyword.other",
+          "malterlib.keyword.pure",
+          "malterlib.keyword.static.assert",
+          "malterlib.keyword.storage.class",
+          "malterlib.keyword.template",
+          "malterlib.keyword.this",
+          "malterlib.keyword.type.specification",
+          "malterlib.keyword.typedef",
+          "malterlib.keyword.using",
+          "malterlib.keyword.virtual",
           "punctuation.definition.dictionary.begin.json.comments",
           "punctuation.separator.dictionary.pair",
           "punctuation.definition.array.end",
@@ -25,13 +36,51 @@
           "keyword",
           "keyword.other",
           "keyword.operator",
+          "keyword.operator.new",
           "keyword.operator.comparison",
           "keyword.operator.comparison.cpp",
           "keyword.operator.assignment.c",
           "keyword.operator.c",
           "keyword.operator.assignment.compound",
+          "keyword.operator.logical",
+          "keyword.operator.logical.python",
+          "keyword.control",
           "entity.other.attribute-name",
-          "entity.name.operator.cpp"
+          "constant.language.import-export-all.ts",
+          "variable.language",
+          "punctuation.definition.block",
+          "punctuation.definition.parameters",
+          "punctuation.definition.subshell",
+          "punctuation.separator.method",
+          "punctuation.definition.arguments",
+          "storage.modifier.reference",
+          "punctuation.definition.entity",
+          "punctuation.separator.list.comma.css",
+          "punctuation.section.function.begin.bracket",
+          "punctuation.section.function.end.bracket",
+          "meta.brace.round.directive",
+          "punctuation.colon",
+          "storage.modifier.groovy",
+          "punctuation.bracket",
+          "punctuation.separator",
+          "text.pug constant.name.attribute.tag",
+          "text.pug attribute_value",
+          "text.pug constant",
+          "storage.type.import.include.pug",
+          "meta.brace",
+          "text.pug source.coffeescript.filter.pug",
+          "punctuation.terminator",
+          "punctuation.section",
+          "storage.type.function",
+          "storage.type.js",
+          "storage.type.ts",
+          "storage.type.type.ts",
+          "punctuation.definition.prolog",
+          "meta.prolog",
+          "meta.line.ruby",
+          "meta.template.expression",
+          "variable.other.macro.argument",
+          "entity.name.function.definition.special.member.destructor"
         ],
         "settings": {
           "foreground": "#ffffff"
@@ -39,149 +88,46 @@
       },
       {
         "scope": [
-          "string.quoted.single",
-          "string.quoted.single punctuation.definition.string.begin",
-          "string.quoted.single punctuation.definition.string.end"
+          "malterlib.keyword.propertymodifier",
+          "malterlib.keyword.typename",
+          "malterlib.keyword.property.modifiers",
+          "keyword.operator.redirect",
+          "storage.modifier",
+          "storage.modifier.local",
+          "punctuation.definition.tag",
+          "entity.name.type.annotation"
         ],
         "settings": {
-          "foreground": "#ff40fd"
+          "foreground": "#c0c0c0"
         }
       },
       {
         "scope": [
-          "string",
-          "string.quoted punctuation.definition.string.begin",
-          "string.quoted punctuation.definition.string.end"
+          "malterlib.keyword.propertymodifier.brackets",
+          "malterlib.keyword.property.modifiers.brackets"
         ],
         "settings": {
-          "foreground": "#00a5ff"
+          "foreground": "#909090"
         }
       },
       {
         "scope": [
-          "constant.character.escape"
+          "punctuation.separator.continuation.c",
+          "malterlib.preprocessor.escape",
+          "constant.character.escape.line-continuation"
         ],
         "settings": {
-          "foreground": "#70d1ff"
+          "foreground": "#808080"
         }
       },
       {
         "scope": [
-          "entity.name.type",
-          "entity.name.type.class"
+          "malterlib.keyword.access",
+          "storage.modifier.ts",
+          "storage.modifier.access-control"
         ],
         "settings": {
-          "foreground": "#bba9ff"
-        }
-      },
-      {
-        "scope": [
-          "entity.name.function"
-        ],
-        "settings": {
-          "foreground": "#00ff00"
-        }
-      },
-      {
-        "scope": [
-          "constant.numeric",
-          "keyword.other.unit"
-        ],
-        "settings": {
-          "foreground": "#ff0088"
-        }
-      },
-      {
-        "scope": [
-          "comment",
-          "punctuation.definition.comment",
-          "comment.line.double-slash"
-        ],
-        "settings": {
-          "foreground": "#898989",
-          "fontStyle": ""
-        }
-      },
-      {
-        "scope": [
-          "storage.type.class.doxygen"
-        ],
-        "settings": {
-          "foreground": "#ff6bba",
-          "fontStyle": ""
-        }
-      },
-      {
-        "scope": [
-          "support.type.property-name.json"
-        ],
-        "settings": {
-          "foreground": "#ff9e00"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.variable"
-        ],
-        "settings": {
-          "foreground": "#ffd500"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.entity.explicit"
-        ],
-        "settings": {
-          "foreground": "#ffa200"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.tuple.explicit"
-        ],
-        "settings": {
-          "foreground": "#ed6451"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.namespace",
-          "malterlib.namespace.explicit"
-        ],
-        "settings": {
-          "foreground": "#e982ff"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.function.global.explicit"
-        ],
-        "settings": {
-          "foreground": "#00c000"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.keyword.access"
-        ],
-        "settings": {
-          "foreground": "#ffc6c9"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.keyword.qualifiers"
-        ],
-        "settings": {
-          "foreground": "#ffb379"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.keyword"
-        ],
-        "settings": {
-          "foreground": "#ffffff"
+          "foreground": "#ffc5c9"
         }
       },
       {
@@ -191,55 +137,167 @@
           "malterlib.keyword.builtinintegertype",
           "malterlib.keyword.builtintypemodifier",
           "malterlib.keyword.builtinvectortype",
-          "malterlib.keyword.builtinfloattyp"
+          "malterlib.keyword.builtinfloattyp",
+          "malterlib.keyword.builtin.character.types",
+          "malterlib.keyword.builtin.float.types",
+          "malterlib.keyword.builtin.integer.types",
+          "malterlib.keyword.builtin.type.modifiers",
+          "malterlib.keyword.builtin.types",
+          "malterlib.keyword.builtin.vector.types",
+          "support.type.primitive",
+          "support.type.primitive.ts",
+          "storage.type.built-in.primitive",
+          "storage.type.primitive"
         ],
         "settings": {
-          "foreground": "#ff5264"
+          "foreground": "#ff4661"
+        }
+      },
+      {
+        "scope": [
+          "constant.numeric",
+          "keyword.other.unit",
+          "keyword.operator.redirect.stderr.shell"
+        ],
+        "settings": {
+          "foreground": "#ff0080"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.constant.template",
+          "malterlib.template.non.type.param",
+          "malterlib.template.non.type.param.pack"
+        ],
+        "settings": {
+          "foreground": "#ff49af"
         }
       },
       {
         "scope": [
           "malterlib.constant",
+          "malterlib.constant.variable",
           "malterlib.keyword.js.bultinconstant",
+          "malterlib.keyword.builtinconstant",
           "malterlib.constant.enumerator",
+          "malterlib.enumerator",
+          "malterlib.global.constant",
+          "malterlib.member.constant.public",
+          "malterlib.keyword.builtin.constants",
+          "variable.other.enummember",
           "constant.language",
-          "constant.other"
+          "constant.other",
+          "variable.other.constant",
+          "support.constant.color",
+          "constant.codepoint-range",
+          "punctuation.section.range.less",
+          "support.constant.unicode-range"
         ],
         "settings": {
-          "foreground": "#ff85c9"
+          "foreground": "#ff82c7"
         }
       },
       {
         "scope": [
-          "punctuation.separator.continuation.c"
+          "malterlib.constant.private",
+          "malterlib.member.constant.private"
         ],
         "settings": {
-          "foreground": "#808080"
+          "foreground": "#d394b2"
         }
       },
       {
         "scope": [
-          "malterlib.keyword.propertymodifier.brackets"
+          "malterlib.constant.templatefunction",
+          "malterlib.function.template.non.type.param",
+          "malterlib.function.template.non.type.param.pack"
         ],
         "settings": {
-          "foreground": "#909090"
+          "foreground": "#ffb3dd"
         }
       },
       {
         "scope": [
-          "malterlib.keyword.propertymodifier",
-          "malterlib.keyword.typename"
+          "source.cpp string.quoted.single",
+          "source.cpp string.quoted.single punctuation.definition.string.begin",
+          "source.cpp string.quoted.single punctuation.definition.string.end",
+          "source.c string.quoted.single",
+          "source.c string.quoted.single punctuation.definition.string.begin",
+          "source.c string.quoted.single punctuation.definition.string.end"
         ],
         "settings": {
-          "foreground": "#c0c0c0"
+          "foreground": "#ff2cf7"
         }
       },
       {
         "scope": [
-          "malterlib.keyword.typename"
+          "malterlib.namespace",
+          "malterlib.namespace.explicit",
+          "entity.name.namespace",
+          "punctuation.separator.namespace.ruby",
+          "entity.name.scope-resolution",
+          "entity.name.type.package",
+          "entity.name.type.class.module",
+          "entity.name.package"
         ],
         "settings": {
-          "foreground": "#c0c0c0"
+          "foreground": "#e480ff"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.templatetypeparam",
+          "malterlib.template.type.param.class",
+          "malterlib.template.type.param.class.pack",
+          "malterlib.template.template.param",
+          "malterlib.template.template.param.pack",
+          "malterlib.template.type.param.function",
+          "malterlib.template.type.param.function.pack",
+          "entity.other.attribute-name.pseudo-class",
+          "variable.fragment",
+          "entity.name.fragment",
+          "storage.type.generic.java"
+        ],
+        "settings": {
+          "foreground": "#8768ff"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.functiontemplatetypeparam",
+          "malterlib.function.template.template.param",
+          "malterlib.function.template.template.param.pack",
+          "malterlib.function.template.type.param.class",
+          "malterlib.function.template.type.param.class.pack",
+          "malterlib.function.template.type.param.function",
+          "malterlib.function.template.type.param.function.pack"
+        ],
+        "settings": {
+          "foreground": "#cfc3ff"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.template.type",
+          "malterlib.template.type.interface",
+          "malterlib.enum",
+          "malterlib.type",
+          "malterlib.type.explicit",
+          "malterlib.type.function",
+          "malterlib.type.interface",
+          "support.class",
+          "entity.name.type",
+          "entity.name.type.class",
+          "entity.other.inherited-class",
+          "entity.other.attribute-name.class",
+          "support.type",
+          "storage.type.groovy",
+          "entity.name.section.group-title.ini",
+          "storage.type.haskell",
+          "storage.type.java"
+        ],
+        "settings": {
+          "foreground": "#bba9ff"
         }
       },
       {
@@ -252,129 +310,86 @@
       },
       {
         "scope": [
-          "malterlib.constant.private"
+          "string.quoted.single",
+          "string.quoted.single punctuation.definition.string.begin",
+          "string.quoted.single punctuation.definition.string.end",
+          "string",
+          "string.quoted punctuation.definition.string.begin",
+          "string.quoted punctuation.definition.string.end",
+          "string.quoted",
+          "string.regexp punctuation.definition.string.begin",
+          "string.regexp punctuation.definition.string.end",
+          "string.regexp",
+          "variable.parameter.url.css",
+          "meta.property-value.css",
+          "support.constant.language-range.css",
+          "text.html.derivative",
+          "source.ini",
+          "text.pug",
+          "source.batchfile",
+          "text.haml",
+          "text.tex.latex"
         ],
         "settings": {
-          "foreground": "#d595b3"
+          "foreground": "#00a1ff"
         }
       },
       {
         "scope": [
-          "malterlib.constant.template"
+          "malterlib.function.parameter.pack.functor",
+          "malterlib.functor.param",
+          "malterlib.function.parameter.functor"
         ],
         "settings": {
-          "foreground": "#ff54b2"
+          "foreground": "#00e8e8"
         }
       },
       {
         "scope": [
-          "malterlib.constant.templatefunction"
+          "malterlib.functor.param.output",
+          "malterlib.function.parameter.output.functor",
+          "malterlib.function.parameter.output.pack.functor"
         ],
         "settings": {
-          "foreground": "#ffb4dd"
+          "foreground": "#00eccc"
         }
       },
       {
         "scope": [
-          "malterlib.templatetypeparam"
+          "malterlib.functor.local",
+          "malterlib.variable.functor"
         ],
         "settings": {
-          "foreground": "#8868ff"
+          "foreground": "#00f1a9"
         }
       },
       {
         "scope": [
-          "malterlib.functiontemplatetypeparam"
+          "malterlib.functor.member",
+          "malterlib.member.variable.public.functor"
         ],
         "settings": {
-          "foreground": "#cfc3ff"
+          "foreground": "#00f64c"
         }
       },
       {
         "scope": [
-          "malterlib.type",
-          "malterlib.type.explicit"
+          "malterlib.functor.member.private",
+          "malterlib.member.variable.private.functor"
         ],
         "settings": {
-          "foreground": "#bba9ff"
+          "foreground": "#00c477"
         }
       },
       {
         "scope": [
-          "malterlib.concept"
-        ],
-        "settings": {
-          "foreground": "#ffb379"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.member"
-        ],
-        "settings": {
-          "foreground": "#ffa200"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.member.private"
-        ],
-        "settings": {
-          "foreground": "#ce9b4b"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.member.private"
-        ],
-        "settings": {
-          "foreground": "#ce9b4b"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.functor.local"
-        ],
-        "settings": {
-          "foreground": "#00f7ac"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.functor.param"
-        ],
-        "settings": {
-          "foreground": "#00eeeb"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.functor.param.output"
-        ],
-        "settings": {
-          "foreground": "#0eefce"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.functor.member"
-        ],
-        "settings": {
-          "foreground": "#00fc5c"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.functor.member.private"
-        ],
-        "settings": {
-          "foreground": "#35c67a"
-        }
-      },
-      {
-        "scope": [
-          "malterlib.function",
-          "malterlib.function.explicit"
+          "malterlib.member.function.public",
+          "malterlib.member.function.public.explicit",
+          "malterlib.member.function.public.recursive",
+          "malterlib.member.static.function.public",
+          "malterlib.member.static.function.public.recursive",
+          "entity.name.function",
+          "meta.method-call"
         ],
         "settings": {
           "foreground": "#00ff00"
@@ -382,19 +397,113 @@
       },
       {
         "scope": [
-          "malterlib.function.private"
+          "malterlib.function.recursive",
+          "malterlib.function",
+          "malterlib.function.explicit",
+          "malterlib.static.function",
+          "malterlib.static.function.recursive",
+          "variable.legacy.builtin.python",
+          "keyword.command",
+          "support.function"
         ],
         "settings": {
-          "foreground": "#7dd879"
+          "foreground": "#00bc00"
         }
       },
       {
         "scope": [
-          "malterlib.function.global",
-          "malterlib.function.global.explicit"
+          "malterlib.member.function.private",
+          "malterlib.member.function.private.recursive",
+          "malterlib.member.static.function.private",
+          "malterlib.member.static.function.private.recursive"
         ],
         "settings": {
-          "foreground": "#00c000"
+          "foreground": "#75d775"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.function.parameter.pack",
+          "malterlib.function.parameter",
+          "variable.parameter",
+          "meta.arguments",
+          "keyword.other.back-reference.regexp",
+          "entity.other.attribute-name"
+        ],
+        "settings": {
+          "fontStyle": "",
+          "foreground": "#e0ff00"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.function.parameter.output",
+          "malterlib.function.parameter.output.pack"
+        ],
+        "settings": {
+          "foreground": "#fff500"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.variable",
+          "variable.other.readwrite.alias",
+          "variable.other.readwrite",
+          "variable.other.object.ts",
+          "variable.other.constant.ts",
+          "variable.assignment",
+          "variable.other.object",
+          "variable.other.regexp",
+          "variable.other",
+          "variable.graphql",
+          "meta.definition.variable",
+          "entity.other.attribute-name.id.css",
+          "variable.other.constant.object.js",
+          "variable.other.constant.object.ts"
+        ],
+        "settings": {
+          "foreground": "#ffd500"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.keyword.qualifiers",
+          "malterlib.keyword.qualifier",
+          "malterlib.concept"
+        ],
+        "settings": {
+          "foreground": "#ffb276"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.member",
+          "malterlib.member.variable.public",
+          "malterlib.entity.explicit",
+          "variable.object.property",
+          "variable.other.object.property",
+          "meta.object.member",
+          "meta.object-literal.key",
+          "support.type.property-name.json",
+          "variable.other.property",
+          "variable.other.constant.property",
+          "support.type.property-name",
+          "constant.other.key",
+          "keyword.other.definition.ini",
+          "support.type.property-name.json punctuation.definition.string.begin",
+          "support.type.property-name.json punctuation.definition.string.end"
+        ],
+        "settings": {
+          "foreground": "#ffa100"
+        }
+      },
+      {
+        "scope": [
+          "malterlib.member.private",
+          "malterlib.member.variable.private"
+        ],
+        "settings": {
+          "foreground": "#cd9b44"
         }
       },
       {
@@ -403,7 +512,7 @@
           "malterlib.macro.explicit"
         ],
         "settings": {
-          "foreground": "#ff7100"
+          "foreground": "#ff6c00"
         }
       },
       {
@@ -411,162 +520,201 @@
           "malterlib.macro.parameter"
         ],
         "settings": {
-          "foreground": "#ffb97a"
+          "foreground": "#ffb876"
         }
       },
       {
         "scope": [
-          "malterlib.function.parameter"
+          "malterlib.member.static",
+          "malterlib.member.static.variable.public",
+          "malterlib.member.static.variable.public.functor",
+          "entity.other.attribute-name.pseudo-element.css",
+          "invalid.deprecated.entity.other.attribute-name"
         ],
         "settings": {
-          "foreground": "#e0ff00"
+          "foreground": "#ff1900"
         }
       },
       {
         "scope": [
-          "malterlib.function.parameter.output"
+          "malterlib.global",
+          "malterlib.global.static.variable",
+          "malterlib.global.static.variable.functor",
+          "malterlib.global.variable",
+          "malterlib.global.variable.functor",
+          "malterlib.static.variable",
+          "malterlib.static.variable.functor"
         ],
         "settings": {
-          "foreground": "#fff53a"
+          "foreground": "#f51900"
         }
       },
       {
         "scope": [
-          "malterlib.member.static"
+          "malterlib.member.static.private",
+          "malterlib.member.static.variable.private",
+          "malterlib.member.static.variable.private.functor",
+          "malterlib.tuple.explicit",
+          "entity.name.tag"
         ],
         "settings": {
-          "foreground": "#ff3715"
+          "foreground": "#e5614e"
         }
       },
       {
         "scope": [
-          "malterlib.member.static.private"
+          "comment",
+          "punctuation.definition.comment",
+          "comment.line.double-slash",
+          "punctuation.definition.quote.begin.markdown",
+          "string.comment"
         ],
         "settings": {
-          "foreground": "#ed6451"
+          "fontStyle": "",
+          "foreground": "#898989"
         }
       },
       {
         "scope": [
-          "malterlib.global"
+          "emphasis",
+          "markup.italic"
         ],
         "settings": {
-          "foreground": "#ff3113"
+          "fontStyle": "italic"
         }
       },
       {
         "scope": [
-          "malterlib.variable"
+          "strong",
+          "markup.bold",
+          "markup.heading"
         ],
         "settings": {
-          "foreground": "#ffd500"
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": [
+          "markup.underline"
+        ],
+        "settings": {
+          "fontStyle": "underline"
+        }
+      },
+      {
+        "scope": [
+          "markup.underline"
+        ],
+        "settings": {
+          "fontStyle": "underline"
+        }
+      },
+      {
+        "scope": [
+          "markup.strikethrough"
+        ],
+        "settings": {
+          "fontStyle": "strikethrough"
+        }
+      },
+      {
+        "scope": [
+          "markup.strikethrough markup.bold",
+          "markup.bold markup.strikethrough"
+        ],
+        "settings": {
+          "fontStyle": "bold strikethrough"
+        }
+      },
+      {
+        "scope": [
+          "markup.strikethrough markup.italic",
+          "markup.italic markup.strikethrough"
+        ],
+        "settings": {
+          "fontStyle": "italic strikethrough"
+        }
+      },
+      {
+        "scope": [
+          "markup.italic markup.bold",
+          "markup.bold markup.italic"
+        ],
+        "settings": {
+          "fontStyle": "bold italic"
+        }
+      },
+      {
+        "scope": [
+          "markup.italic markup.bold markup.strikethrough",
+          "markup.bold markup.italic markup.strikethrough",
+          "markup.italic markup.strikethrough markup.bold",
+          "markup.bold markup.strikethrough markup.italic",
+          "markup.strikethrough markup.italic markup.bold",
+          "markup.strikethrough markup.bold markup.italic"
+        ],
+        "settings": {
+          "fontStyle": "bold italic strikethrough"
+        }
+      },
+      {
+        "scope": [
+          "constant.character.escape",
+          "constant.character.numeric.regexp",
+          "text.html.derivative punctuation.definition.entity",
+          "text.html.derivative constant.character.entity"
+        ],
+        "settings": {
+          "foreground": "#65d0ff"
+        }
+      },
+      {
+        "scope": [
+          "constant.other.character-class.regexp",
+          "constant.other.character-class.range.regexp",
+          "punctuation.definition.character-class.regexp",
+          "constant.other.character-class.set.regexp"
+        ],
+        "settings": {
+          "foreground": "#a87fff"
+        }
+      },
+      {
+        "scope": [
+          "keyword.control.anchor.regexp",
+          "punctuation.definition.group.regexp",
+          "keyword.operator.negation.regexp",
+          "keyword.operator.or.regexp"
+        ],
+        "settings": {
+          "foreground": "#cdcdcd"
+        }
+      },
+      {
+        "scope": [
+          "keyword.operator.quantifier.regexp"
+        ],
+        "settings": {
+          "foreground": "#fb6423"
+        }
+      },
+      {
+        "scope": [
+          "constant.character.escape"
+        ],
+        "settings": {
+          "foreground": "#65d0ff"
+        }
+      },
+      {
+        "scope": [
+          "source.cpp string.quoted.single constant.character.escape",
+          "source.c string.quoted.single constant.character.escape"
+        ],
+        "settings": {
+          "foreground": "#ff77f7"
         }
       }
     ]
-  },
-  "editor.semanticTokenColorCustomizations": {
-    "enabled": true,
-    "rules": {
-      "malterlib-keyword-control-statement": "#ffffff",
-      "malterlib-keyword-casts": "#ffffff",
-      "malterlib-keyword-clr": "#ffffff",
-      "malterlib-keyword-exception-handling": "#ffffff",
-      "malterlib-keyword-introspection": "#ffffff",
-      "malterlib-keyword-namespace": "#ffffff",
-      "malterlib-keyword-new-delete": "#ffffff",
-      "malterlib-keyword-operator": "#ffffff",
-      "malterlib-keyword-optimization": "#ffffff",
-      "malterlib-keyword-other": "#ffffff",
-      "malterlib-keyword-pure": "#ffffff",
-      "malterlib-keyword-static-assert": "#ffffff",
-      "malterlib-keyword-storage-class": "#ffffff",
-      "malterlib-keyword-template": "#ffffff",
-      "malterlib-keyword-this": "#ffffff",
-      "malterlib-keyword-type-specification": "#ffffff",
-      "malterlib-keyword-typedef": "#ffffff",
-      "malterlib-keyword-using": "#ffffff",
-      "malterlib-keyword-virtual": "#ffffff",
-      "malterlib-preprocessor-directive": "#ffffff",
-      "malterlib-keyword-typename": "#c0c0c0",
-      "malterlib-keyword-property-modifiers": "#c0c0c0",
-      "malterlib-keyword-access": "#ffc6c9",
-      "malterlib-keyword-qualifier": "#ffb379",
-      "malterlib-keyword-builtin-integer-types": "#ff5264",
-      "malterlib-keyword-builtin-types": "#ff5264",
-      "malterlib-keyword-builtin-character-types": "#ff5264",
-      "malterlib-keyword-builtin-float-types": "#ff5264",
-      "malterlib-keyword-builtin-type-modifiers": "#ff5264",
-      "malterlib-keyword-builtin-vector-types": "#ff5264",
-      "malterlib-template-non-type-param": "#ff54b2",
-      "malterlib-template-non-type-param-pack": "#ff54b2",
-      "malterlib-global-constant": "#ff85c9",
-      "malterlib-enumerator": "#ff85c9",
-      "malterlib-member-constant-public": "#ff85c9",
-      "malterlib-constant-variable": "#ff85c9",
-      "malterlib-keyword-builtin-constants": "#ff85c9",
-      "malterlib-function-template-non-type-param": "#ffb4dd",
-      "malterlib-function-template-non-type-param-pack": "#ffb4dd",
-      "malterlib-namespace": "#e982ff",
-      "malterlib-template-type-param-class": "#8868ff",
-      "malterlib-template-type-param-function": "#8868ff",
-      "malterlib-template-template-param": "#8868ff",
-      "malterlib-template-type-param-class-pack": "#8868ff",
-      "malterlib-template-type-param-function-pack": "#8868ff",
-      "malterlib-template-template-param-pack": "#8868ff",
-      "malterlib-function-template-type-param-class": "#cfc3ff",
-      "malterlib-function-template-type-param-function": "#cfc3ff",
-      "malterlib-function-template-template-param": "#cfc3ff",
-      "malterlib-function-template-type-param-class-pack": "#cfc3ff",
-      "malterlib-function-template-type-param-function-pack": "#cfc3ff",
-      "malterlib-function-template-template-param-pack": "#cfc3ff",
-      "malterlib-type-interface": "#bba9ff",
-      "malterlib-type": "#bba9ff",
-      "malterlib-type-function": "#bba9ff",
-      "malterlib-template-type": "#bba9ff",
-      "malterlib-template-type-interface": "#bba9ff",
-      "malterlib-enum": "#bba9ff",
-      "malterlib-keyword-auto": "#ddd3ff",
-      "malterlib-function-parameter-functor": "#00eeeb",
-      "malterlib-function-parameter-pack-functor": "#00eeeb",
-      "malterlib-function-parameter-output-functor": "#0eefce",
-      "malterlib-function-parameter-output-pack-functor": "#0eefce",
-      "malterlib-variable-functor": "#00f7ac",
-      "malterlib-member-variable-public-functor": "#00fc5c",
-      "malterlib-member-variable-private-functor": "#35c67a",
-      "malterlib-member-function-public": "#00ff00",
-      "malterlib-member-static-function-public": "#00ff00",
-      "malterlib-member-function-public-recursive": "#00ff00",
-      "malterlib-member-static-function-public-recursive": "#00ff00",
-      "malterlib-function": "#00c000",
-      "malterlib-static-function": "#00c000",
-      "malterlib-function-recursive": "#00c000",
-      "malterlib-static-function-recursive": "#00c000",
-      "malterlib-member-function-private": "#7dd879",
-      "malterlib-member-static-function-private": "#7dd879",
-      "malterlib-member-function-private-recursive": "#7dd879",
-      "malterlib-member-static-function-private-recursive": "#7dd879",
-      "malterlib-function-parameter": "#e0ff00",
-      "malterlib-function-parameter-pack": "#e0ff00",
-      "malterlib-function-parameter-output": "#fff53a",
-      "malterlib-function-parameter-output-pack": "#fff53a",
-      "malterlib-variable": "#ffd500",
-      "malterlib-member-variable-public": "#ffa200",
-      "malterlib-macro": "#ff7100",
-      "malterlib-macro-parameter": "#ffb97a",
-      "malterlib-member-static-variable-private": "#ed6451",
-      "malterlib-member-static-variable-private-functor": "#ed6451",
-      "malterlib-member-static-variable-public": "#ff3715",
-      "malterlib-member-static-variable-public-functor": "#ff3715",
-      "malterlib-global-variable": "#ff3113",
-      "malterlib-global-static-variable": "#ff3113",
-      "malterlib-global-variable-functor": "#ff3113",
-      "malterlib-global-static-variable-functor": "#ff3113",
-      "malterlib-static-variable": "#ff3113",
-      "malterlib-static-variable-functor": "#ff3113",
-      "malterlib-concept": "#ffb379",
-      "malterlib-member-constant-private": "#d595b3",
-      "malterlib-member-variable-private": "#ce9b4b",
-      "malterlib-keyword-property-modifiers-brackets": "#909090"
-    }
   }
 }

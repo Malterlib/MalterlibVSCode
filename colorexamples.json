@@ -35,6 +35,13 @@
     ]
   },
   {
+    "color": "#909090",
+    "examples": [
+      "[[",
+      "]]"
+    ]
+  },
+  {
     "color": "#808080",
     "examples": [
       "\\"
@@ -70,6 +77,12 @@
     ]
   },
   {
+    "color": "#ff0080",
+    "examples": [
+      "15"
+    ]
+  },
+  {
     "color": "#ff5bad",
     "examples": [
       "t_Test",
@@ -90,10 +103,22 @@
     ]
   },
   {
+    "color": "#ca97b1",
+    "examples": [
+      "mcp_Test"
+    ]
+  },
+  {
     "color": "#ffb7db",
     "examples": [
       "tf_Test",
       "tfp_Test"
+    ]
+  },
+  {
+    "color": "#ff48f0",
+    "examples": [
+      "'T'"
     ]
   },
   {
@@ -139,6 +164,12 @@
     "color": "#dbd3ff",
     "examples": [
       "auto"
+    ]
+  },
+  {
+    "color": "#009eff",
+    "examples": [
+      "\"String\""
     ]
   },
   {
@@ -221,9 +252,21 @@
     ]
   },
   {
+    "color": "#ffb680",
+    "examples": [
+      "cComparable"
+    ]
+  },
+  {
     "color": "#ffa600",
     "examples": [
       "m_Test"
+    ]
+  },
+  {
+    "color": "#c59d53",
+    "examples": [
+      "mp_Test"
     ]
   },
   {
@@ -236,13 +279,6 @@
     "color": "#ffbc81",
     "examples": [
       "d_Test"
-    ]
-  },
-  {
-    "color": "#d56955",
-    "examples": [
-      "msp_Test",
-      "msp_fTest"
     ]
   },
   {
@@ -264,34 +300,10 @@
     ]
   },
   {
-    "color": "#ffb680",
+    "color": "#d56955",
     "examples": [
-      "cComparable"
+      "msp_Test",
+      "msp_fTest"
     ]
-  },
-  {
-    "color": "#ca97b1",
-    "examples": [
-      "mcp_Test"
-    ]
-  },
-  {
-    "color": "#c59d53",
-    "examples": [
-      "mp_Test"
-    ]
-  },
-  {
-    "color": "#c59d53",
-    "examples": [
-      "mp_Test"
-    ]
-  },
-  {
-    "color": "#909090",
-    "examples": [
-      "[[",
-      "]]"
-    ]
-  }  
+  }
 ]

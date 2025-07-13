@@ -1,13 +1,13 @@
 {
-  "name": "malterlib-syntax-coloring",
-  "displayName": "Malterlib Syntax Coloring",
-  "description": "Malterlib syntax highlighting extension",
+  "name": "malterlib",
+  "displayName": "Malterlib",
+  "description": "Support Malterlib functionality in VSCode",
   "publisher": "Malterlib",
   "repository": {
     "type": "git",
     "url": "https://github.com/Malterlib/MalterlibVSCode.git"
   },
-  "version": "1.0.3",
+  "version": "1.0.4",
   "engines": {
     "vscode": ">=1.80.0"
   },
@@ -44,6 +44,16 @@
   },
   "icon": "icon.png",
   "contributes": {
+    "configuration": {
+      "title": "Malterlib",
+      "properties": {
+        "malterlib.enableSemanticColoring": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable semantic token coloring for Malterlib identifiers. This will override clangd coloring. Use if you are not using clangd shipped with Malterlib."
+        }
+      }
+    },
     "semanticTokenTypes": [
       {
         "id": "malterlib-unknown",
@@ -504,12 +514,799 @@
       {
         "id": "malterlib-preprocessor-directive",
         "description": "Malterlib token"
+      },
+      {
+        "id": "malterlib-keyword-property-modifiers-brackets",
+        "description": "Malterlib token"
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "scopes": {
+          "malterlib-unknown": [
+            "malterlib.unknown"
+          ],
+          "malterlib-type": [
+            "malterlib.type"
+          ],
+          "class.constructor:java": [
+            "malterlib.type"
+          ],
+          "malterlib-namespace": [
+            "malterlib.namespace"
+          ],
+          "malterlib-template-type-param-class": [
+            "malterlib.template.type.param.class"
+          ],
+          "typeParameter.classScope": [
+            "malterlib.template.type.param.class"
+          ],
+          "malterlib-template-non-type-param": [
+            "malterlib.template.non.type.param"
+          ],
+          "typeParameter.readonly.classScope": [
+            "malterlib.template.non.type.param"
+          ],
+          "malterlib-template-template-param": [
+            "malterlib.template.template.param"
+          ],
+          "malterlib-function-template-type-param-class": [
+            "malterlib.function.template.type.param.class"
+          ],
+          "typeParameter.functionScope": [
+            "malterlib.function.template.type.param.class"
+          ],
+          "malterlib-function-template-non-type-param": [
+            "malterlib.function.template.non.type.param"
+          ],
+          "typeParameter.readonly.functionScope": [
+            "malterlib.function.template.non.type.param"
+          ],
+          "malterlib-function-template-template-param": [
+            "malterlib.function.template.template.param"
+          ],
+          "malterlib-template-type": [
+            "malterlib.template.type"
+          ],
+          "malterlib-enumerator": [
+            "malterlib.enumerator"
+          ],
+          "malterlib-function-parameter": [
+            "malterlib.function.parameter"
+          ],
+          "malterlib-function-parameter-output": [
+            "malterlib.function.parameter.output"
+          ],
+          "malterlib-function-parameter-output-pack": [
+            "malterlib.function.parameter.output.pack"
+          ],
+          "malterlib-function-parameter-pack": [
+            "malterlib.function.parameter.pack"
+          ],
+          "malterlib-macro-parameter": [
+            "malterlib.macro.parameter"
+          ],
+          "malterlib-member-function-private": [
+            "malterlib.member.function.private"
+          ],
+          "method.private.classScope": [
+            "malterlib.member.function.private"
+          ],
+          "method.protected.classScope": [
+            "malterlib.member.function.private"
+          ],
+          "malterlib-member-function-public": [
+            "malterlib.member.function.public"
+          ],
+          "method.public.classScope": [
+            "malterlib.member.function.public"
+          ],
+          "malterlib-member-static-function-private": [
+            "malterlib.member.static.function.private"
+          ],
+          "function.static.private.classScope": [
+            "malterlib.member.static.function.private"
+          ],
+          "function.static.protected.classScope": [
+            "malterlib.member.static.function.private"
+          ],
+          "malterlib-member-static-function-public": [
+            "malterlib.member.static.function.public"
+          ],
+          "function.static.public.classScop": [
+            "malterlib.member.static.function.public"
+          ],
+          "malterlib-member-variable-private": [
+            "malterlib.member.variable.private"
+          ],
+          "property.private:java": [
+            "malterlib.member.variable.private"
+          ],
+          "property.private.classScope": [
+            "malterlib.member.variable.private"
+          ],
+          "property.protected.classScope": [
+            "malterlib.member.variable.private"
+          ],
+          "malterlib-member-variable-public": [
+            "malterlib.member.variable.public"
+          ],
+          "property.public.classScope": [
+            "malterlib.member.variable.public"
+          ],
+          "property.public:java": [
+            "malterlib.member.variable.public"
+          ],
+          "malterlib-member-static-variable-private": [
+            "malterlib.member.static.variable.private"
+          ],
+          "variable.static.private.classScope": [
+            "malterlib.member.static.variable.private"
+          ],
+          "variable.static.protected.classScope": [
+            "malterlib.member.static.variable.private"
+          ],
+          "property.static.private:java": [
+            "malterlib.member.static.variable.private"
+          ],
+          "malterlib-member-static-variable-public": [
+            "malterlib.member.static.variable.public"
+          ],
+          "variable.static.public.classScope": [
+            "malterlib.member.static.variable.public"
+          ],
+          "property.static.public:java": [
+            "malterlib.member.static.variable.public"
+          ],
+          "malterlib-static-function": [
+            "malterlib.static.function"
+          ],
+          "function.fileScope": [
+            "malterlib.static.function"
+          ],
+          "malterlib-global-variable": [
+            "malterlib.global.variable"
+          ],
+          "variable.globalScope": [
+            "malterlib.global.variable"
+          ],
+          "malterlib-global-static-variable": [
+            "malterlib.global.static.variable"
+          ],
+          "variable.fileScope": [
+            "malterlib.global.static.variable"
+          ],
+          "malterlib-member-constant-private": [
+            "malterlib.member.constant.private"
+          ],
+          "variable.constexpr.private.classScope": [
+            "malterlib.member.constant.private"
+          ],
+          "variable.constexpr.protected.classScope": [
+            "malterlib.member.constant.private"
+          ],
+          "property.static.readonly.private:java": [
+            "malterlib.member.constant.private"
+          ],
+          "malterlib-member-constant-public": [
+            "malterlib.member.constant.public"
+          ],
+          "variable.constexpr.public.classScope": [
+            "malterlib.member.constant.public"
+          ],
+          "property.static.readonly.public:java": [
+            "malterlib.member.constant.public"
+          ],
+          "malterlib-global-constant": [
+            "malterlib.global.constant"
+          ],
+          "variable.constexpr.globalScope": [
+            "malterlib.global.constant"
+          ],
+          "variable.constexpr.fileScope": [
+            "malterlib.global.constant"
+          ],
+          "malterlib-typedef": [
+            "malterlib.typedef"
+          ],
+          "malterlib-function": [
+            "malterlib.function"
+          ],
+          "function.globalScope": [
+            "malterlib.function"
+          ],
+          "malterlib-enum": [
+            "malterlib.enum"
+          ],
+          "malterlib-macro": [
+            "malterlib.macro"
+          ],
+          "macro": [
+            "malterlib.macro"
+          ],
+          "malterlib-concept": [
+            "malterlib.concept"
+          ],
+          "concept": [
+            "malterlib.concept"
+          ],
+          "malterlib-operator": [
+            "malterlib.operator"
+          ],
+          "malterlib-preprocessor-escape": [
+            "malterlib.preprocessor.escape"
+          ],
+          "malterlib-preprocessor-operator": [
+            "malterlib.preprocessor.operator"
+          ],
+          "malterlib-comment-background": [
+            "malterlib.comment.background"
+          ],
+          "malterlib-comment-foreground": [
+            "malterlib.comment.foreground"
+          ],
+          "malterlib-documentation-comment-foreground": [
+            "malterlib.documentation.comment.foreground"
+          ],
+          "malterlib-documentation-comment-foreground-keyword": [
+            "malterlib.documentation.comment.foreground.keyword"
+          ],
+          "malterlib-comment-url": [
+            "malterlib.comment.url"
+          ],
+          "malterlib-string": [
+            "malterlib.string"
+          ],
+          "malterlib-character": [
+            "malterlib.character"
+          ],
+          "malterlib-number": [
+            "malterlib.number"
+          ],
+          "malterlib-plain-text": [
+            "malterlib.plain.text"
+          ],
+          "malterlib-variable": [
+            "malterlib.variable"
+          ],
+          "malterlib-variable-functor": [
+            "malterlib.variable.functor"
+          ],
+          "malterlib-static-variable": [
+            "malterlib.static.variable"
+          ],
+          "variable.static.functionScope": [
+            "malterlib.static.variable"
+          ],
+          "malterlib-constant-variable": [
+            "malterlib.constant.variable"
+          ],
+          "variable.constexpr.functionScope": [
+            "malterlib.constant.variable"
+          ],
+          "malterlib-keyword-builtin-constants": [
+            "malterlib.keyword.builtin.constants"
+          ],
+          "malterlib-keyword-control-statement": [
+            "malterlib.keyword.control.statement"
+          ],
+          "malterlib-keyword-storage-class": [
+            "malterlib.keyword.storage.class"
+          ],
+          "malterlib-keyword-exception-handling": [
+            "malterlib.keyword.exception.handling"
+          ],
+          "malterlib-keyword-introspection": [
+            "malterlib.keyword.introspection"
+          ],
+          "malterlib-keyword-static-assert": [
+            "malterlib.keyword.static.assert"
+          ],
+          "malterlib-keyword-optimization": [
+            "malterlib.keyword.optimization"
+          ],
+          "malterlib-keyword-new-delete": [
+            "malterlib.keyword.new.delete"
+          ],
+          "malterlib-keyword-clr": [
+            "malterlib.keyword.clr"
+          ],
+          "malterlib-keyword-other": [
+            "malterlib.keyword.other"
+          ],
+          "malterlib-keyword-type-specification": [
+            "malterlib.keyword.type.specification"
+          ],
+          "malterlib-keyword-namespace": [
+            "malterlib.keyword.namespace"
+          ],
+          "malterlib-keyword-template": [
+            "malterlib.keyword.template"
+          ],
+          "malterlib-keyword-function": [
+            "malterlib.keyword.function"
+          ],
+          "malterlib-keyword-in": [
+            "malterlib.keyword.in"
+          ],
+          "malterlib-keyword-typedef": [
+            "malterlib.keyword.typedef"
+          ],
+          "malterlib-keyword-using": [
+            "malterlib.keyword.using"
+          ],
+          "malterlib-keyword-this": [
+            "malterlib.keyword.this"
+          ],
+          "malterlib-keyword-operator": [
+            "malterlib.keyword.operator"
+          ],
+          "malterlib-keyword-virtual": [
+            "malterlib.keyword.virtual"
+          ],
+          "malterlib-keyword-casts": [
+            "malterlib.keyword.casts"
+          ],
+          "malterlib-keyword-pure": [
+            "malterlib.keyword.pure"
+          ],
+          "malterlib-keyword-builtin-types": [
+            "malterlib.keyword.builtin.types"
+          ],
+          "malterlib-keyword-builtin-character-types": [
+            "malterlib.keyword.builtin.character.types"
+          ],
+          "malterlib-keyword-builtin-integer-types": [
+            "malterlib.keyword.builtin.integer.types"
+          ],
+          "malterlib-keyword-builtin-vector-types": [
+            "malterlib.keyword.builtin.vector.types"
+          ],
+          "malterlib-keyword-builtin-type-modifiers": [
+            "malterlib.keyword.builtin.type.modifiers"
+          ],
+          "malterlib-keyword-builtin-float-types": [
+            "malterlib.keyword.builtin.float.types"
+          ],
+          "malterlib-keyword-property-modifiers": [
+            "malterlib.keyword.property.modifiers"
+          ],
+          "malterlib-keyword-auto": [
+            "malterlib.keyword.auto"
+          ],
+          "malterlib-keyword-typename": [
+            "malterlib.keyword.typename"
+          ],
+          "malterlib-keyword-access": [
+            "malterlib.keyword.access"
+          ],
+          "malterlib-keyword-qualifier": [
+            "malterlib.keyword.qualifier"
+          ],
+          "malterlib-template-non-type-param-pack": [
+            "malterlib.template.non.type.param.pack"
+          ],
+          "malterlib-function-template-non-type-param-pack": [
+            "malterlib.function.template.non.type.param.pack"
+          ],
+          "malterlib-template-type-param-class-pack": [
+            "malterlib.template.type.param.class.pack"
+          ],
+          "malterlib-template-template-param-pack": [
+            "malterlib.template.template.param.pack"
+          ],
+          "malterlib-template-type-param-function": [
+            "malterlib.template.type.param.function"
+          ],
+          "malterlib-template-type-param-function-pack": [
+            "malterlib.template.type.param.function.pack"
+          ],
+          "malterlib-template-type-interface": [
+            "malterlib.template.type.interface"
+          ],
+          "malterlib-type-interface": [
+            "malterlib.type.interface"
+          ],
+          "malterlib-type-function": [
+            "malterlib.type.function"
+          ],
+          "malterlib-function-template-type-param-class-pack": [
+            "malterlib.function.template.type.param.class.pack"
+          ],
+          "malterlib-function-template-type-param-function-pack": [
+            "malterlib.function.template.type.param.function.pack"
+          ],
+          "malterlib-function-template-template-param-pack": [
+            "malterlib.function.template.template.param.pack"
+          ],
+          "malterlib-function-template-type-param-function": [
+            "malterlib.function.template.type.param.function"
+          ],
+          "malterlib-static-function-recursive": [
+            "malterlib.static.function.recursive"
+          ],
+          "malterlib-function-recursive": [
+            "malterlib.function.recursive"
+          ],
+          "malterlib-member-static-function-private-recursive": [
+            "malterlib.member.static.function.private.recursive"
+          ],
+          "malterlib-member-function-private-recursive": [
+            "malterlib.member.function.private.recursive"
+          ],
+          "malterlib-member-static-function-public-recursive": [
+            "malterlib.member.static.function.public.recursive"
+          ],
+          "malterlib-member-function-public-recursive": [
+            "malterlib.member.function.public.recursive"
+          ],
+          "malterlib-function-parameter-functor": [
+            "malterlib.function.parameter.functor"
+          ],
+          "malterlib-function-parameter-pack-functor": [
+            "malterlib.function.parameter.pack.functor"
+          ],
+          "malterlib-function-parameter-output-functor": [
+            "malterlib.function.parameter.output.functor"
+          ],
+          "malterlib-function-parameter-output-pack-functor": [
+            "malterlib.function.parameter.output.pack.functor"
+          ],
+          "malterlib-member-variable-public-functor": [
+            "malterlib.member.variable.public.functor"
+          ],
+          "malterlib-member-variable-private-functor": [
+            "malterlib.member.variable.private.functor"
+          ],
+          "malterlib-member-static-variable-public-functor": [
+            "malterlib.member.static.variable.public.functor"
+          ],
+          "malterlib-member-static-variable-private-functor": [
+            "malterlib.member.static.variable.private.functor"
+          ],
+          "malterlib-global-static-variable-functor": [
+            "malterlib.global.static.variable.functor"
+          ],
+          "malterlib-global-variable-functor": [
+            "malterlib.global.variable.functor"
+          ],
+          "malterlib-static-variable-functor": [
+            "malterlib.static.variable.functor"
+          ],
+          "malterlib-preprocessor-directive": [
+            "malterlib.preprocessor.directive"
+          ],
+          "malterlib-keyword-property-modifiers-brackets": [
+            "malterlib.keyword.property.modifiers.brackets"
+          ],
+          "type.custom4": [
+            "malterlib.keyword.auto"
+          ],
+          "property.custom0.custom4.custom5": [
+            "malterlib.template.type"
+          ],
+          "variable.custom0.custom4.custom5": [
+            "malterlib.template.type"
+          ],
+          "variable.static..custom0.custom4.custom5": [
+            "malterlib.template.type"
+          ],
+          "variable.static.public..custom0.custom4.custom5": [
+            "malterlib.template.type"
+          ],
+          "variable.static.public.classScope..custom0.custom4.custom5": [
+            "malterlib.template.type"
+          ],
+          "*.custom0": [
+            "malterlib.enum"
+          ],
+          "*.custom1": [
+            "malterlib.enumerator"
+          ],
+          "*.custom2": [
+            "malterlib.function"
+          ],
+          "*.custom3": [
+            "malterlib.keyword.access"
+          ],
+          "*.custom4": [
+            "malterlib.keyword.auto"
+          ],
+          "*.custom5": [
+            "malterlib.keyword.builtin.character.types"
+          ],
+          "*.custom6": [
+            "malterlib.keyword.builtin.constants"
+          ],
+          "*.custom0.custom1": [
+            "malterlib.keyword.builtin.float.types"
+          ],
+          "*.custom0.custom2": [
+            "malterlib.keyword.builtin.integer.types"
+          ],
+          "*.custom0.custom3": [
+            "malterlib.keyword.builtin.type.modifiers"
+          ],
+          "*.custom0.custom4": [
+            "malterlib.keyword.builtin.types"
+          ],
+          "*.custom0.custom5": [
+            "malterlib.keyword.builtin.vector.types"
+          ],
+          "*.custom0.custom6": [
+            "malterlib.keyword.casts"
+          ],
+          "*.custom1.custom2": [
+            "malterlib.keyword.clr"
+          ],
+          "*.custom1.custom3": [
+            "malterlib.keyword.control.statement"
+          ],
+          "*.custom1.custom4": [
+            "malterlib.keyword.exception.handling"
+          ],
+          "*.custom1.custom5": [
+            "malterlib.keyword.introspection"
+          ],
+          "*.custom1.custom6": [
+            "malterlib.keyword.namespace"
+          ],
+          "*.custom2.custom3": [
+            "malterlib.keyword.new.delete"
+          ],
+          "*.custom2.custom4": [
+            "malterlib.keyword.operator"
+          ],
+          "*.custom2.custom5": [
+            "malterlib.keyword.optimization"
+          ],
+          "*.custom2.custom6": [
+            "malterlib.keyword.other"
+          ],
+          "*.custom3.custom4": [
+            "malterlib.keyword.property.modifiers"
+          ],
+          "*.custom3.custom5": [
+            "malterlib.keyword.property.modifiers.brackets"
+          ],
+          "*.custom3.custom6": [
+            "malterlib.keyword.pure"
+          ],
+          "*.custom4.custom5": [
+            "malterlib.keyword.qualifier"
+          ],
+          "*.custom4.custom6": [
+            "malterlib.keyword.static.assert"
+          ],
+          "*.custom5.custom6": [
+            "malterlib.keyword.storage.class"
+          ],
+          "*.custom0.custom1.custom2": [
+            "malterlib.keyword.template"
+          ],
+          "*.custom0.custom1.custom3": [
+            "malterlib.keyword.this"
+          ],
+          "*.custom0.custom1.custom4": [
+            "malterlib.keyword.type.specification"
+          ],
+          "*.custom0.custom1.custom5": [
+            "malterlib.keyword.typedef"
+          ],
+          "*.custom0.custom1.custom6": [
+            "malterlib.keyword.typename"
+          ],
+          "*.custom0.custom2.custom3": [
+            "malterlib.keyword.using"
+          ],
+          "*.custom0.custom2.custom4": [
+            "malterlib.keyword.virtual"
+          ],
+          "*.custom0.custom2.custom5": [
+            "malterlib.macro"
+          ],
+          "*.custom0.custom2.custom6": [
+            "malterlib.member.constant.public"
+          ],
+          "*.custom0.custom3.custom4": [
+            "malterlib.member.function.public"
+          ],
+          "*.custom0.custom3.custom5": [
+            "malterlib.namespace"
+          ],
+          "*.custom0.custom3.custom6": [
+            "malterlib.preprocessor.directive"
+          ],
+          "*.custom0.custom4.custom5": [
+            "malterlib.template.type"
+          ],
+          "*.custom0.custom4.custom6": [
+            "malterlib.type"
+          ],
+          "*.custom0.custom5.custom6": [
+            "malterlib.function.template.template.param.pack"
+          ],
+          "*.custom1.custom2.custom3": [
+            "malterlib.static.function.recursive"
+          ],
+          "*.custom1.custom2.custom4": [
+            "malterlib.member.static.function.private.recursive"
+          ],
+          "*.custom1.custom2.custom5": [
+            "malterlib.member.static.variable.private.functor"
+          ],
+          "*.custom1.custom2.custom6": [
+            "malterlib.function.template.template.param"
+          ],
+          "*.custom1.custom3.custom4": [
+            "malterlib.function.template.type.param.class.pack"
+          ],
+          "*.custom1.custom3.custom5": [
+            "malterlib.function.template.type.param.function.pack"
+          ],
+          "*.custom1.custom3.custom6": [
+            "malterlib.template.template.param.pack"
+          ],
+          "*.custom1.custom4.custom5": [
+            "malterlib.function.recursive"
+          ],
+          "*.custom1.custom4.custom6": [
+            "malterlib.member.function.private.recursive"
+          ],
+          "*.custom1.custom5.custom6": [
+            "malterlib.member.static.function.public.recursive"
+          ],
+          "*.custom2.custom3.custom4": [
+            "malterlib.static.function"
+          ],
+          "*.custom2.custom3.custom5": [
+            "malterlib.member.static.function.private"
+          ],
+          "*.custom2.custom3.custom6": [
+            "malterlib.global.static.variable.functor"
+          ],
+          "*.custom2.custom4.custom5": [
+            "malterlib.member.constant.private"
+          ],
+          "*.custom2.custom4.custom6": [
+            "malterlib.member.variable.private.functor"
+          ],
+          "*.custom2.custom5.custom6": [
+            "malterlib.member.static.variable.public.functor"
+          ],
+          "*.custom3.custom4.custom5": [
+            "malterlib.member.static.variable.private"
+          ],
+          "*.custom3.custom4.custom6": [
+            "malterlib.function.parameter.output.pack.functor"
+          ],
+          "*.custom3.custom5.custom6": [
+            "malterlib.template.template.param"
+          ],
+          "*.custom4.custom5.custom6": [
+            "malterlib.function.template.type.param.class"
+          ],
+          "*.custom0.custom1.custom2.custom3": [
+            "malterlib.function.template.type.param.function"
+          ],
+          "*.custom0.custom1.custom2.custom4": [
+            "malterlib.function.template.non.type.param.pack"
+          ],
+          "*.custom0.custom1.custom2.custom5": [
+            "malterlib.template.type.param.class.pack"
+          ],
+          "*.custom0.custom1.custom2.custom6": [
+            "malterlib.template.type.param.function.pack"
+          ],
+          "*.custom0.custom1.custom3.custom4": [
+            "malterlib.template.type.interface"
+          ],
+          "*.custom0.custom1.custom3.custom5": [
+            "malterlib.function.parameter.output.functor"
+          ],
+          "*.custom0.custom1.custom3.custom6": [
+            "malterlib.member.function.public.recursive"
+          ],
+          "*.custom0.custom1.custom4.custom5": [
+            "malterlib.variable.functor"
+          ],
+          "*.custom0.custom1.custom4.custom6": [
+            "malterlib.member.function.private"
+          ],
+          "*.custom0.custom1.custom5.custom6": [
+            "malterlib.member.static.function.public"
+          ],
+          "*.custom0.custom2.custom3.custom4": [
+            "malterlib.global.variable.functor"
+          ],
+          "*.custom0.custom2.custom3.custom5": [
+            "malterlib.global.constant"
+          ],
+          "*.custom0.custom2.custom3.custom6": [
+            "malterlib.global.static.variable"
+          ],
+          "*.custom0.custom2.custom4.custom5": [
+            "malterlib.member.variable.public.functor"
+          ],
+          "*.custom0.custom2.custom4.custom6": [
+            "malterlib.member.variable.private"
+          ],
+          "*.custom0.custom2.custom5.custom6": [
+            "malterlib.member.static.variable.public"
+          ],
+          "*.custom0.custom3.custom4.custom5": [
+            "malterlib.function.parameter.pack.functor"
+          ],
+          "*.custom0.custom3.custom4.custom6": [
+            "malterlib.function.parameter.output.pack"
+          ],
+          "*.custom0.custom3.custom5.custom6": [
+            "malterlib.static.variable.functor"
+          ],
+          "*.custom0.custom4.custom5.custom6": [
+            "malterlib.template.type.param.class"
+          ],
+          "*.custom1.custom2.custom3.custom4": [
+            "malterlib.template.type.param.function"
+          ],
+          "*.custom1.custom2.custom3.custom5": [
+            "malterlib.function.template.non.type.param"
+          ],
+          "*.custom1.custom2.custom3.custom6": [
+            "malterlib.template.non.type.param.pack"
+          ],
+          "*.custom1.custom2.custom4.custom5": [
+            "malterlib.type.interface"
+          ],
+          "*.custom1.custom2.custom4.custom6": [
+            "malterlib.function.parameter.functor"
+          ],
+          "*.custom1.custom2.custom5.custom6": [
+            "malterlib.function.parameter.output"
+          ],
+          "*.custom1.custom3.custom4.custom5": [
+            "malterlib.constant.variable"
+          ],
+          "*.custom1.custom3.custom4.custom6": [
+            "malterlib.macro.parameter"
+          ],
+          "*.custom1.custom3.custom5.custom6": [
+            "malterlib.global.variable"
+          ],
+          "*.custom1.custom4.custom5.custom6": [
+            "malterlib.member.variable.public"
+          ],
+          "*.custom2.custom3.custom4.custom5": [
+            "malterlib.function.parameter.pack"
+          ],
+          "*.custom2.custom3.custom4.custom6": [
+            "malterlib.static.variable"
+          ],
+          "*.custom2.custom3.custom5.custom6": [
+            "malterlib.template.non.type.param"
+          ],
+          "*.custom2.custom4.custom5.custom6": [
+            "malterlib.type.function"
+          ],
+          "*.custom3.custom4.custom5.custom6": [
+            "malterlib.function.parameter"
+          ],
+          "*.custom0.custom1.custom2.custom3.custom4": [
+            "malterlib.concept"
+          ],
+          "*.custom0.custom1.custom2.custom3.custom5": [
+            "malterlib.variable"
+          ]
+        }
       }
     ],
     "languages": [
       {
         "id": "malterlib-build",
-        "aliases": ["Malterlib Build", "malterlib-build"],
+        "aliases": [
+          "Malterlib Build",
+          "malterlib-build"
+        ],
         "extensions": [
           ".MTarget",
           ".MBuildSystem",
@@ -530,6 +1327,18 @@
         "language": "malterlib-build",
         "scopeName": "source.malterlibbuild",
         "path": "./syntaxes/malterlib-build.tmLanguage.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "Malterlib",
+        "uiTheme": "vs-dark",
+        "path": "./themes/malterlib.json"
+      },
+      {
+        "label": "Malterlib (sRGB)",
+        "uiTheme": "vs-dark",
+        "path": "./themes/malterlibSRGB.json"
       }
     ]
   }

@@ -1,0 +1,309 @@
+{
+  "semanticTokenScopes": [
+    {
+      "language": "cpp",
+      "scopes": {
+        "*.custom0": [
+          "malterlib.enum"
+        ],
+        "*.custom1": [
+          "malterlib.enumerator"
+        ],
+        "*.custom2": [
+          "malterlib.function"
+        ],
+        "*.custom3": [
+          "malterlib.keyword.access"
+        ],
+        "*.custom4": [
+          "malterlib.keyword.auto"
+        ],
+        "*.custom5": [
+          "malterlib.keyword.builtin.character.types"
+        ],
+        "*.custom6": [
+          "malterlib.keyword.builtin.constants"
+        ],
+        "*.custom0.custom1": [
+          "malterlib.keyword.builtin.float.types"
+        ],
+        "*.custom0.custom2": [
+          "malterlib.keyword.builtin.integer.types"
+        ],
+        "*.custom0.custom3": [
+          "malterlib.keyword.builtin.type.modifiers"
+        ],
+        "*.custom0.custom4": [
+          "malterlib.keyword.builtin.types"
+        ],
+        "*.custom0.custom5": [
+          "malterlib.keyword.builtin.vector.types"
+        ],
+        "*.custom0.custom6": [
+          "malterlib.keyword.casts"
+        ],
+        "*.custom1.custom2": [
+          "malterlib.keyword.clr"
+        ],
+        "*.custom1.custom3": [
+          "malterlib.keyword.control.statement"
+        ],
+        "*.custom1.custom4": [
+          "malterlib.keyword.exception.handling"
+        ],
+        "*.custom1.custom5": [
+          "malterlib.keyword.introspection"
+        ],
+        "*.custom1.custom6": [
+          "malterlib.keyword.namespace"
+        ],
+        "*.custom2.custom3": [
+          "malterlib.keyword.new.delete"
+        ],
+        "*.custom2.custom4": [
+          "malterlib.keyword.operator"
+        ],
+        "*.custom2.custom5": [
+          "malterlib.keyword.optimization"
+        ],
+        "*.custom2.custom6": [
+          "malterlib.keyword.other"
+        ],
+        "*.custom3.custom4": [
+          "malterlib.keyword.property.modifiers"
+        ],
+        "*.custom3.custom5": [
+          "malterlib.keyword.property.modifiers.brackets"
+        ],
+        "*.custom3.custom6": [
+          "malterlib.keyword.pure"
+        ],
+        "*.custom4.custom5": [
+          "malterlib.keyword.qualifier"
+        ],
+        "*.custom4.custom6": [
+          "malterlib.keyword.static.assert"
+        ],
+        "*.custom5.custom6": [
+          "malterlib.keyword.storage.class"
+        ],
+        "*.custom0.custom1.custom2": [
+          "malterlib.keyword.template"
+        ],
+        "*.custom0.custom1.custom3": [
+          "malterlib.keyword.this"
+        ],
+        "*.custom0.custom1.custom4": [
+          "malterlib.keyword.type.specification"
+        ],
+        "*.custom0.custom1.custom5": [
+          "malterlib.keyword.typedef"
+        ],
+        "*.custom0.custom1.custom6": [
+          "malterlib.keyword.typename"
+        ],
+        "*.custom0.custom2.custom3": [
+          "malterlib.keyword.using"
+        ],
+        "*.custom0.custom2.custom4": [
+          "malterlib.keyword.virtual"
+        ],
+        "*.custom0.custom2.custom5": [
+          "malterlib.macro"
+        ],
+        "*.custom0.custom2.custom6": [
+          "malterlib.member.constant.public"
+        ],
+        "*.custom0.custom3.custom4": [
+          "malterlib.member.function.public"
+        ],
+        "*.custom0.custom3.custom5": [
+          "malterlib.namespace"
+        ],
+        "*.custom0.custom3.custom6": [
+          "malterlib.preprocessor.directive"
+        ],
+        "*.custom0.custom4.custom5": [
+          "malterlib.template.type"
+        ],
+        "*.custom0.custom4.custom6": [
+          "malterlib.type"
+        ],
+        "*.custom0.custom5.custom6": [
+          "malterlib.function.template.template.param.pack"
+        ],
+        "*.custom1.custom2.custom3": [
+          "malterlib.static.function.recursive"
+        ],
+        "*.custom1.custom2.custom4": [
+          "malterlib.member.static.function.private.recursive"
+        ],
+        "*.custom1.custom2.custom5": [
+          "malterlib.member.static.variable.private.functor"
+        ],
+        "*.custom1.custom2.custom6": [
+          "malterlib.function.template.template.param"
+        ],
+        "*.custom1.custom3.custom4": [
+          "malterlib.function.template.type.param.class.pack"
+        ],
+        "*.custom1.custom3.custom5": [
+          "malterlib.function.template.type.param.function.pack"
+        ],
+        "*.custom1.custom3.custom6": [
+          "malterlib.template.template.param.pack"
+        ],
+        "*.custom1.custom4.custom5": [
+          "malterlib.function.recursive"
+        ],
+        "*.custom1.custom4.custom6": [
+          "malterlib.member.function.private.recursive"
+        ],
+        "*.custom1.custom5.custom6": [
+          "malterlib.member.static.function.public.recursive"
+        ],
+        "*.custom2.custom3.custom4": [
+          "malterlib.static.function"
+        ],
+        "*.custom2.custom3.custom5": [
+          "malterlib.member.static.function.private"
+        ],
+        "*.custom2.custom3.custom6": [
+          "malterlib.global.static.variable.functor"
+        ],
+        "*.custom2.custom4.custom5": [
+          "malterlib.member.constant.private"
+        ],
+        "*.custom2.custom4.custom6": [
+          "malterlib.member.variable.private.functor"
+        ],
+        "*.custom2.custom5.custom6": [
+          "malterlib.member.static.variable.public.functor"
+        ],
+        "*.custom3.custom4.custom5": [
+          "malterlib.member.static.variable.private"
+        ],
+        "*.custom3.custom4.custom6": [
+          "malterlib.function.parameter.output.pack.functor"
+        ],
+        "*.custom3.custom5.custom6": [
+          "malterlib.template.template.param"
+        ],
+        "*.custom4.custom5.custom6": [
+          "malterlib.function.template.type.param.class"
+        ],
+        "*.custom0.custom1.custom2.custom3": [
+          "malterlib.function.template.type.param.function"
+        ],
+        "*.custom0.custom1.custom2.custom4": [
+          "malterlib.function.template.non.type.param.pack"
+        ],
+        "*.custom0.custom1.custom2.custom5": [
+          "malterlib.template.type.param.class.pack"
+        ],
+        "*.custom0.custom1.custom2.custom6": [
+          "malterlib.template.type.param.function.pack"
+        ],
+        "*.custom0.custom1.custom3.custom4": [
+          "malterlib.template.type.interface"
+        ],
+        "*.custom0.custom1.custom3.custom5": [
+          "malterlib.function.parameter.output.functor"
+        ],
+        "*.custom0.custom1.custom3.custom6": [
+          "malterlib.member.function.public.recursive"
+        ],
+        "*.custom0.custom1.custom4.custom5": [
+          "malterlib.variable.functor"
+        ],
+        "*.custom0.custom1.custom4.custom6": [
+          "malterlib.member.function.private"
+        ],
+        "*.custom0.custom1.custom5.custom6": [
+          "malterlib.member.static.function.public"
+        ],
+        "*.custom0.custom2.custom3.custom4": [
+          "malterlib.global.variable.functor"
+        ],
+        "*.custom0.custom2.custom3.custom5": [
+          "malterlib.global.constant"
+        ],
+        "*.custom0.custom2.custom3.custom6": [
+          "malterlib.global.static.variable"
+        ],
+        "*.custom0.custom2.custom4.custom5": [
+          "malterlib.member.variable.public.functor"
+        ],
+        "*.custom0.custom2.custom4.custom6": [
+          "malterlib.member.variable.private"
+        ],
+        "*.custom0.custom2.custom5.custom6": [
+          "malterlib.member.static.variable.public"
+        ],
+        "*.custom0.custom3.custom4.custom5": [
+          "malterlib.function.parameter.pack.functor"
+        ],
+        "*.custom0.custom3.custom4.custom6": [
+          "malterlib.function.parameter.output.pack"
+        ],
+        "*.custom0.custom3.custom5.custom6": [
+          "malterlib.static.variable.functor"
+        ],
+        "*.custom0.custom4.custom5.custom6": [
+          "malterlib.template.type.param.class"
+        ],
+        "*.custom1.custom2.custom3.custom4": [
+          "malterlib.template.type.param.function"
+        ],
+        "*.custom1.custom2.custom3.custom5": [
+          "malterlib.function.template.non.type.param"
+        ],
+        "*.custom1.custom2.custom3.custom6": [
+          "malterlib.template.non.type.param.pack"
+        ],
+        "*.custom1.custom2.custom4.custom5": [
+          "malterlib.type.interface"
+        ],
+        "*.custom1.custom2.custom4.custom6": [
+          "malterlib.function.parameter.functor"
+        ],
+        "*.custom1.custom2.custom5.custom6": [
+          "malterlib.function.parameter.output"
+        ],
+        "*.custom1.custom3.custom4.custom5": [
+          "malterlib.constant.variable"
+        ],
+        "*.custom1.custom3.custom4.custom6": [
+          "malterlib.macro.parameter"
+        ],
+        "*.custom1.custom3.custom5.custom6": [
+          "malterlib.global.variable"
+        ],
+        "*.custom1.custom4.custom5.custom6": [
+          "malterlib.member.variable.public"
+        ],
+        "*.custom2.custom3.custom4.custom5": [
+          "malterlib.function.parameter.pack"
+        ],
+        "*.custom2.custom3.custom4.custom6": [
+          "malterlib.static.variable"
+        ],
+        "*.custom2.custom3.custom5.custom6": [
+          "malterlib.template.non.type.param"
+        ],
+        "*.custom2.custom4.custom5.custom6": [
+          "malterlib.type.function"
+        ],
+        "*.custom3.custom4.custom5.custom6": [
+          "malterlib.function.parameter"
+        ],
+        "*.custom0.custom1.custom2.custom3.custom4": [
+          "malterlib.concept"
+        ],
+        "*.custom0.custom1.custom2.custom3.custom5": [
+          "malterlib.variable"
+        ]
+      }
+    }
+  ]
+}
