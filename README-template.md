@@ -73,3 +73,7 @@ syntax coloring of Malterlib identifiers:
 * Add an option to enable Malterlib custom semantic highlighting. Disabled by default, use when you don't have the custom clangd shipped with Malterlib (or when you want faster highlighting).
 * Do perceptual color conversion between Display P3 and sRGB colors
 * Improve syntax highlighting for other languages
+
+### 1.0.5
+
+* Update colors in theme
