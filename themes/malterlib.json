@@ -186,6 +186,13 @@
         "scmGraph.historyItemRefColor": "#2764aa",
         "scmGraph.historyItemRemoteRefColor": "#794d9a",
         "scmGraph.historyItemBaseRefColor": "#bb4b00",
+        "debugView.valueChangedHighlight": "#ff6b6b",
+        "debugTokenExpression.name": "#ffa600",
+        "debugTokenExpression.value": "#c0c0c0",
+        "debugTokenExpression.string": "#009eff",
+        "debugTokenExpression.boolean": "#ff8ac5",
+        "debugTokenExpression.number": "#ff0080",
+        "debugTokenExpression.error": "#ff3f1c"
     },
     "tokenColors": [
         {

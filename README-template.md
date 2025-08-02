@@ -77,3 +77,7 @@ syntax coloring of Malterlib identifiers:
 ### 1.0.5
 
 * Update colors in theme
+
+### 1.0.6
+
+* Update debug variable view colors
