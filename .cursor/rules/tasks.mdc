@@ -1,0 +1,26 @@
+---
+description: Malterlib tasks, executions, and problem matchers
+---
+### Tasks
+
+- **Task type**: `malterlib` (see `taskDefinitions` in [package.json](mdc:package.json))
+  - **action**: `generate` | `build` | `buildTarget` | `clean` (clean not currently implemented in provider)
+  - **optional fields**: `generator`, `workspace`, `configuration`, `target`
+
+- **Provider**: [src/malterlibTaskProvider.ts](mdc:src/malterlibTaskProvider.ts)
+  - **Generate**: runs `./mib generate --build-system <file> --generator <id> --output-directory <dir> [<workspace>]`
+  - **Build Workspace**: runs `BuildWorkspace.sh` from generator `ConfigStore` with env `MalterlibWorkspaceRoot`
+    - Parameter order (delegates to `BuildXcodeWorkspace.sh`): `Workspace` `Platform` `Architecture` `Configuration` `BuildSystemDir`
+  - **Build Target**: runs `BuildTarget.sh` from generator `ConfigStore` with env `MalterlibWorkspaceRoot`
+    - Parameter order (delegates to `BuildXcodeTarget.sh`): `Workspace` `Target` `Platform` `Architecture` `Configuration` `BuildSystemDir`
+  - Uses `$malterlib` problem matcher
+
+- **Problem matcher**: `$malterlib` in [package.json](mdc:package.json)
+  - Parses `file:line:column: [severity:] message`
+  - Supports multi-line messages and grouped sub-problems via `--- <category> ---`
+
+Guidelines
+- Prefer stable task names ("Generate Workspace", "Generate All", "Build Workspace", "Build Target") so VS Code remembers them
+- Set `cwd` appropriately: workspace root for `mib`; generator base path for build scripts
+
+

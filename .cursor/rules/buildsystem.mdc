@@ -1,0 +1,26 @@
+---
+description: Malterlib BuildSystem discovery, priorities, and auto-selection
+---
+### BuildSystem Layout and Defaults
+
+- **Directory layout** (relative to workspace root)
+  - `BuildSystem/<Generator>/ConfigStore/`
+    - `Generator.json` (metadata: priority, base paths, generator, outputDir)
+    - `<Workspace>/`
+      - `Workspace.json` (optional `priority`)
+      - `Configs/*.json` (workspace-level configuration, may set `configurationPriority`, `defaultBuildTarget`, `defaultDebugTargets`)
+      - `Targets/`
+        - `<Target>.json` (optional `priority`)
+        - `<Target>/Configs/*.json` (target-level config; may set `debugPriority` and debug command data)
+
+- **Auto-selection rules** (see [src/buildSystemScanner.ts](mdc:src/buildSystemScanner.ts))
+  - Generator: highest `priority` or single option; can preserve previous selection as fallback
+  - Workspace: highest `priority` or single option, within selected generator
+  - Configuration: prefer highest `configurationPriority` from workspace-level config; else highest `debugPriority` across target configs
+  - Target: if none configured, allow "All Targets"; otherwise use workspace `defaultBuildTarget` when available
+    - Build by project uses the selected target; platform/arch/config prefer exact target config match, fallback to workspace-level config
+  - Debug targets: use explicit `defaultDebugTargets`; else fall back to one target with highest `debugPriority`
+
+Watchers
+- File watchers keep caches updated and emit `onDidChangeScanning` to refresh UI and selections
+

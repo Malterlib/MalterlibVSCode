@@ -1,0 +1,15 @@
+---
+globs: *.ts,*.tsx
+---
+### TypeScript Rules
+
+- **Language/Module target**: ES2022, `module` Node16 (see [tsconfig.json](mdc:tsconfig.json))
+- **Strict mode**: enabled; prefer explicit types for exported APIs
+- **Imports**: use ESM-style (`import * as vscode from 'vscode'`), not CommonJS require
+- **ESLint alignment** (see [eslint.config.mjs](mdc:eslint.config.mjs))
+  - `@typescript-eslint/naming-convention` for imports (camelCase/PascalCase)
+  - Enforce `eqeqeq`, `curly` (multi-or-nest), `semi`, no throw literal
+- **Control flow**: early returns; avoid deep nesting; handle errors first
+- **VS Code API**: avoid synchronous blocking in activation; prefer async and disposables
+- **Formatting**: match existing code; wrap long lines; avoid unrelated reformatting
+

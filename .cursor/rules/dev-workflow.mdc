@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+### Developer Workflow
+
+- **Install**: `npm ci`
+- **Typecheck**: `npm run check-types`
+- **Build once**: `npm run compile`
+- **Watch**: `npm run watch` (esbuild + tsc watchers)
+- **Package for publish**: `npm run package`
+- **Debug the extension**: use VS Code "Run and Debug" (Extension Development Host); entry is [src/extension.ts](mdc:src/extension.ts)
+
+Notes
+- esbuild outputs to `dist/extension.js` per [esbuild.js](mdc:esbuild.js) and [package.json](mdc:package.json)
+- Target Node environment: ES2022/Node16 per [tsconfig.json](mdc:tsconfig.json)
+- Keep activation lightweight; long work should be deferred or asynchronous.
+
+### Code Quality
+
+- ALWAYS check and fix diagnostics (TypeScript, ESLint) after edits
+- Run `npm run check-types` and ensure no errors before considering work complete
+- Match existing formatting; avoid unrelated reformatting
+

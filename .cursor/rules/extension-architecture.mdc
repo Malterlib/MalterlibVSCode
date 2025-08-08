@@ -1,0 +1,32 @@
+---
+description: Malterlib VS Code extension architecture and invariants
+---
+### Architecture
+
+- **Activation**: [src/extension.ts](mdc:src/extension.ts)
+  - Waits for `llvm-vs-code-extensions.vscode-clangd` activation before proceeding
+  - Sets up project detection, BuildSystem scanners, status bar, tasks, and semantic tokens provider
+
+- **Project Detection**: [src/malterlibProject.ts](mdc:src/malterlibProject.ts)
+  - A workspace is "Malterlib" if it contains any `*.MBuildSystem`
+  - Emits `onDidChangeDetection` on workspace changes
+
+- **BuildSystem Scanning**: [src/buildSystemScanner.ts](mdc:src/buildSystemScanner.ts)
+  - Watches `BuildSystem/*/ConfigStore` tree for generators, workspaces, targets, and configs
+  - Provides priority-based sorting and default selection helpers
+
+- **Status Bar**: [src/statusBar.ts](mdc:src/statusBar.ts)
+  - Five buttons: Generator, Workspace, Configuration, Target, Debug Targets
+  - Updated on config changes and scanner events; text/tooltip set from selections
+
+- **Commands** (from [package.json](mdc:package.json))
+  - `malterlib.selectGenerator`, `selectWorkspace`, `selectConfiguration`, `selectTarget`, `selectDebugTargets`, `selectSingleDebugTarget`
+  - Each cascades auto-selection where possible
+
+- **Tasks**: [src/malterlibTaskProvider.ts](mdc:src/malterlibTaskProvider.ts)
+  - Provides `malterlib` tasks for "Generate", "Build Workspace", and "Build Target" with `$malterlib` problem matcher
+
+Invariants
+- Do not block activation; scanners and providers must be disposable
+- Keep status and selections consistent when cascading changes (generator → workspace → configuration → target/debug targets)
+

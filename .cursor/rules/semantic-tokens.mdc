@@ -1,0 +1,18 @@
+---
+description: Semantic tokens provider, token types, and scope mapping
+---
+### Semantic Tokens
+
+- **Token types and scopes**: declared in [package.json](mdc:package.json) under `semanticTokenTypes` and `semanticTokenScopes`
+- **Data sources**: [scopes.json](mdc:scopes.json) provides `keywords`, `prefixes`, and `scopes`
+- **Provider**: implemented in [src/extension.ts](mdc:src/extension.ts)
+  - Loads `scopes.json` at activation
+  - `classifyIdentifier` maps exact keywords and prefix-based patterns to scopes
+  - Skips regions inside comments, strings, and `#include <angle>` paths
+  - Identifier regex includes `[[`, `]]`, preprocessor tokens (e.g., `#include`), and standard identifiers
+- **Enable/Disable**: `malterlib.enableSemanticColoring` setting (default false in contributes)
+
+Guidelines
+- Update `scopes.json` when adding/changing token categories; keep scopes array indices stable
+- Keep regex and region parsing efficient; avoid per-line heavy allocations
+

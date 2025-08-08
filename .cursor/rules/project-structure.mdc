@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+### Project Structure Overview
+
+- **Entry points**
+  - Runtime entry: `main` → `dist/extension.js` in [package.json](mdc:package.json)
+  - Build entry: [src/extension.ts](mdc:src/extension.ts)
+  - Bundler config: [esbuild.js](mdc:esbuild.js)
+  - TypeScript config: [tsconfig.json](mdc:tsconfig.json)
+
+- **Activation** (from [package.json](mdc:package.json))
+  - `onLanguage:c`, `onLanguage:cpp`, `onLanguage:malterlib-build`
+  - `workspaceContains:**/*.MBuildSystem`
+
+- **Core modules**
+  - Malterlib project detection: [src/malterlibProject.ts](mdc:src/malterlibProject.ts)
+  - BuildSystem scanning and defaults: [src/buildSystemScanner.ts](mdc:src/buildSystemScanner.ts)
+  - Status bar UI: [src/statusBar.ts](mdc:src/statusBar.ts) and button classes under `src/*Button.ts`
+  - Tasks provider: [src/malterlibTaskProvider.ts](mdc:src/malterlibTaskProvider.ts)
+
+- **Language and theming**
+  - Language id `malterlib-build` with TextMate grammar: [syntaxes/malterlib-build.tmLanguage.json](mdc:syntaxes/malterlib-build.tmLanguage.json)
+  - Themes: [themes/malterlib.json](mdc:themes/malterlib.json), [themes/malterlibSRGB.json](mdc:themes/malterlibSRGB.json)
+
+- **Data files for semantic tokens**
+  - Combined scopes and mappings: [scopes.json](mdc:scopes.json)
+  - Token classifications/colors: [classifications.json](mdc:classifications.json), [semanticScopesForPackage.json](mdc:semanticScopesForPackage.json)
+
+- **NPM scripts** (see [package.json](mdc:package.json))
+  - `compile`: typecheck then bundle via esbuild
+  - `watch`: concurrent `esbuild --watch` and `tsc --watch`
+  - `package`: production bundle
+
+- **Docs**
+  - Project README: [README.md](mdc:README.md)
+
+Guidance: Prefer edits in `src/` and rebuild to `dist/`. Keep activation fast; heavy work should be deferred or done lazily after activation.
+
