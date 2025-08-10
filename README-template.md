@@ -80,6 +80,7 @@ syntax coloring of Malterlib identifiers:
 
 ### 1.0.6
 
+* Integrate with Malterlib build system and provide status bar for selecting what to build and debug
 * Update debug variable view colors
 * Fix coloring of template parameters for non-class usages
 * Add coloring of MConfig files

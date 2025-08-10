@@ -17,7 +17,8 @@
   "activationEvents": [
     "onLanguage:c",
     "onLanguage:cpp",
-    "onLanguage:malterlib-build"
+    "onLanguage:malterlib-build",
+    "workspaceContains:*.MBuildSystem"
   ],
   "main": "./dist/extension.js",
   "scripts": {
@@ -51,9 +52,168 @@
           "type": "boolean",
           "default": false,
           "description": "Enable semantic token coloring for Malterlib identifiers. This will override clangd coloring. Use if you are not using clangd shipped with Malterlib."
+        },
+        "malterlib.statusBarVisibility": {
+          "type": "string",
+          "default": "visible",
+          "enum": [
+            "visible",
+            "hidden",
+            "compact",
+            "icon"
+          ],
+          "enumDescriptions": [
+            "Show full text in status bar",
+            "Hide from status bar",
+            "Show shortened text",
+            "Show only icons"
+          ],
+          "description": "Controls the visibility of the status bar items"
+        },
+        "malterlib.advanced": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "generator": {
+              "type": "object",
+              "properties": {
+                "statusBarVisibility": {
+                  "type": "string",
+                  "enum": [
+                    "inherit",
+                    "visible",
+                    "hidden",
+                    "compact",
+                    "icon"
+                  ],
+                  "default": "inherit",
+                  "description": "Override visibility for the generator button"
+                },
+                "statusBarLength": {
+                  "type": "number",
+                  "default": 20,
+                  "description": "Maximum text length in compact mode"
+                }
+              }
+            },
+            "workspace": {
+              "type": "object",
+              "properties": {
+                "statusBarVisibility": {
+                  "type": "string",
+                  "enum": [
+                    "inherit",
+                    "visible",
+                    "hidden",
+                    "compact",
+                    "icon"
+                  ],
+                  "default": "inherit",
+                  "description": "Override visibility for the workspace button"
+                },
+                "statusBarLength": {
+                  "type": "number",
+                  "default": 20,
+                  "description": "Maximum text length in compact mode"
+                }
+              }
+            },
+            "configuration": {
+              "type": "object",
+              "properties": {
+                "statusBarVisibility": {
+                  "type": "string",
+                  "enum": [
+                    "inherit",
+                    "visible",
+                    "hidden",
+                    "compact",
+                    "icon"
+                  ],
+                  "default": "inherit",
+                  "description": "Override visibility for the configuration button"
+                },
+                "statusBarLength": {
+                  "type": "number",
+                  "default": 20,
+                  "description": "Maximum text length in compact mode"
+                }
+              }
+            },
+            "target": {
+              "type": "object",
+              "properties": {
+                "statusBarVisibility": {
+                  "type": "string",
+                  "enum": [
+                    "inherit",
+                    "visible",
+                    "hidden",
+                    "compact",
+                    "icon"
+                  ],
+                  "default": "inherit",
+                  "description": "Override visibility for the target button"
+                },
+                "statusBarLength": {
+                  "type": "number",
+                  "default": 20,
+                  "description": "Maximum text length in compact mode"
+                }
+              }
+            },
+            "debugTargets": {
+              "type": "object",
+              "properties": {
+                "statusBarVisibility": {
+                  "type": "string",
+                  "enum": [
+                    "inherit",
+                    "visible",
+                    "hidden",
+                    "compact",
+                    "icon"
+                  ],
+                  "default": "inherit",
+                  "description": "Override visibility for the debug targets button"
+                },
+                "statusBarLength": {
+                  "type": "number",
+                  "default": 20,
+                  "description": "Maximum text length in compact mode"
+                }
+              }
+            }
+          }
         }
       }
     },
+    "commands": [
+      {
+        "command": "malterlib.selectGenerator",
+        "title": "Malterlib: Select Generator"
+      },
+      {
+        "command": "malterlib.selectWorkspace",
+        "title": "Malterlib: Select Workspace"
+      },
+      {
+        "command": "malterlib.selectConfiguration",
+        "title": "Malterlib: Select Configuration"
+      },
+      {
+        "command": "malterlib.selectTarget",
+        "title": "Malterlib: Select Build Target"
+      },
+      {
+        "command": "malterlib.selectDebugTargets",
+        "title": "Malterlib: Select Debug Targets (Multi-select)"
+      },
+      {
+        "command": "malterlib.selectSingleDebugTarget",
+        "title": "Malterlib: Select Single Debug Target"
+      }
+    ],
     "semanticTokenTypes": [
       {
         "id": "malterlib-unknown",
@@ -1346,6 +1506,159 @@
         "label": "Malterlib (sRGB)",
         "uiTheme": "vs-dark",
         "path": "./themes/malterlibSRGB.json"
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "malterlib",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "generate",
+              "build",
+              "buildTarget",
+              "clean"
+            ],
+            "description": "The action to perform"
+          },
+          "generator": {
+            "type": "string",
+            "description": "The generator to use (automatically filled from current selection)"
+          },
+          "workspace": {
+            "type": "string",
+            "description": "The workspace to target (optional, if not specified generates all workspaces)"
+          },
+          "configuration": {
+            "type": "string",
+            "description": "The configuration to use (automatically filled from current selection)"
+          },
+          "target": {
+            "type": "string",
+            "description": "The target to build (automatically filled from current selection)"
+          }
+        }
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "malterlib",
+        "owner": "malterlib",
+        "fileLocation": [
+          "absolute"
+        ],
+        "pattern": [
+          {
+            "regexp": "^(.+):(\\d+):(\\d+):\\s+(?:(error|warning|info):\\s+)?(.+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          }
+        ],
+        "advancedPattern": [
+          {
+            "regexp": "^(.+):(\\d+):(\\d+):\\s+(?:(error|warning|info):\\s+)?(.+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          },
+          {
+            "regexp": "(^\\s{4,}.*$)|(?:^$)",
+            "message": 1,
+            "optional": true,
+            "multiLineMessage": true
+          },
+          {
+            "regexp": "^--- (.*) ---$",
+            "subProblemCategory": 1,
+            "loop": true,
+            "optional": true,
+            "pattern": [
+              {
+                "regexp": "^(?!--- (?:.*) ---$)(.+):(\\d+):(\\d+):(?!\\s+(?:error|warning|info):)\\s+(.+)$",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "message": 4,
+                "optional": true,
+                "loop": true,
+                "introduceSubProblem": true,
+                "pattern": [
+                  {
+                    "regexp": "((?:^\\s{4,}.*$)|(?:^$))",
+                    "message": 1,
+                    "optional": true,
+                    "multiLineMessage": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "malterlib-build",
+        "owner": "malterlib",
+        "fileLocation": [
+          "absolute"
+        ],
+        "pattern": [
+          {
+            "regexp": "^(ld64\\.lld|ld|lld-link|clang\\+\\+):\\s+(error|warning|info):\\s+(.+)$",
+            "kind": "file",
+            "severity": 2,
+            "message": 3
+          }, {
+            "regexp": "^>>> referenced by (.+)$",
+            "kind": "file",
+            "file": 1
+          }
+        ],
+        "advancedPattern": [
+          {
+            "regexp": "^(ld64\\.lld|ld|lld-link|clang\\+\\+):\\s+(error|warning|info):\\s+(.+)$",
+            "kind": "file",
+            "severity": 2,
+            "message": 3
+          }, {
+            "regexp": "^>>> (referenced by) (.+)$",
+            "kind": "file",
+            "message": 1,
+            "file": 2
+          },
+          {
+            "regexp": "^>>>\\s{2,}\\s( *.+)$",
+            "message": 1,
+            "optional": true,
+            "multiLineMessage": true
+          },
+          {
+            "regexp": "^(>>>) (referenced by) (.+)$",
+            "kind": "file",
+            "file": 3,
+            "subProblemCategory": 2,
+            "message": 1,
+            "introduceSubProblem": true,
+            "loop": true,
+            "optional": true,
+            "pattern": [
+              {
+                "regexp": "^>>>\\s{2,}\\s*(.+)$",
+                "message": 1,
+                "optional": true,
+                "multiLineMessage": true
+              }
+            ]
+          }
+        ]
       }
     ]
   }
