@@ -541,10 +541,16 @@
           "typeParameter.classScope": [
             "malterlib.template.type.param.class"
           ],
+          "typeParameter": [
+            "malterlib.template.type.param.class"
+          ],
           "malterlib-template-non-type-param": [
             "malterlib.template.non.type.param"
           ],
           "typeParameter.readonly.classScope": [
+            "malterlib.template.non.type.param"
+          ],
+          "typeParameter.readonly": [
             "malterlib.template.non.type.param"
           ],
           "malterlib-template-template-param": [
