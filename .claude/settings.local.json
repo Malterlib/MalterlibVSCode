@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run check-types:*)",
       "Bash(npm run compile:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "WebFetch(domain:docs.malterlib.org)"
     ],
     "deny": []
   }

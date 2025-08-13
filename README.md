@@ -2,8 +2,20 @@
 
 ## Features
 
-* Syntaxt highlighting for Malterlib C++ and build files
-* Try to mimic the Malterlib coloring semantics for other file types
+### Core Features
+* **[Syntax Highlighting](docs/syntax-highlighting.md)** - Advanced syntax highlighting for Malterlib C++ code with full support for naming conventions
+* **[Semantic Coloring](docs/semantic-coloring.md)** - Intelligent identifier coloring based on Malterlib prefix patterns and conventions  
+* **[Build System Support](docs/build-system.md)** - Complete syntax highlighting for all Malterlib build file types (.MTarget, .MConfig, etc.)
+* **[Color Themes](docs/color-themes.md)** - Two professional themes optimized for Display P3 and sRGB color spaces
+
+### Developer Tools
+* **[Build System Integration](docs/build-integration.md)** - Integrated tasks for generate, build, clean operations with problem matchers
+* **[Status Bar Controls](docs/status-bar.md)** - Quick access to generator, workspace, configuration, and target selection
+* **[Debug Configuration](docs/debug-configuration.md)** - Dynamic debug configuration with multi-target support and LLDB integration
+* **[clangd Integration](docs/clangd-integration.md)** - Seamless integration with Malterlib-shipped clangd for enhanced language features
+
+### 📚 Documentation
+For comprehensive documentation on all features, see the **[Documentation Index](docs/README.md)**.
 
 ---
 
@@ -1766,4 +1778,7 @@ SemanticTokens:
 
 ### 1.0.6
 
+* Integrate with Malterlib build system and provide status bar for selecting what to build and debug
 * Update debug variable view colors
+* Fix coloring of template parameters for non-class usages
+* Add coloring of MConfig files
