@@ -1496,6 +1496,16 @@
         "language": "malterlib-build",
         "scopeName": "source.malterlibbuild",
         "path": "./syntaxes/malterlib-build.tmLanguage.json"
+      },
+      {
+        "scopeName": "text.html.markdown.malterlibbuild.codeblock",
+        "path": "./syntaxes/markdown-malterlib.injection.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.malterlibbuild": "malterlib-build"
+        }
       }
     ],
     "themes": [
