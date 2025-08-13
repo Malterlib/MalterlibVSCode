@@ -7,6 +7,7 @@ import { StatusBar } from './statusBar';
 import { MalterlibProjectDetector } from './malterlibProject';
 import { BuildSystemScanner } from './buildSystemScanner';
 import { MalterlibTaskProvider } from './malterlibTaskProvider';
+import { MalterlibLaunchProvider } from './malterlibLaunchProvider';
 import { StatusBarController } from './statusBarController';
 
 // This method is called when your extension is activated
@@ -93,6 +94,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Register semantic tokens via helper
 	context.subscriptions.push(registerSemanticTokens(context, output));
+
+	// Register debug/launch configuration providers (dynamic + initial)
+	context.subscriptions.push(
+		vscode.debug.registerDebugConfigurationProvider('lldb', new MalterlibLaunchProvider(
+			() => statusController.getSelectionSnapshot(),
+			() => statusController.getDebugTargetsSnapshot(),
+			() => statusController.getSelectedWorkspaceFolder(),
+			output,
+		), vscode.DebugConfigurationProviderTriggerKind.Dynamic),
+	);
 }
 
 // This method is called when your extension is deactivated

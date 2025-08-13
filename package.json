@@ -18,7 +18,9 @@
     "onLanguage:c",
     "onLanguage:cpp",
     "onLanguage:malterlib-build",
-    "workspaceContains:*.MBuildSystem"
+    "workspaceContains:*.MBuildSystem",
+    "onDebugResolve:lldb",
+    "onDebugDynamicConfigurations:lldb"
   ],
   "main": "./dist/extension.js",
   "scripts": {
