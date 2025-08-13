@@ -82,3 +82,4 @@ syntax coloring of Malterlib identifiers:
 
 * Update debug variable view colors
 * Fix coloring of template parameters for non-class usages
+* Add coloring of MConfig files
