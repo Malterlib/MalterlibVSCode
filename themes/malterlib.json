@@ -2,6 +2,7 @@
     "$schema": "vscode://schemas/color-theme",
     "name": "Malterlib",
     "type": "dark",
+    "semanticHighlighting": true,
     "highlightingColorSpace": "display-p3",
     "colors": {
         "actionBar.toggledBackground": "#383a49",
