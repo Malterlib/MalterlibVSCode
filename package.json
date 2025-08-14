@@ -1489,6 +1489,12 @@
           ".MWorkspaceHeader",
           ".MSettingsHeader"
         ]
+      },
+      {
+        "id": "json",
+        "extensions": [
+          ".MRepo"
+        ]
       }
     ],
     "grammars": [
