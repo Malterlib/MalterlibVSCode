@@ -1,0 +1,9 @@
+# Python dependencies for MalterlibVSCode scripts
+# Install with: pip install -r requirements.txt
+
+# Image processing and color space conversion
+# Pillow with LittleCMS support for ICC color profile transformations
+Pillow>=10.0.0
+
+# JSON5 parsing for theme files with comments and trailing commas
+json5>=0.9.0
