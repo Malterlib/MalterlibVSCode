@@ -4,7 +4,7 @@
 
 ### Core Features
 * **[Syntax Highlighting](docs/syntax-highlighting.md)** - Advanced syntax highlighting for Malterlib C++ code with full support for naming conventions
-* **[Semantic Coloring](docs/semantic-coloring.md)** - Intelligent identifier coloring based on Malterlib prefix patterns and conventions  
+* **[Semantic Coloring](docs/semantic-coloring.md)** - Intelligent identifier coloring based on Malterlib prefix patterns and conventions
 * **[Build System Support](docs/build-system.md)** - Complete syntax highlighting for all Malterlib build file types (.MTarget, .MConfig, etc.)
 * **[Color Themes](docs/color-themes.md)** - Two professional themes optimized for Display P3 and sRGB color spaces
 
@@ -29,7 +29,7 @@ If you are not using the Malterlib theme you can use your theme of choice and en
 Here are the recommmended colors:
 
 <details><summary>Recommended Settings</summary>
-    
+
 ```json
   "workbench.highlightingColorSpace": "display-p3",
   "editor.tokenColorCustomizations": {
@@ -112,7 +112,8 @@ Here are the recommmended colors:
           "meta.line.ruby",
           "meta.template.expression",
           "variable.other.macro.argument",
-          "entity.name.function.definition.special.member.destructor"
+          "entity.name.function.definition.special.member.destructor",
+          "punctuation.accessor"
         ],
         "settings": {
           "foreground": "#ffffff"
@@ -837,7 +838,8 @@ If you have a Visual Studio Code that doesn't support changing color space (or i
           "meta.line.ruby",
           "meta.template.expression",
           "variable.other.macro.argument",
-          "entity.name.function.definition.special.member.destructor"
+          "entity.name.function.definition.special.member.destructor",
+          "punctuation.accessor"
         ],
         "settings": {
           "foreground": "#ffffff"
@@ -1481,10 +1483,10 @@ If you have a Visual Studio Code that doesn't support changing color space (or i
 
 ### Configuration of clangd
 
-When using clangd shipped with Malterlib you can use the following .clangd configuration fragment to enable 
+When using clangd shipped with Malterlib you can use the following .clangd configuration fragment to enable
 syntax coloring of Malterlib identifiers:
 <details><summary>Recommended .clangd</summary>
-    
+
 ```yaml
 SemanticTokens:
   Rules:
@@ -1788,3 +1790,5 @@ SemanticTokens:
 * Add documentation
 * Update bracket highlighting colors
 * Support compile_commands.json aggregation
+* Fix coloring of typescript punctuation
+

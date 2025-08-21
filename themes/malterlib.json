@@ -283,6 +283,7 @@
                 "meta.template.expression",
                 "variable.other.macro.argument",
                 "entity.name.function.definition.special.member.destructor",
+				"punctuation.accessor",
             ],
             "settings": {
                 "foreground": "#ffffff"
