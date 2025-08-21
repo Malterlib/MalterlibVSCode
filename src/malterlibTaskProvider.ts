@@ -188,7 +188,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 			taskName,
 			'Malterlib',
 			execution,
-			['$malterlib-build'] // Build matcher
+			['$malterlib-buildsystem'] // Build matcher
 		);
 
 		task.group = vscode.TaskGroup.Build;
@@ -269,7 +269,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 			taskName,
 			'Malterlib',
 			execution,
-			['$malterlib'] // Use the advanced problem matcher
+			['$malterlib-build-clang', '$malterlib-build-ld'] // Use the advanced problem matcher
 		);
 
 		task.group = vscode.TaskGroup.Build;

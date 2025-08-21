@@ -103,4 +103,4 @@ syntax coloring of Malterlib identifiers:
 * Update bracket highlighting colors
 * Support compile_commands.json aggregation
 * Fix coloring of typescript punctuation
-
+* Add problem matcher for clang build errors
