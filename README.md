@@ -1782,3 +1782,9 @@ SemanticTokens:
 * Update debug variable view colors
 * Fix coloring of template parameters for non-class usages
 * Add coloring of MConfig files
+
+### 1.0.7
+
+* Add documentation
+* Update bracket highlighting colors
+* Support compile_commands.json aggregation
