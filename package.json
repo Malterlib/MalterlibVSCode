@@ -214,6 +214,10 @@
       {
         "command": "malterlib.selectSingleDebugTarget",
         "title": "Malterlib: Select Single Debug Target"
+      },
+      {
+        "command": "malterlib.generateCompileCommands",
+        "title": "Malterlib: Generate compile_commands.json"
       }
     ],
     "semanticTokenTypes": [

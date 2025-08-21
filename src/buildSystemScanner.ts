@@ -47,6 +47,7 @@ export interface TargetConfigInfo {
   localDebuggerWorkingDirectory?: string;
   remoteDebuggerCommand?: string;
   remoteDebuggerWorkingDirectory?: string;
+  compileCommands?: string;
 }
 
 export interface TargetInfo {
@@ -846,7 +847,8 @@ export class BuildSystemScanner {
             localDebuggerCommand: configJson.localDebuggerCommand,
             localDebuggerWorkingDirectory: configJson.localDebuggerWorkingDirectory,
             remoteDebuggerCommand: configJson.remoteDebuggerCommand,
-            remoteDebuggerWorkingDirectory: configJson.remoteDebuggerWorkingDirectory
+            remoteDebuggerWorkingDirectory: configJson.remoteDebuggerWorkingDirectory,
+            compileCommands: configJson.compileCommands
           });
         } catch (error) {
           console.error(`Error reading target configuration JSON for ${configName}: ${error}`);

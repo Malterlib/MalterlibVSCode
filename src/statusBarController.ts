@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { StatusBar } from './statusBar';
 import { BuildSystemScanner, GeneratorInfo } from './buildSystemScanner';
 import { MalterlibProjectDetector } from './malterlibProject';
+import { CompileCommandsGenerator } from './compileCommandsGenerator';
 
 export class StatusBarController implements vscode.Disposable {
   private readonly statusBar: StatusBar;
@@ -16,6 +17,7 @@ export class StatusBarController implements vscode.Disposable {
   private currentTarget: string | null = null;
   private currentDebugTargets: string[] = [];
   private selectedWorkspaceFolder: vscode.WorkspaceFolder | null = null;
+  private compileCommandsWatcher: vscode.Disposable | null = null;
 
   private static readonly WORKSPACE_FOLDER_KEY = 'malterlib.selectedWorkspaceFolder';
   private static readonly GENERATOR_KEY = 'malterlib.selectedGenerator';
@@ -43,6 +45,7 @@ export class StatusBarController implements vscode.Disposable {
 
   dispose(): void {
     this.disposables.forEach(d => d.dispose());
+    this.compileCommandsWatcher?.dispose();
   }
 
   public initializeAutoSelection(): void {
@@ -742,6 +745,9 @@ export class StatusBarController implements vscode.Disposable {
         this.output.appendLine(`Configuration selected: ${selected} for workspace: ${workspace.name}`);
         this.cascadeAutoSelection(fallbacks);
         
+        // Generate compile_commands.json for the new configuration
+        void this.generateCompileCommands();
+        
         // Save selections to workspace state
         void this.saveSelections();
       }
@@ -806,6 +812,9 @@ export class StatusBarController implements vscode.Disposable {
         this.statusBar.setTargetText(selected);
         this.statusBar.setTargetTooltip(`Current target: ${selected} (${workspace.name})`);
         this.output.appendLine(`Target selected: ${selected} for workspace: ${workspace.name}`);
+        
+        // Regenerate compile_commands.json with new target selection
+        void this.generateCompileCommands();
         
         // Save selections to workspace state
         void this.saveSelections();
@@ -943,6 +952,68 @@ export class StatusBarController implements vscode.Disposable {
       } else
         this.output.appendLine('No target was selected (cancelled or undefined)');
     }));
+
+    // Generate compile_commands.json command
+    this.disposables.push(vscode.commands.registerCommand('malterlib.generateCompileCommands', async () => {
+      await this.generateCompileCommands(true);
+    }));
+  }
+
+  /**
+   * Generate compile_commands.json for the current workspace and configuration
+   */
+  private async generateCompileCommands(showNotification: boolean = false): Promise<void> {
+    if (!this.selectedWorkspaceFolder || !this.currentGenerator || !this.currentWorkspace || !this.currentConfiguration) {
+      if (showNotification) {
+        vscode.window.showWarningMessage('Please select generator, workspace, and configuration first.');
+      }
+      return;
+    }
+
+    const generators = BuildSystemScanner.getGenerators(this.selectedWorkspaceFolder);
+    const selectedGenerator = generators.find(gen => gen.name === this.currentGenerator);
+    if (!selectedGenerator) return;
+
+    const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
+    const selectedWorkspaceInfo = workspaces.find(ws => ws.name === this.currentWorkspace);
+    if (!selectedWorkspaceInfo) return;
+
+    // Dispose existing watcher
+    if (this.compileCommandsWatcher) {
+      this.compileCommandsWatcher.dispose();
+      this.compileCommandsWatcher = null;
+    }
+
+    try {
+      this.output.appendLine('Generating compile_commands.json...');
+      
+      const outputPath = await CompileCommandsGenerator.generateForWorkspace(
+        this.selectedWorkspaceFolder,
+        selectedWorkspaceInfo.path,
+        this.currentConfiguration,
+        this.currentTarget || undefined
+      );
+
+      if (outputPath) {
+        this.output.appendLine(`Generated compile_commands.json at: ${outputPath}`);
+        if (showNotification) {
+          vscode.window.showInformationMessage(`Generated compile_commands.json for ${this.currentConfiguration}`);
+        }
+
+        // Set up watcher for changes
+        this.compileCommandsWatcher = CompileCommandsGenerator.createWatcher(
+          this.selectedWorkspaceFolder,
+          selectedWorkspaceInfo.path,
+          this.currentConfiguration,
+          this.currentTarget || undefined
+        );
+      }
+    } catch (error) {
+      this.output.appendLine(`Error generating compile_commands.json: ${error}`);
+      if (showNotification) {
+        vscode.window.showErrorMessage(`Failed to generate compile_commands.json: ${error}`);
+      }
+    }
   }
 }
 
