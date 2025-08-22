@@ -1792,3 +1792,4 @@ SemanticTokens:
 * Support compile_commands.json aggregation
 * Fix coloring of typescript punctuation
 * Add problem matcher for clang build errors
+* Fix display of proper configuration name instead of id

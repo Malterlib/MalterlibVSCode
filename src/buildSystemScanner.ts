@@ -72,7 +72,7 @@ export class BuildSystemScanner {
   private static workspaces = new Map<string, WorkspaceInfo[]>();
   private static targets = new Map<string, TargetInfo[]>();
   private static configurations = new Map<string, ConfigurationInfo[]>();
-  
+
   // Async listeners that the queue will await before considering a task complete
   private static asyncScanningListeners = new Set<(event: string) => Promise<void> | void>();
 

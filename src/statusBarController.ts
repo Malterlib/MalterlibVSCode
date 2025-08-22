@@ -196,10 +196,26 @@ export class StatusBarController implements vscode.Disposable {
         this.statusBar.setWorkspaceText('No Workspace');
       
       if (this.currentConfiguration) {
-        this.statusBar.setConfigurationText(this.currentConfiguration);
+        // Look up the configuration display name
+        let displayName = this.currentConfiguration;
+        if (this.selectedWorkspaceFolder && this.currentGenerator && this.currentWorkspace) {
+          const generators = BuildSystemScanner.getGenerators(this.selectedWorkspaceFolder);
+          const selectedGenerator = generators.find(gen => gen.name === this.currentGenerator);
+          if (selectedGenerator) {
+            const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
+            const selectedWorkspaceInfo = workspaces.find(ws => ws.name === this.currentWorkspace);
+            if (selectedWorkspaceInfo) {
+              const configurations = BuildSystemScanner.getWorkspaceConfigurations(selectedWorkspaceInfo.path);
+              const config = configurations.find(c => c.name === this.currentConfiguration);
+              if (config)
+                displayName = config.configuration;
+            }
+          }
+        }
+        this.statusBar.setConfigurationText(displayName);
         this.statusBar.setConfigurationTooltip(this.selectedWorkspaceFolder 
-          ? `Current configuration: ${this.currentConfiguration} (${this.selectedWorkspaceFolder.name})`
-          : `Current configuration: ${this.currentConfiguration}`);
+          ? `Current configuration: ${displayName} (${this.selectedWorkspaceFolder.name})`
+          : `Current configuration: ${displayName}`);
       } else
         this.statusBar.setConfigurationText('No Configuration');
       
@@ -349,9 +365,9 @@ export class StatusBarController implements vscode.Disposable {
       const defaultConfiguration = BuildSystemScanner.getDefaultConfiguration(selectedWorkspaceInfo.path, fallbacks?.configuration);
       if (defaultConfiguration) {
         this.currentConfiguration = defaultConfiguration.name;
-        this.statusBar.setConfigurationText(defaultConfiguration.name);
-        this.statusBar.setConfigurationTooltip(`Auto-selected configuration: ${defaultConfiguration.name} (${workspace.name})`);
-        this.output.appendLine(`Auto-selected configuration: ${defaultConfiguration.name}`);
+        this.statusBar.setConfigurationText(defaultConfiguration.configuration);
+        this.statusBar.setConfigurationTooltip(`Auto-selected configuration: ${defaultConfiguration.configuration} (${workspace.name})`);
+        this.output.appendLine(`Auto-selected configuration: ${defaultConfiguration.configuration}`);
       } else {
         this.output.appendLine('Multiple configurations available - manual selection required');
         return;
@@ -696,17 +712,26 @@ export class StatusBarController implements vscode.Disposable {
       let selected: string | undefined;
       if (configurations.length === 1) {
         selected = configurations[0].name;
-        this.output.appendLine(`Auto-selected configuration: ${selected} (only option available)`);
+        this.output.appendLine(`Auto-selected configuration: ${configurations[0].configuration} (only option available)`);
       } else {
-        const sortedNames = configurations.map(config => config.name).sort();
-        const items = sortedNames.map(name => ({ label: name }));
+        // Create a map from configuration display to name
+        const configMap = new Map<string, string>();
+        configurations.forEach(config => {
+          configMap.set(config.configuration, config.name);
+        });
+        
+        const sortedConfigs = configurations.sort((a, b) => a.configuration.localeCompare(b.configuration));
+        const items = sortedConfigs.map(config => ({ label: config.configuration }));
         const quickPick = vscode.window.createQuickPick();
         quickPick.items = items;
         quickPick.placeholder = `Select a configuration for ${workspace.name}`;
         if (this.currentConfiguration) {
-          const currentItem = items.find(item => item.label === this.currentConfiguration);
-          if (currentItem)
-            quickPick.activeItems = [currentItem];
+          const currentConfig = configurations.find(c => c.name === this.currentConfiguration);
+          if (currentConfig) {
+            const currentItem = items.find(item => item.label === currentConfig.configuration);
+            if (currentItem)
+              quickPick.activeItems = [currentItem];
+          }
         }
         selected = await new Promise<string | undefined>((resolve) => {
           let resolved = false;
@@ -715,7 +740,9 @@ export class StatusBarController implements vscode.Disposable {
             resolved = true;
             const selectedItem = quickPick.activeItems[0];
             quickPick.dispose();
-            resolve(selectedItem?.label);
+            // Map the display label back to the name
+            const name = selectedItem ? configMap.get(selectedItem.label) : undefined;
+            resolve(name);
           });
           quickPick.onDidHide(() => {
             if (resolved) return;
@@ -737,12 +764,15 @@ export class StatusBarController implements vscode.Disposable {
         this.currentTarget = null;
         this.currentDebugTargets = [];
 
-        this.statusBar.setConfigurationText(selected);
-        this.statusBar.setConfigurationTooltip(`Current configuration: ${selected} (${workspace.name})`);
+        // Find the configuration object to get the display name
+        const selectedConfig = configurations.find(c => c.name === selected);
+        const displayName = selectedConfig?.configuration || selected;
+        this.statusBar.setConfigurationText(displayName);
+        this.statusBar.setConfigurationTooltip(`Current configuration: ${displayName} (${workspace.name})`);
         this.statusBar.setTargetText('All Targets');
         this.statusBar.setDebugTargetsText('No Debug Targets');
 
-        this.output.appendLine(`Configuration selected: ${selected} for workspace: ${workspace.name}`);
+        this.output.appendLine(`Configuration selected: ${displayName} for workspace: ${workspace.name}`);
         this.cascadeAutoSelection(fallbacks);
         
         // Generate compile_commands.json for the new configuration
