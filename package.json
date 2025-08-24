@@ -842,10 +842,16 @@
           "variable.globalScope": [
             "malterlib.global.variable"
           ],
+          "variable.readonly.globalScope": [
+            "malterlib.global.variable"
+          ],
           "malterlib-global-static-variable": [
             "malterlib.global.static.variable"
           ],
           "variable.fileScope": [
+            "malterlib.global.static.variable"
+          ],
+          "variable.readonly.fileScope": [
             "malterlib.global.static.variable"
           ],
           "malterlib-member-constant-private": [
@@ -875,7 +881,13 @@
           "variable.constexpr.globalScope": [
             "malterlib.global.constant"
           ],
+          "variable.readonly.constexpr.globalScope": [
+            "malterlib.global.constant"
+          ],
           "variable.constexpr.fileScope": [
+            "malterlib.global.constant"
+          ],
+          "variable.readonly.constexpr.fileScope": [
             "malterlib.global.constant"
           ],
           "malterlib-typedef": [
@@ -941,6 +953,9 @@
           "malterlib-variable": [
             "malterlib.variable"
           ],
+          "variable.readonly.functionScope": [
+            "malterlib.variable"
+          ],
           "malterlib-variable-functor": [
             "malterlib.variable.functor"
           ],
@@ -954,6 +969,9 @@
             "malterlib.constant.variable"
           ],
           "variable.constexpr.functionScope": [
+            "malterlib.constant.variable"
+          ],
+          "variable.readonly.constexpr.functionScope": [
             "malterlib.constant.variable"
           ],
           "malterlib-keyword-builtin-constants": [
