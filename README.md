@@ -1795,3 +1795,4 @@ SemanticTokens:
 * Fix display of proper configuration name instead of id
 * Fix issues with compile_commands.json generation
 * Fix 'All Targets' not auto selecting
+* Always show quick pick even when only one option is available and don't update anything when selection is the same

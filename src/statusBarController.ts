@@ -122,7 +122,7 @@ export class StatusBarController implements vscode.Disposable {
       }
     } else
       this.currentConfiguration = null;
-    
+
     // Validate target exists
     if (this.currentGenerator && this.currentWorkspace && savedTarget && this.selectedWorkspaceFolder) {
       if (savedTarget === 'All Targets')
@@ -181,20 +181,20 @@ export class StatusBarController implements vscode.Disposable {
       const generatorText = hasMultipleWorkspaces && this.selectedWorkspaceFolder
         ? `${this.selectedWorkspaceFolder.name} / ${this.currentGenerator}`
         : this.currentGenerator;
-      
+
       this.statusBar.setGeneratorText(generatorText);
-      this.statusBar.setGeneratorTooltip(this.selectedWorkspaceFolder 
+      this.statusBar.setGeneratorTooltip(this.selectedWorkspaceFolder
         ? `Current generator: ${this.currentGenerator} (${this.selectedWorkspaceFolder.name})`
         : `Current generator: ${this.currentGenerator}`);
-      
+
       if (this.currentWorkspace) {
         this.statusBar.setWorkspaceText(this.currentWorkspace);
-        this.statusBar.setWorkspaceTooltip(this.selectedWorkspaceFolder 
+        this.statusBar.setWorkspaceTooltip(this.selectedWorkspaceFolder
           ? `Current workspace: ${this.currentWorkspace} (${this.selectedWorkspaceFolder.name})`
           : `Current workspace: ${this.currentWorkspace}`);
       } else
         this.statusBar.setWorkspaceText('No Workspace');
-      
+
       if (this.currentConfiguration) {
         // Look up the configuration display name
         let displayName = this.currentConfiguration;
@@ -213,24 +213,24 @@ export class StatusBarController implements vscode.Disposable {
           }
         }
         this.statusBar.setConfigurationText(displayName);
-        this.statusBar.setConfigurationTooltip(this.selectedWorkspaceFolder 
+        this.statusBar.setConfigurationTooltip(this.selectedWorkspaceFolder
           ? `Current configuration: ${displayName} (${this.selectedWorkspaceFolder.name})`
           : `Current configuration: ${displayName}`);
       } else
         this.statusBar.setConfigurationText('No Configuration');
-      
+
       if (this.currentTarget) {
         this.statusBar.setTargetText(this.currentTarget);
-        this.statusBar.setTargetTooltip(this.selectedWorkspaceFolder 
+        this.statusBar.setTargetTooltip(this.selectedWorkspaceFolder
           ? `Current target: ${this.currentTarget} (${this.selectedWorkspaceFolder.name})`
           : `Current target: ${this.currentTarget}`);
       } else
         this.statusBar.setTargetText('All Targets');
-      
+
       if (this.currentDebugTargets.length > 0) {
         const text = this.currentDebugTargets.length === 1 ? this.currentDebugTargets[0] : `${this.currentDebugTargets.length} targets`;
         this.statusBar.setDebugTargetsText(text);
-        this.statusBar.setDebugTargetsTooltip(this.selectedWorkspaceFolder 
+        this.statusBar.setDebugTargetsTooltip(this.selectedWorkspaceFolder
           ? `Debug targets: ${this.currentDebugTargets.join(', ')} (${this.selectedWorkspaceFolder.name})`
           : `Debug targets: ${this.currentDebugTargets.join(', ')}`);
       } else
@@ -476,7 +476,7 @@ export class StatusBarController implements vscode.Disposable {
     this.disposables.push(vscode.commands.registerCommand('malterlib.selectGenerator', async () => {
       // Get all workspace folders that are Malterlib projects
       const workspaceFolders = vscode.workspace.workspaceFolders || [];
-      const malterlibWorkspaces = workspaceFolders.filter(folder => 
+      const malterlibWorkspaces = workspaceFolders.filter(folder =>
         MalterlibProjectDetector.isMalterlibProject(folder)
       );
 
@@ -511,50 +511,45 @@ export class StatusBarController implements vscode.Disposable {
 
       let selectedChoice: GeneratorChoice | undefined;
 
-      if (allChoices.length === 1) {
-        selectedChoice = allChoices[0];
-        this.output.appendLine(`Auto-selected generator: ${selectedChoice.generator.name} in ${selectedChoice.workspaceFolder.name} (only option available)`);
-      } else {
-        // Sort choices for display
-        const sortedChoices = allChoices.sort((a, b) => a.label.localeCompare(b.label));
-        const items = sortedChoices.map(choice => ({ 
-          label: choice.label,
-          detail: choice.generator.path,
-          choice: choice
-        }));
+      // Sort choices for display
+      const sortedChoices = allChoices.sort((a, b) => a.label.localeCompare(b.label));
+      const items = sortedChoices.map(choice => ({
+        label: choice.label,
+        detail: choice.generator.path,
+        choice: choice
+      }));
 
-        const quickPick = vscode.window.createQuickPick();
-        quickPick.items = items;
-        quickPick.placeholder = 'Select a workspace and generator combination';
+      const quickPick = vscode.window.createQuickPick();
+      quickPick.items = items;
+      quickPick.placeholder = 'Select a workspace and generator combination';
 
-        // Try to find current selection if it exists
-        if (this.currentGenerator && this.currentWorkspace) {
-          const currentItem = items.find(item => {
-            const choice = (item as any).choice as GeneratorChoice;
-            return choice.generator.name === this.currentGenerator;
-          });
-          if (currentItem)
-            quickPick.activeItems = [currentItem];
-        }
-
-        selectedChoice = await new Promise<GeneratorChoice | undefined>((resolve) => {
-          let resolved = false;
-          quickPick.onDidAccept(() => {
-            if (resolved) return;
-            resolved = true;
-            const selectedItem = quickPick.activeItems[0];
-            quickPick.dispose();
-            resolve(selectedItem ? (selectedItem as any).choice : undefined);
-          });
-          quickPick.onDidHide(() => {
-            if (resolved) return;
-            resolved = true;
-            quickPick.dispose();
-            resolve(undefined);
-          });
-          quickPick.show();
+      // Try to find current selection if it exists
+      if (this.currentGenerator && this.currentWorkspace) {
+        const currentItem = items.find(item => {
+          const choice = (item as any).choice as GeneratorChoice;
+          return choice.generator.name === this.currentGenerator;
         });
+        if (currentItem)
+          quickPick.activeItems = [currentItem];
       }
+
+      selectedChoice = await new Promise<GeneratorChoice | undefined>((resolve) => {
+        let resolved = false;
+        quickPick.onDidAccept(() => {
+          if (resolved) return;
+          resolved = true;
+          const selectedItem = quickPick.activeItems[0];
+          quickPick.dispose();
+          resolve(selectedItem ? (selectedItem as any).choice : undefined);
+        });
+        quickPick.onDidHide(() => {
+          if (resolved) return;
+          resolved = true;
+          quickPick.dispose();
+          resolve(undefined);
+        });
+        quickPick.show();
+      });
 
       if (selectedChoice) {
         const fallbacks = {
@@ -572,10 +567,10 @@ export class StatusBarController implements vscode.Disposable {
 
         // Only show workspace name if there are multiple workspace folders
         const hasMultipleWorkspaces = (vscode.workspace.workspaceFolders?.length ?? 0) > 1;
-        const generatorText = hasMultipleWorkspaces 
+        const generatorText = hasMultipleWorkspaces
           ? `${selectedChoice.workspaceFolder.name} / ${selectedChoice.generator.name}`
           : selectedChoice.generator.name;
-        
+
         this.statusBar.setGeneratorText(generatorText);
         this.statusBar.setGeneratorTooltip(`Current generator: ${selectedChoice.generator.name} (${selectedChoice.workspaceFolder.name})`);
         this.statusBar.setWorkspaceText('No Workspace');
@@ -588,7 +583,7 @@ export class StatusBarController implements vscode.Disposable {
         // Store the selected workspace folder and trigger cascade
         this.selectedWorkspaceFolder = selectedChoice.workspaceFolder;
         this.cascadeAutoSelection(fallbacks);
-        
+
         // Save selections to workspace state
         void this.saveSelections();
       }
@@ -620,40 +615,35 @@ export class StatusBarController implements vscode.Disposable {
       }
 
       let selected: string | undefined;
-      if (workspaces.length === 1) {
-        selected = workspaces[0].name;
-        this.output.appendLine(`Auto-selected workspace: ${selected} (only option available)`);
-      } else {
-        const sortedNames = workspaces.map(ws => ws.name).sort();
-        const items = sortedNames.map(name => ({ label: name }));
-        const quickPick = vscode.window.createQuickPick();
-        quickPick.items = items;
-        quickPick.placeholder = `Select a workspace for ${workspace.name}`;
-        if (this.currentWorkspace) {
-          const currentItem = items.find(item => item.label === this.currentWorkspace);
-          if (currentItem)
-            quickPick.activeItems = [currentItem];
-        }
-        selected = await new Promise<string | undefined>((resolve) => {
-          let resolved = false;
-          quickPick.onDidAccept(() => {
-            if (resolved) return;
-            resolved = true;
-            const selectedItem = quickPick.activeItems[0];
-            quickPick.dispose();
-            resolve(selectedItem?.label);
-          });
-          quickPick.onDidHide(() => {
-            if (resolved) return;
-            resolved = true;
-            quickPick.dispose();
-            resolve(undefined);
-          });
-          quickPick.show();
-        });
+      const sortedNames = workspaces.map(ws => ws.name).sort();
+      const items = sortedNames.map(name => ({ label: name }));
+      const quickPick = vscode.window.createQuickPick();
+      quickPick.items = items;
+      quickPick.placeholder = `Select a workspace for ${workspace.name}`;
+      if (this.currentWorkspace) {
+        const currentItem = items.find(item => item.label === this.currentWorkspace);
+        if (currentItem)
+          quickPick.activeItems = [currentItem];
       }
+      selected = await new Promise<string | undefined>((resolve) => {
+        let resolved = false;
+        quickPick.onDidAccept(() => {
+          if (resolved) return;
+          resolved = true;
+          const selectedItem = quickPick.activeItems[0];
+          quickPick.dispose();
+          resolve(selectedItem?.label);
+        });
+        quickPick.onDidHide(() => {
+          if (resolved) return;
+          resolved = true;
+          quickPick.dispose();
+          resolve(undefined);
+        });
+        quickPick.show();
+      });
 
-      if (selected) {
+      if (selected && this.currentWorkspace !== selected) {
         const fallbacks = {
           configuration: this.currentConfiguration ?? undefined,
           target: this.currentTarget ?? undefined,
@@ -714,51 +704,46 @@ export class StatusBarController implements vscode.Disposable {
       }
 
       let selected: string | undefined;
-      if (configurations.length === 1) {
-        selected = configurations[0].name;
-        this.output.appendLine(`Auto-selected configuration: ${configurations[0].configuration} (only option available)`);
-      } else {
-        // Create a map from configuration display to name
-        const configMap = new Map<string, string>();
-        configurations.forEach(config => {
-          configMap.set(config.configuration, config.name);
-        });
-        
-        const sortedConfigs = configurations.sort((a, b) => a.configuration.localeCompare(b.configuration));
-        const items = sortedConfigs.map(config => ({ label: config.configuration }));
-        const quickPick = vscode.window.createQuickPick();
-        quickPick.items = items;
-        quickPick.placeholder = `Select a configuration for ${workspace.name}`;
-        if (this.currentConfiguration) {
-          const currentConfig = configurations.find(c => c.name === this.currentConfiguration);
-          if (currentConfig) {
-            const currentItem = items.find(item => item.label === currentConfig.configuration);
-            if (currentItem)
-              quickPick.activeItems = [currentItem];
-          }
-        }
-        selected = await new Promise<string | undefined>((resolve) => {
-          let resolved = false;
-          quickPick.onDidAccept(() => {
-            if (resolved) return;
-            resolved = true;
-            const selectedItem = quickPick.activeItems[0];
-            quickPick.dispose();
-            // Map the display label back to the name
-            const name = selectedItem ? configMap.get(selectedItem.label) : undefined;
-            resolve(name);
-          });
-          quickPick.onDidHide(() => {
-            if (resolved) return;
-            resolved = true;
-            quickPick.dispose();
-            resolve(undefined);
-          });
-          quickPick.show();
-        });
-      }
+      // Create a map from configuration display to name
+      const configMap = new Map<string, string>();
+      configurations.forEach(config => {
+        configMap.set(config.configuration, config.name);
+      });
 
-      if (selected) {
+      const sortedConfigs = configurations.sort((a, b) => a.configuration.localeCompare(b.configuration));
+      const items = sortedConfigs.map(config => ({ label: config.configuration }));
+      const quickPick = vscode.window.createQuickPick();
+      quickPick.items = items;
+      quickPick.placeholder = `Select a configuration for ${workspace.name}`;
+      if (this.currentConfiguration) {
+        const currentConfig = configurations.find(c => c.name === this.currentConfiguration);
+        if (currentConfig) {
+          const currentItem = items.find(item => item.label === currentConfig.configuration);
+          if (currentItem)
+            quickPick.activeItems = [currentItem];
+        }
+      }
+      selected = await new Promise<string | undefined>((resolve) => {
+        let resolved = false;
+        quickPick.onDidAccept(() => {
+          if (resolved) return;
+          resolved = true;
+          const selectedItem = quickPick.activeItems[0];
+          quickPick.dispose();
+          // Map the display label back to the name
+          const name = selectedItem ? configMap.get(selectedItem.label) : undefined;
+          resolve(name);
+        });
+        quickPick.onDidHide(() => {
+          if (resolved) return;
+          resolved = true;
+          quickPick.dispose();
+          resolve(undefined);
+        });
+        quickPick.show();
+      });
+
+      if (selected && this.currentConfiguration !== selected) {
         const fallbacks = {
           target: this.currentTarget ?? undefined,
           debugTargets: [...this.currentDebugTargets]
@@ -778,10 +763,10 @@ export class StatusBarController implements vscode.Disposable {
 
         this.output.appendLine(`Configuration selected: ${displayName} for workspace: ${workspace.name}`);
         this.cascadeAutoSelection(fallbacks);
-        
+
         // Generate compile_commands.json for the new configuration
         void this.generateCompileCommands();
-        
+
         // Save selections to workspace state
         void this.saveSelections();
       }
@@ -809,47 +794,42 @@ export class StatusBarController implements vscode.Disposable {
 
       let selected: string | undefined;
       const defaultBuildTarget = this.currentConfiguration ? BuildSystemScanner.getDefaultBuildTarget(selectedWorkspaceInfo.path, this.currentConfiguration) : null;
-      if (itemNames.length === 1) {
-        selected = itemNames[0];
-        this.output.appendLine(`Auto-selected target: ${selected} (only option available)`);
-      } else {
-        const items = itemNames.map(name => ({ label: name, description: (defaultBuildTarget === name) ? '(default)' : undefined }));
-        const quickPick = vscode.window.createQuickPick();
-        quickPick.items = items;
-        quickPick.placeholder = `Select a target for ${workspace.name}`;
-        if (this.currentTarget) {
-          const currentItem = items.find(item => item.label === this.currentTarget);
-          if (currentItem)
-            quickPick.activeItems = [currentItem];
-        }
-        selected = await new Promise<string | undefined>((resolve) => {
-          let resolved = false;
-          quickPick.onDidAccept(() => {
-            if (resolved) return;
-            resolved = true;
-            const selectedItem = quickPick.activeItems[0];
-            quickPick.dispose();
-            resolve(selectedItem?.label);
-          });
-          quickPick.onDidHide(() => {
-            if (resolved) return;
-            resolved = true;
-            quickPick.dispose();
-            resolve(undefined);
-          });
-          quickPick.show();
-        });
+      const items = itemNames.map(name => ({ label: name, description: (defaultBuildTarget === name) ? '(default)' : undefined }));
+      const quickPick = vscode.window.createQuickPick();
+      quickPick.items = items;
+      quickPick.placeholder = `Select a target for ${workspace.name}`;
+      if (this.currentTarget) {
+        const currentItem = items.find(item => item.label === this.currentTarget);
+        if (currentItem)
+          quickPick.activeItems = [currentItem];
       }
+      selected = await new Promise<string | undefined>((resolve) => {
+        let resolved = false;
+        quickPick.onDidAccept(() => {
+          if (resolved) return;
+          resolved = true;
+          const selectedItem = quickPick.activeItems[0];
+          quickPick.dispose();
+          resolve(selectedItem?.label);
+        });
+        quickPick.onDidHide(() => {
+          if (resolved) return;
+          resolved = true;
+          quickPick.dispose();
+          resolve(undefined);
+        });
+        quickPick.show();
+      });
 
-      if (selected) {
+      if (selected && this.currentTarget !== selected) {
         this.currentTarget = selected;
         this.statusBar.setTargetText(selected);
         this.statusBar.setTargetTooltip(`Current target: ${selected} (${workspace.name})`);
         this.output.appendLine(`Target selected: ${selected} for workspace: ${workspace.name}`);
-        
+
         // Regenerate compile_commands.json with new target selection
         void this.generateCompileCommands();
-        
+
         // Save selections to workspace state
         void this.saveSelections();
       }
@@ -875,21 +855,18 @@ export class StatusBarController implements vscode.Disposable {
         return;
       }
       let selected: string[] | undefined;
-      if (itemNames.length === 1) {
-        selected = [itemNames[0]];
-        this.output.appendLine(`Auto-selected debug target: ${selected[0]} (only option available)`);
-      } else {
-        const items = itemNames.map(name => ({ label: name, picked: this.currentDebugTargets.includes(name) }));
-        const selectedItems = await vscode.window.showQuickPick(items, { placeHolder: `Select debug targets for ${workspace.name}`, canPickMany: true });
-        selected = selectedItems?.map(item => item.label);
-      }
-      if (selected && selected.length > 0) {
+
+      const items = itemNames.map(name => ({ label: name, picked: this.currentDebugTargets.includes(name) }));
+      const selectedItems = await vscode.window.showQuickPick(items, { placeHolder: `Select debug targets for ${workspace.name}`, canPickMany: true });
+      selected = selectedItems?.map(item => item.label);
+
+      if (selected && selected.length > 0 && (selected.length !== this.currentDebugTargets.length || !selected.every(val => this.currentDebugTargets.includes(val)))) {
         this.currentDebugTargets = selected;
         const text = selected.length === 1 ? selected[0] : `${selected.length} targets`;
         this.statusBar.setDebugTargetsText(text);
         this.statusBar.setDebugTargetsTooltip(`Debug targets: ${selected.join(', ')} (${workspace.name})`);
         this.output.appendLine(`Debug targets selected: ${selected.join(', ')} for workspace: ${workspace.name}`);
-        
+
         // Save selections to workspace state
         void this.saveSelections();
       }
@@ -929,58 +906,53 @@ export class StatusBarController implements vscode.Disposable {
       }
 
       let selected: string | undefined;
-      if (itemNames.length === 1) {
-        selected = itemNames[0];
-        this.output.appendLine(`Auto-selected single debug target: ${selected} (only option available)`);
-      } else {
-        this.output.appendLine('Creating QuickPick for multiple targets');
-        const currentSingle = this.currentDebugTargets.length === 1 ? this.currentDebugTargets[0] : undefined;
-        const items = itemNames.map(name => ({ label: name, description: (currentSingle === name) ? '(current)' : undefined }));
-        const quickPick = vscode.window.createQuickPick();
-        quickPick.items = items;
-        quickPick.placeholder = `Select a single debug target for ${workspace.name}`;
-        this.output.appendLine(`Created QuickPick with ${items.length} items`);
-        if (currentSingle) {
-          const currentItem = items.find(item => item.label === currentSingle);
-          if (currentItem) {
-            quickPick.activeItems = [currentItem];
-            this.output.appendLine(`Set active item to: ${currentItem.label}`);
-          } else
-            this.output.appendLine(`Could not find current item: ${currentSingle}`);
+      this.output.appendLine('Creating QuickPick for multiple targets');
+      const currentSingle = this.currentDebugTargets.length === 1 ? this.currentDebugTargets[0] : undefined;
+      const items = itemNames.map(name => ({ label: name, description: (currentSingle === name) ? '(current)' : undefined }));
+      const quickPick = vscode.window.createQuickPick();
+      quickPick.items = items;
+      quickPick.placeholder = `Select a single debug target for ${workspace.name}`;
+      this.output.appendLine(`Created QuickPick with ${items.length} items`);
+      if (currentSingle) {
+        const currentItem = items.find(item => item.label === currentSingle);
+        if (currentItem) {
+          quickPick.activeItems = [currentItem];
+          this.output.appendLine(`Set active item to: ${currentItem.label}`);
         } else
-          this.output.appendLine('No current single debug target to set as active');
-        this.output.appendLine('Showing QuickPick for single debug target');
-        selected = await new Promise<string | undefined>((resolve) => {
-          let resolved = false;
-          quickPick.onDidAccept(() => {
-            if (resolved) return;
-            resolved = true;
-            this.output.appendLine('Single debug target QuickPick accepted');
-            const selectedItem = quickPick.activeItems[0];
-            this.output.appendLine(`Selected item: ${selectedItem?.label || 'undefined'}`);
-            quickPick.dispose();
-            resolve(selectedItem?.label);
-          });
-          quickPick.onDidHide(() => {
-            if (resolved) return;
-            resolved = true;
-            this.output.appendLine('Single debug target QuickPick hidden/cancelled');
-            quickPick.dispose();
-            resolve(undefined);
-          });
-          quickPick.show();
+          this.output.appendLine(`Could not find current item: ${currentSingle}`);
+      } else
+        this.output.appendLine('No current single debug target to set as active');
+      this.output.appendLine('Showing QuickPick for single debug target');
+      selected = await new Promise<string | undefined>((resolve) => {
+        let resolved = false;
+        quickPick.onDidAccept(() => {
+          if (resolved) return;
+          resolved = true;
+          this.output.appendLine('Single debug target QuickPick accepted');
+          const selectedItem = quickPick.activeItems[0];
+          this.output.appendLine(`Selected item: ${selectedItem?.label || 'undefined'}`);
+          quickPick.dispose();
+          resolve(selectedItem?.label);
         });
-      }
+        quickPick.onDidHide(() => {
+          if (resolved) return;
+          resolved = true;
+          this.output.appendLine('Single debug target QuickPick hidden/cancelled');
+          quickPick.dispose();
+          resolve(undefined);
+        });
+        quickPick.show();
+      });
 
       this.output.appendLine(`Final selected value: ${selected || 'undefined'}`);
-      if (selected) {
+      if (selected && (this.currentDebugTargets.length !== 1 || this.currentDebugTargets[0] !== selected)) {
         this.output.appendLine('Updating debug targets and status bar');
         this.currentDebugTargets = [selected];
         this.statusBar.setDebugTargetsText(selected);
         this.statusBar.setDebugTargetsTooltip(`Debug target: ${selected} (${workspace.name})`);
         this.output.appendLine(`Single debug target selected: ${selected} for workspace: ${workspace.name}`);
         this.output.appendLine(`Updated currentDebugTargets to: ${this.currentDebugTargets.join(', ')}`);
-        
+
         // Save selections to workspace state
         void this.saveSelections();
       } else
