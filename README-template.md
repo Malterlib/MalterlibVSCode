@@ -106,3 +106,4 @@ syntax coloring of Malterlib identifiers:
 * Add problem matcher for clang build errors
 * Fix display of proper configuration name instead of id
 * Fix issues with compile_commands.json generation
+* Fix 'All Targets' not auto selecting

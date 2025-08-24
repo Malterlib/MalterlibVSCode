@@ -293,13 +293,13 @@ export class StatusBarController implements vscode.Disposable {
       if (defaultGenerator) {
         this.currentGenerator = defaultGenerator.name;
         this.selectedWorkspaceFolder = workspace;
-        
+
         // Only show workspace name if there are multiple workspace folders
         const hasMultipleWorkspaces = (vscode.workspace.workspaceFolders?.length ?? 0) > 1;
-        const generatorText = hasMultipleWorkspaces 
+        const generatorText = hasMultipleWorkspaces
           ? `${workspace.name} / ${defaultGenerator.name}`
           : defaultGenerator.name;
-        
+
         this.statusBar.setGeneratorText(generatorText);
         this.statusBar.setGeneratorTooltip(`Auto-selected generator: ${defaultGenerator.name} (${workspace.name})`);
         this.output.appendLine(`Auto-selected generator: ${defaultGenerator.name} in ${workspace.name}`);
@@ -408,8 +408,10 @@ export class StatusBarController implements vscode.Disposable {
         this.statusBar.setTargetText(defaultBuildTarget);
         this.statusBar.setTargetTooltip(`Auto-selected target: ${defaultBuildTarget} (${workspace.name})`);
         this.output.appendLine(`Auto-selected target: ${defaultBuildTarget} (default build target)`);
-      } else
-        this.output.appendLine('Target selection required - "All Targets" or specific target');
+      } else {
+        this.currentTarget = 'All Targets';
+        this.output.appendLine('Auto-selected target: All Targets (no specific targets)');
+      }
     }
 
     // 5. Debug target auto-selection
