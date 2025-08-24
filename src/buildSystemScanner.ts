@@ -78,11 +78,12 @@ export class BuildSystemScanner {
 
   // --- Queue management to serialize scans and avoid race conditions ---
   private static taskQueue: Array<{
-    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'flush';
+    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'singleTargetConfig' | 'flush';
     workspaceFolder?: vscode.WorkspaceFolder;
     generatorPath?: string;
     workspacePath?: string;
     targetPath?: string;
+    targetConfigPath?: string;
     event?: 'generators' | 'workspaces' | 'targets' | 'configurations';
     key?: string;
     resolve?: () => void; // only for flush tasks
@@ -91,11 +92,12 @@ export class BuildSystemScanner {
   private static processingQueue = false;
 
   private static enqueueTask(task: {
-    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations';
+    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'singleTargetConfig';
     workspaceFolder?: vscode.WorkspaceFolder;
     generatorPath?: string;
     workspacePath?: string;
     targetPath?: string;
+    targetConfigPath?: string;
     event: 'generators' | 'workspaces' | 'targets' | 'configurations';
     key: string;
   }): void {
@@ -133,6 +135,10 @@ export class BuildSystemScanner {
               if (task.targetPath)
                 await this.scanConfigurations(task.targetPath);
               break;
+            case 'singleTargetConfig':
+              if (task.targetConfigPath)
+                await this.updateSingleTargetConfiguration(task.targetConfigPath);
+              break;
             case 'flush':
               // No scan; used to allow awaiting until prior tasks finish
               break;
@@ -144,7 +150,7 @@ export class BuildSystemScanner {
           if (task.resolve)
             task.resolve();
         } catch (err) {
-          console.error('Error processing scan task', task.kind, err);
+          console.error(`[BuildSystemScanner] Error processing scan task ${task.kind}:`, err);
         }
       }
     } finally {
@@ -208,6 +214,16 @@ export class BuildSystemScanner {
     });
   }
 
+  private static queueSingleTargetConfiguration(targetConfigPath: string) {
+    const key = `singleTargetConfig:${targetConfigPath}`;
+    this.enqueueTask({
+      kind: 'singleTargetConfig',
+      targetConfigPath,
+      event: 'targets',
+      key
+    });
+  }
+
   /**
    * Wait until the current scanner queue drains. If the queue is active or non-empty,
    * enqueue a flush task that resolves when all prior tasks have completed.
@@ -227,8 +243,6 @@ export class BuildSystemScanner {
    * Initialize the scanner for a workspace folder
    */
   public static initialize(workspaceFolder: vscode.WorkspaceFolder): vscode.Disposable {
-    const buildSystemPath = path.join(workspaceFolder.uri.fsPath, 'BuildSystem');
-
     // Initial scan (queued)
     this.queueBuildSystem(workspaceFolder);
 
@@ -303,6 +317,7 @@ export class BuildSystemScanner {
     configWatcher.onDidCreate(uri => {
       const targetPath = path.dirname(path.dirname(uri.fsPath));
       this.queueConfigurations(targetPath);
+      this.queueSingleTargetConfiguration(uri.fsPath);
     });
 
     configWatcher.onDidDelete(uri => {
@@ -813,6 +828,74 @@ export class BuildSystemScanner {
   }
 
   /**
+   * Update a single target configuration in an existing target
+   */
+  private static async updateSingleTargetConfiguration(targetConfigPath: string): Promise<void> {
+    // Deduce paths from the config path
+    // targetConfigPath is like: .../BuildSystem/Generator/ConfigStore/Workspace/Targets/Target/Configs/Config.json
+    const targetPath = path.dirname(path.dirname(targetConfigPath)); // Remove Configs/Config.json
+    const workspacePath = path.dirname(path.dirname(targetPath)); // Remove Targets/Target
+    const targetName = path.basename(targetPath);
+    const configName = path.basename(targetConfigPath, '.json');
+
+    // Get the current targets for this workspace
+    const targets = this.targets.get(workspacePath);
+    if (!targets) {
+      console.log(`[BuildSystemScanner] No targets found for workspace ${workspacePath}, running full scan`);
+      await this.scanTargets(workspacePath);
+      return;
+    }
+
+    // Find the specific target
+    const targetIndex = targets.findIndex(t => t.name === targetName);
+    if (targetIndex === -1) {
+      console.log(`[BuildSystemScanner] Target ${targetName} not found, running full scan`);
+      await this.scanTargets(workspacePath);
+      return;
+    }
+
+    const target = targets[targetIndex];
+
+    // Check if the config file exists
+    if (!(await this.pathExists(targetConfigPath))) {
+      console.log(`[BuildSystemScanner] Config file ${targetConfigPath} no longer exists, removing from target`);
+      if (target.configurations)
+        target.configurations.delete(configName);
+    } else {
+      // Read and update the specific configuration
+      try {
+        const content = await fsp.readFile(targetConfigPath, 'utf8');
+        const configJson = JSON.parse(content);
+
+        if (!target.configurations)
+          target.configurations = new Map<string, TargetConfigInfo>();
+
+        target.configurations.set(configName, {
+          name: configName,
+          path: targetConfigPath,
+          platform: configJson.platform || '',
+          architecture: configJson.architecture || '',
+          configuration: configJson.configuration || '',
+          debugPriority: configJson.debugPriority,
+          debuggerCommandArguments: configJson.debuggerCommandArguments,
+          localDebuggerCommand: configJson.localDebuggerCommand,
+          localDebuggerWorkingDirectory: configJson.localDebuggerWorkingDirectory,
+          remoteDebuggerCommand: configJson.remoteDebuggerCommand,
+          remoteDebuggerWorkingDirectory: configJson.remoteDebuggerWorkingDirectory,
+          compileCommands: configJson.compileCommands
+        });
+
+        console.log(`[BuildSystemScanner] Updated configuration ${configName} for target ${targetName}`);
+      } catch (error) {
+        console.error(`Error reading target configuration JSON for ${configName}: ${error}`);
+      }
+    }
+
+    // Update the targets map with the modified target
+    this.targets.set(workspacePath, targets);
+  }
+
+  /**
    * Scan target-specific configurations
    */
   private static async scanTargetConfigurations(configsPath: string): Promise<Map<string, TargetConfigInfo>> {
@@ -986,7 +1069,7 @@ export class BuildSystemScanner {
     }
   }
 
-  private static async pathExists(p: string): Promise<boolean> {
+  public static async pathExists(p: string): Promise<boolean> {
     try {
       await fsp.access(p);
       return true;

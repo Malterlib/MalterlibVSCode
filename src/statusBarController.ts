@@ -270,7 +270,7 @@ export class StatusBarController implements vscode.Disposable {
     return this.selectedWorkspaceFolder;
   }
 
-  private cascadeAutoSelection(fallbacks?: {
+  public cascadeAutoSelection(fallbacks?: {
     generator?: string;
     workspace?: string;
     configuration?: string;
@@ -672,7 +672,9 @@ export class StatusBarController implements vscode.Disposable {
 
         this.output.appendLine(`Workspace selected: ${selected} for workspace: ${workspace.name}`);
         this.cascadeAutoSelection(fallbacks);
-        
+
+        void this.generateCompileCommands();
+
         // Save selections to workspace state
         void this.saveSelections();
       }
@@ -992,21 +994,22 @@ export class StatusBarController implements vscode.Disposable {
   /**
    * Generate compile_commands.json for the current workspace and configuration
    */
-  private async generateCompileCommands(showNotification: boolean = false): Promise<void> {
+  public async generateCompileCommands(showNotification: boolean = false): Promise<void> {
     if (!this.selectedWorkspaceFolder || !this.currentGenerator || !this.currentWorkspace || !this.currentConfiguration) {
-      if (showNotification) {
+      if (showNotification)
         vscode.window.showWarningMessage('Please select generator, workspace, and configuration first.');
-      }
       return;
     }
 
     const generators = BuildSystemScanner.getGenerators(this.selectedWorkspaceFolder);
     const selectedGenerator = generators.find(gen => gen.name === this.currentGenerator);
-    if (!selectedGenerator) return;
+    if (!selectedGenerator)
+      return;
 
     const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
     const selectedWorkspaceInfo = workspaces.find(ws => ws.name === this.currentWorkspace);
-    if (!selectedWorkspaceInfo) return;
+    if (!selectedWorkspaceInfo)
+      return;
 
     // Dispose existing watcher
     if (this.compileCommandsWatcher) {
@@ -1016,33 +1019,33 @@ export class StatusBarController implements vscode.Disposable {
 
     try {
       this.output.appendLine('Generating compile_commands.json...');
-      
+
       const outputPath = await CompileCommandsGenerator.generateForWorkspace(
         this.selectedWorkspaceFolder,
         selectedWorkspaceInfo.path,
         this.currentConfiguration,
-        this.currentTarget || undefined
+        this.currentTarget || undefined,
+        selectedGenerator.path
       );
 
       if (outputPath) {
         this.output.appendLine(`Generated compile_commands.json at: ${outputPath}`);
-        if (showNotification) {
+        if (showNotification)
           vscode.window.showInformationMessage(`Generated compile_commands.json for ${this.currentConfiguration}`);
-        }
 
         // Set up watcher for changes
         this.compileCommandsWatcher = CompileCommandsGenerator.createWatcher(
           this.selectedWorkspaceFolder,
           selectedWorkspaceInfo.path,
           this.currentConfiguration,
-          this.currentTarget || undefined
+          this.currentTarget || undefined,
+          selectedGenerator.path
         );
       }
     } catch (error) {
       this.output.appendLine(`Error generating compile_commands.json: ${error}`);
-      if (showNotification) {
+      if (showNotification)
         vscode.window.showErrorMessage(`Failed to generate compile_commands.json: ${error}`);
-      }
     }
   }
 }

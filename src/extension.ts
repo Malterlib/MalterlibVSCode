@@ -9,102 +9,111 @@ import { BuildSystemScanner } from './buildSystemScanner';
 import { MalterlibTaskProvider } from './malterlibTaskProvider';
 import { MalterlibLaunchProvider } from './malterlibLaunchProvider';
 import { StatusBarController } from './statusBarController';
+import { CompileCommandsGenerator } from './compileCommandsGenerator';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 async function waitForExtension(name: string, retries: number = 10) {
-	if (!retries) {
-		console.log(`Extension ${name} not found`);
-		return;
-	}
+  if (!retries) {
+    console.log(`Extension ${name} not found`);
+    return;
+  }
 
-	const ext = vscode.extensions.getExtension(name);
-	if (!ext) {
-		await new Promise(resolve => setTimeout(resolve, 100));
-		return waitForExtension(name, retries - 1);
-	}
-	await ext.activate();
+  const ext = vscode.extensions.getExtension(name);
+  if (!ext) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return waitForExtension(name, retries - 1);
+  }
+  await ext.activate();
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-	await waitForExtension('llvm-vs-code-extensions.vscode-clangd');
-	//	await waitForExtension('ms-vscode.cpptools');
+  await waitForExtension('llvm-vs-code-extensions.vscode-clangd');
+  //	await waitForExtension('ms-vscode.cpptools');
 
-	const output = vscode.window.createOutputChannel('Malterlib');
-	output.appendLine('Malterlib initialized');
+  const output = vscode.window.createOutputChannel('Malterlib');
+  output.appendLine('Malterlib initialized');
 
-	// Initialize Malterlib project detector
-	const projectDetector = MalterlibProjectDetector.initialize();
-	context.subscriptions.push(projectDetector);
+  // Initialize Malterlib project detector
+  const projectDetector = MalterlibProjectDetector.initialize();
+  context.subscriptions.push(projectDetector);
 
-	// Initialize build system scanners for all workspace folders
-	if (vscode.workspace.workspaceFolders) {
-		for (const folder of vscode.workspace.workspaceFolders) {
-			if (MalterlibProjectDetector.isMalterlibProject(folder)) {
-				const scanner = BuildSystemScanner.initialize(folder);
-				context.subscriptions.push(scanner);
-			}
-		}
-	}
+  // Initialize build system scanners for all workspace folders
+  if (vscode.workspace.workspaceFolders) {
+    for (const folder of vscode.workspace.workspaceFolders) {
+      if (MalterlibProjectDetector.isMalterlibProject(folder)) {
+        const scanner = BuildSystemScanner.initialize(folder);
+        context.subscriptions.push(scanner);
+      }
+    }
+  }
 
-	// Listen for new Malterlib projects and initialize scanners
-	MalterlibProjectDetector.onDidChangeDetectionAsync(async (workspaceFolder: vscode.WorkspaceFolder | undefined) => {
-		if (workspaceFolder && MalterlibProjectDetector.isMalterlibProject(workspaceFolder)) {
-			const scanner = BuildSystemScanner.initialize(workspaceFolder);
-			context.subscriptions.push(scanner);
-			// Ensure initial scan for this workspace completes before detector queue drains
-			await BuildSystemScanner.waitForScannerQueue();
-		}
-	});
+  // Listen for new Malterlib projects and initialize scanners
+  MalterlibProjectDetector.onDidChangeDetectionAsync(async (workspaceFolder: vscode.WorkspaceFolder | undefined) => {
+    if (workspaceFolder && MalterlibProjectDetector.isMalterlibProject(workspaceFolder)) {
+      const scanner = BuildSystemScanner.initialize(workspaceFolder);
+      context.subscriptions.push(scanner);
+      // Ensure initial scan for this workspace completes before detector queue drains
+      await BuildSystemScanner.waitForScannerQueue();
+      statusBar.update();
+      statusController.cascadeAutoSelection();
+      statusController.generateCompileCommands();
+    }
+  });
 
-	// Initialize status bar
-	const config = new ConfigurationReader();
-	const statusBar = new StatusBar(config);
-	// Hide status bar buttons until initial scans complete
-	statusBar.setVisible(false);
-	context.subscriptions.push(statusBar);
-	// Create controller to manage status bar state and commands
-	const statusController = new StatusBarController(statusBar, output, context.workspaceState);
-	context.subscriptions.push(statusController);
+  // Initialize status bar
+  const config = new ConfigurationReader();
+  const statusBar = new StatusBar(config);
+  // Hide status bar buttons until initial scans complete
+  statusBar.setVisible(false);
+  context.subscriptions.push(statusBar);
+  // Create controller to manage status bar state and commands
+  const statusController = new StatusBarController(statusBar, output, context.workspaceState);
+  context.subscriptions.push(statusController);
 
-	// Status bar controller handles scanning updates internally
+  // Status bar controller handles scanning updates internally
 
-	// After activation, wait for initial Malterlib detection and BuildSystem scanning to settle
-	(async () => {
-		try {
-			await MalterlibProjectDetector.waitForDetectorQueue();
-			await BuildSystemScanner.waitForScannerQueue();
-		} catch (err) {
-			console.error('Error waiting for initial scans:', err);
-		} finally {
-			statusBar.update();
-			statusController.initializeAutoSelection();
-			statusBar.setVisible(true);
-		}
-	})();
+  // After activation, wait for initial Malterlib detection and BuildSystem scanning to settle
+  (async () => {
+    try {
+      await MalterlibProjectDetector.waitForDetectorQueue();
+      await BuildSystemScanner.waitForScannerQueue();
+    } catch (err) {
+      console.error('Error waiting for initial scans:', err);
+    } finally {
+      output.appendLine(`Initial scanning complete`);
+      statusBar.update();
+      statusController.initializeAutoSelection();
+      statusBar.setVisible(true);
+      statusController.generateCompileCommands();
+    }
+  })();
 
-	// Register task provider using controller snapshot
-	const taskProvider = new MalterlibTaskProvider(
-		() => statusController.getSelectionSnapshot(),
-		() => statusController.getSelectedWorkspaceFolder()
-	);
-	context.subscriptions.push(
-		vscode.tasks.registerTaskProvider(MalterlibTaskProvider.taskType, taskProvider)
-	);
+  // Register task provider using controller snapshot
+  const taskProvider = new MalterlibTaskProvider(
+    () => statusController.getSelectionSnapshot(),
+    () => statusController.getSelectedWorkspaceFolder()
+  );
+  context.subscriptions.push(
+    vscode.tasks.registerTaskProvider(MalterlibTaskProvider.taskType, taskProvider)
+  );
 
-	// Register semantic tokens via helper
-	context.subscriptions.push(registerSemanticTokens(context, output));
+  // Register semantic tokens via helper
+  context.subscriptions.push(registerSemanticTokens(context, output));
 
-	// Register debug/launch configuration providers (dynamic + initial)
-	context.subscriptions.push(
-		vscode.debug.registerDebugConfigurationProvider('lldb', new MalterlibLaunchProvider(
-			() => statusController.getSelectionSnapshot(),
-			() => statusController.getDebugTargetsSnapshot(),
-			() => statusController.getSelectedWorkspaceFolder(),
-			output,
-		), vscode.DebugConfigurationProviderTriggerKind.Dynamic),
-	);
+  // Register debug/launch configuration providers (dynamic + initial)
+  context.subscriptions.push(
+    vscode.debug.registerDebugConfigurationProvider('lldb', new MalterlibLaunchProvider(
+      () => statusController.getSelectionSnapshot(),
+      () => statusController.getDebugTargetsSnapshot(),
+      () => statusController.getSelectedWorkspaceFolder(),
+      output,
+    ), vscode.DebugConfigurationProviderTriggerKind.Dynamic),
+  );
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {
+  // Clean up any pending compile commands generation
+  CompileCommandsGenerator.dispose();
+}
