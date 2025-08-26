@@ -4,6 +4,14 @@ import { BuildSystemScanner, GeneratorInfo } from './buildSystemScanner';
 import { MalterlibProjectDetector } from './malterlibProject';
 import { CompileCommandsGenerator } from './compileCommandsGenerator';
 
+export interface SelectionChangeEvent {
+  generator: string | null;
+  workspace: string | null;
+  configuration: string | null;
+  target: string | null;
+  debugTargets: string[];
+}
+
 export class StatusBarController implements vscode.Disposable {
   private readonly statusBar: StatusBar;
   private readonly output: vscode.OutputChannel;
@@ -18,6 +26,10 @@ export class StatusBarController implements vscode.Disposable {
   private currentDebugTargets: string[] = [];
   private selectedWorkspaceFolder: vscode.WorkspaceFolder | null = null;
   private compileCommandsWatcher: vscode.Disposable | null = null;
+
+  // Event emitter for selection changes
+  private onSelectionChangedEmitter = new vscode.EventEmitter<SelectionChangeEvent>();
+  readonly onSelectionChanged = this.onSelectionChangedEmitter.event;
 
   private static readonly WORKSPACE_FOLDER_KEY = 'malterlib.selectedWorkspaceFolder';
   private static readonly GENERATOR_KEY = 'malterlib.selectedGenerator';
@@ -46,6 +58,54 @@ export class StatusBarController implements vscode.Disposable {
   dispose(): void {
     this.disposables.forEach(d => d.dispose());
     this.compileCommandsWatcher?.dispose();
+    this.onSelectionChangedEmitter.dispose();
+  }
+
+  // Setter functions that trigger events
+  private setGenerator(value: string | null): void {
+    if (this.currentGenerator !== value) {
+      this.currentGenerator = value;
+      this.fireSelectionChange();
+    }
+  }
+
+  private setWorkspace(value: string | null): void {
+    if (this.currentWorkspace !== value) {
+      this.currentWorkspace = value;
+      this.fireSelectionChange();
+    }
+  }
+
+  private setConfiguration(value: string | null): void {
+    if (this.currentConfiguration !== value) {
+      this.currentConfiguration = value;
+      this.fireSelectionChange();
+    }
+  }
+
+  private setTarget(value: string | null): void {
+    if (this.currentTarget !== value) {
+      this.currentTarget = value;
+      this.fireSelectionChange();
+    }
+  }
+
+  private setDebugTargets(value: string[]): void {
+    const changed = JSON.stringify(this.currentDebugTargets) !== JSON.stringify(value);
+    if (changed) {
+      this.currentDebugTargets = value;
+      this.fireSelectionChange();
+    }
+  }
+
+  private fireSelectionChange(): void {
+    this.onSelectionChangedEmitter.fire({
+      generator: this.currentGenerator,
+      workspace: this.currentWorkspace,
+      configuration: this.currentConfiguration,
+      target: this.currentTarget,
+      debugTargets: [...this.currentDebugTargets]
+    });
   }
 
   public initializeAutoSelection(): void {
@@ -79,13 +139,13 @@ export class StatusBarController implements vscode.Disposable {
     if (savedGenerator && this.selectedWorkspaceFolder) {
       const generators = BuildSystemScanner.getGenerators(this.selectedWorkspaceFolder);
       if (generators.some(g => g.name === savedGenerator))
-        this.currentGenerator = savedGenerator;
+        this.setGenerator(savedGenerator);
       else {
         this.output.appendLine(`Saved generator '${savedGenerator}' no longer exists`);
-        this.currentGenerator = null;
+        this.setGenerator(null);
       }
     } else
-      this.currentGenerator = null;
+      this.setGenerator(null);
 
     // Validate workspace exists
     if (this.currentGenerator && savedWorkspace && this.selectedWorkspaceFolder) {
@@ -94,14 +154,14 @@ export class StatusBarController implements vscode.Disposable {
       if (selectedGenerator) {
         const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
         if (workspaces.some(w => w.name === savedWorkspace))
-          this.currentWorkspace = savedWorkspace;
+          this.setWorkspace(savedWorkspace);
         else {
           this.output.appendLine(`Saved workspace '${savedWorkspace}' no longer exists`);
-          this.currentWorkspace = null;
+          this.setWorkspace(null);
         }
       }
     } else
-      this.currentWorkspace = null;
+      this.setWorkspace(null);
 
     // Validate configuration exists
     if (this.currentGenerator && this.currentWorkspace && savedConfiguration && this.selectedWorkspaceFolder) {
@@ -113,20 +173,20 @@ export class StatusBarController implements vscode.Disposable {
         if (selectedWorkspace) {
           const configurations = BuildSystemScanner.getWorkspaceConfigurations(selectedWorkspace.path);
           if (configurations.some(c => c.name === savedConfiguration))
-            this.currentConfiguration = savedConfiguration;
+            this.setConfiguration(savedConfiguration);
           else {
             this.output.appendLine(`Saved configuration '${savedConfiguration}' no longer exists`);
-            this.currentConfiguration = null;
+            this.setConfiguration(null);
           }
         }
       }
     } else
-      this.currentConfiguration = null;
+      this.setConfiguration(null);
 
     // Validate target exists and is buildable for the current configuration
     if (this.currentGenerator && this.currentWorkspace && savedTarget && this.selectedWorkspaceFolder) {
       if (savedTarget === 'All Targets')
-        this.currentTarget = savedTarget;
+        this.setTarget(savedTarget);
       else {
         const generators = BuildSystemScanner.getGenerators(this.selectedWorkspaceFolder);
         const selectedGenerator = generators.find(g => g.name === this.currentGenerator);
@@ -139,16 +199,16 @@ export class StatusBarController implements vscode.Disposable {
             const cfg = this.currentConfiguration ? t?.configurations?.get(this.currentConfiguration) : undefined;
             const buildable = cfg ? (cfg.generateScheme !== false) : true;
             if (t && buildable)
-              this.currentTarget = savedTarget;
+              this.setTarget(savedTarget);
             else {
               this.output.appendLine(`Saved target '${savedTarget}' no longer exists or is not buildable for the current configuration`);
-              this.currentTarget = null;
+              this.setTarget(null);
             }
           }
         }
       }
     } else
-      this.currentTarget = null;
+      this.setTarget(null);
 
     // Validate debug targets exist and have a local debugger for the current configuration
     if (this.currentGenerator && this.currentWorkspace && savedDebugTargets.length > 0 && this.selectedWorkspaceFolder) {
@@ -166,21 +226,21 @@ export class StatusBarController implements vscode.Disposable {
           );
           const validDebugTargets = savedDebugTargets.filter(t => targetNames.has(t) && debuggable.has(t));
           if (validDebugTargets.length > 0) {
-            this.currentDebugTargets = validDebugTargets;
+            this.setDebugTargets(validDebugTargets);
             if (validDebugTargets.length < savedDebugTargets.length) {
               const invalidTargets = savedDebugTargets.filter(t => !targetNames.has(t) || !debuggable.has(t));
               this.output.appendLine(`Some saved debug targets no longer exist or lack a local debugger: ${invalidTargets.join(', ')}`);
             }
           } else {
             this.output.appendLine(`None of the saved debug targets exist or have a local debugger anymore`);
-            this.currentDebugTargets = [];
+            this.setDebugTargets([]);
           }
         } else
-          this.currentDebugTargets = [];
+          this.setDebugTargets([]);
       } else
-        this.currentDebugTargets = [];
+        this.setDebugTargets([]);
     } else
-      this.currentDebugTargets = [];
+      this.setDebugTargets([]);
 
     if (this.currentGenerator) {
       // Update status bar with restored values
@@ -197,7 +257,7 @@ export class StatusBarController implements vscode.Disposable {
       if (this.currentWorkspace) {
         this.statusBar.setWorkspaceText(this.currentWorkspace);
         this.statusBar.setWorkspaceTooltip(this.selectedWorkspaceFolder
-          ? `Current workspace: ${this.currentWorkspace} (${this.selectedWorkspaceFolder.name})`
+      ? `Current workspace: ${this.currentWorkspace} (${this.selectedWorkspaceFolder.name})`
           : `Current workspace: ${this.currentWorkspace}`);
       } else
         this.statusBar.setWorkspaceText('No Workspace');
@@ -298,7 +358,7 @@ export class StatusBarController implements vscode.Disposable {
 
       const defaultGenerator = BuildSystemScanner.getDefaultGenerator(workspace, fallbacks?.generator);
       if (defaultGenerator) {
-        this.currentGenerator = defaultGenerator.name;
+        this.setGenerator(defaultGenerator.name);
         this.selectedWorkspaceFolder = workspace;
 
         // Only show workspace name if there are multiple workspace folders
@@ -338,7 +398,7 @@ export class StatusBarController implements vscode.Disposable {
 
       const defaultWorkspace = BuildSystemScanner.getDefaultWorkspace(selectedGenerator.path, fallbacks?.workspace);
       if (defaultWorkspace) {
-        this.currentWorkspace = defaultWorkspace.name;
+        this.setWorkspace(defaultWorkspace.name);
         this.statusBar.setWorkspaceText(defaultWorkspace.name);
         this.statusBar.setWorkspaceTooltip(`Auto-selected workspace: ${defaultWorkspace.name} (${workspace.name})`);
         this.output.appendLine(`Auto-selected workspace: ${defaultWorkspace.name}`);
@@ -371,7 +431,7 @@ export class StatusBarController implements vscode.Disposable {
 
       const defaultConfiguration = BuildSystemScanner.getDefaultConfiguration(selectedWorkspaceInfo.path, fallbacks?.configuration);
       if (defaultConfiguration) {
-        this.currentConfiguration = defaultConfiguration.name;
+        this.setConfiguration(defaultConfiguration.name);
         this.statusBar.setConfigurationText(defaultConfiguration.configuration);
         this.statusBar.setConfigurationTooltip(`Auto-selected configuration: ${defaultConfiguration.configuration} (${workspace.name})`);
         this.output.appendLine(`Auto-selected configuration: ${defaultConfiguration.configuration}`);
@@ -401,22 +461,22 @@ export class StatusBarController implements vscode.Disposable {
       const targetNames = targets.map(t => t.name);
 
       if (fallbacks?.target && (fallbacks.target === 'All Targets' || (targetNames.includes(fallbacks.target) && (() => { const t = targets.find(x => x.name === fallbacks.target); const cfg = t?.configurations?.get(this.currentConfiguration!); return cfg?.generateScheme !== false; })()))) {
-        this.currentTarget = fallbacks.target;
+        this.setTarget(fallbacks.target);
         this.statusBar.setTargetText(fallbacks.target);
         this.statusBar.setTargetTooltip(`Preserved target: ${fallbacks.target} (${workspace.name})`);
         this.output.appendLine(`Preserved target: ${fallbacks.target} (from previous selection)`);
       } else if (targets.length === 0) {
-        this.currentTarget = 'All Targets';
+        this.setTarget('All Targets');
         this.statusBar.setTargetText('All Targets');
         this.statusBar.setTargetTooltip(`Auto-selected target: All Targets (${workspace.name})`);
         this.output.appendLine('Auto-selected target: All Targets (no specific targets)');
       } else if (defaultBuildTarget && targets.some(t => t.name === defaultBuildTarget) && (() => { const t = targets.find(x => x.name === defaultBuildTarget); const cfg = t?.configurations?.get(this.currentConfiguration!); return cfg?.generateScheme !== false; })()) {
-        this.currentTarget = defaultBuildTarget;
+        this.setTarget(defaultBuildTarget);
         this.statusBar.setTargetText(defaultBuildTarget);
         this.statusBar.setTargetTooltip(`Auto-selected target: ${defaultBuildTarget} (${workspace.name})`);
         this.output.appendLine(`Auto-selected target: ${defaultBuildTarget} (default build target)`);
       } else {
-        this.currentTarget = 'All Targets';
+        this.setTarget('All Targets');
         this.output.appendLine('Auto-selected target: All Targets (no specific targets)');
       }
     }
@@ -446,7 +506,7 @@ export class StatusBarController implements vscode.Disposable {
           return !!t && !!t.configurations?.get(cfgName)?.localDebuggerCommand;
         });
         if (validFallbacks.length > 0) {
-          this.currentDebugTargets = [...validFallbacks];
+          this.setDebugTargets([...validFallbacks]);
           const text = validFallbacks.length === 1 ? validFallbacks[0] : `${validFallbacks.length} targets`;
           this.statusBar.setDebugTargetsText(text);
           this.statusBar.setDebugTargetsTooltip(`Debug targets: ${validFallbacks.join(', ')} (${workspace.name})`);
@@ -467,7 +527,7 @@ export class StatusBarController implements vscode.Disposable {
       const explicitTargets = workspaceConfig?.defaultDebugTargets || [];
 
       if (defaultDebugTargets.length > 0) {
-        this.currentDebugTargets = [...defaultDebugTargets];
+        this.setDebugTargets([...defaultDebugTargets]);
         const text = defaultDebugTargets.length === 1 ? defaultDebugTargets[0] : `${defaultDebugTargets.length} targets`;
         this.statusBar.setDebugTargetsText(text);
         this.statusBar.setDebugTargetsTooltip(`Debug targets: ${defaultDebugTargets.join(', ')} (${workspace.name})`);
@@ -479,7 +539,7 @@ export class StatusBarController implements vscode.Disposable {
       } else {
         const debuggableTargets = targets.filter(t => !!t.configurations?.get(this.currentConfiguration!)?.localDebuggerCommand);
         if (debuggableTargets.length === 1) {
-          this.currentDebugTargets = [debuggableTargets[0].name];
+          this.setDebugTargets([debuggableTargets[0].name]);
           this.statusBar.setDebugTargetsText(debuggableTargets[0].name);
           this.statusBar.setDebugTargetsTooltip(`Auto-selected debug target: ${debuggableTargets[0].name} (${workspace.name})`);
           this.output.appendLine(`Auto-selected debug target: ${debuggableTargets[0].name} (only option with local debugger)`);
@@ -578,11 +638,11 @@ export class StatusBarController implements vscode.Disposable {
           debugTargets: [...this.currentDebugTargets]
         };
 
-        this.currentGenerator = selectedChoice.generator.name;
-        this.currentWorkspace = null;
-        this.currentConfiguration = null;
-        this.currentTarget = null;
-        this.currentDebugTargets = [];
+        this.setGenerator(selectedChoice.generator.name);
+        this.setWorkspace(null);
+        this.setConfiguration(null);
+        this.setTarget(null);
+        this.setDebugTargets([]);
 
         // Only show workspace name if there are multiple workspace folders
         const hasMultipleWorkspaces = (vscode.workspace.workspaceFolders?.length ?? 0) > 1;
@@ -669,10 +729,10 @@ export class StatusBarController implements vscode.Disposable {
           debugTargets: [...this.currentDebugTargets]
         };
 
-        this.currentWorkspace = selected;
-        this.currentConfiguration = null;
-        this.currentTarget = null;
-        this.currentDebugTargets = [];
+        this.setWorkspace(selected);
+        this.setConfiguration(null);
+        this.setTarget(null);
+        this.setDebugTargets([]);
 
         this.statusBar.setWorkspaceText(selected);
         this.statusBar.setWorkspaceTooltip(`Current workspace: ${selected} (${workspace.name})`);
@@ -768,9 +828,9 @@ export class StatusBarController implements vscode.Disposable {
           debugTargets: [...this.currentDebugTargets]
         };
 
-        this.currentConfiguration = selected;
-        this.currentTarget = null;
-        this.currentDebugTargets = [];
+        this.setConfiguration(selected);
+        this.setTarget(null);
+        this.setDebugTargets([]);
 
         // Find the configuration object to get the display name
         const selectedConfig = configurations.find(c => c.name === selected);
@@ -848,7 +908,7 @@ export class StatusBarController implements vscode.Disposable {
       });
 
       if (selected && this.currentTarget !== selected) {
-        this.currentTarget = selected;
+        this.setTarget(selected);
         this.statusBar.setTargetText(selected);
         this.statusBar.setTargetTooltip(`Current target: ${selected} (${workspace.name})`);
         this.output.appendLine(`Target selected: ${selected} for workspace: ${workspace.name}`);
@@ -891,7 +951,7 @@ export class StatusBarController implements vscode.Disposable {
       selected = selectedItems?.map(item => item.label);
 
       if (selected && selected.length > 0 && (selected.length !== this.currentDebugTargets.length || !selected.every(val => this.currentDebugTargets.includes(val)))) {
-        this.currentDebugTargets = selected;
+        this.setDebugTargets(selected);
         const text = selected.length === 1 ? selected[0] : `${selected.length} targets`;
         this.statusBar.setDebugTargetsText(text);
         this.statusBar.setDebugTargetsTooltip(`Debug targets: ${selected.join(', ')} (${workspace.name})`);
@@ -981,7 +1041,7 @@ export class StatusBarController implements vscode.Disposable {
       this.output.appendLine(`Final selected value: ${selected || 'undefined'}`);
       if (selected && (this.currentDebugTargets.length !== 1 || this.currentDebugTargets[0] !== selected)) {
         this.output.appendLine('Updating debug targets and status bar');
-        this.currentDebugTargets = [selected];
+        this.setDebugTargets([selected]);
         this.statusBar.setDebugTargetsText(selected);
         this.statusBar.setDebugTargetsTooltip(`Debug target: ${selected} (${workspace.name})`);
         this.output.appendLine(`Single debug target selected: ${selected} for workspace: ${workspace.name}`);

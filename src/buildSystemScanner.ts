@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { promises as fsp } from 'fs';
 import * as path from 'path';
+import { PostCopyParser, PostCopyProject } from './postCopyParser';
 
 export interface GeneratorInfo {
   name: string;
@@ -14,6 +15,7 @@ export interface GeneratorInfo {
   outputDir?: string;
   buildTargetScript?: string;
   buildWorkspaceScript?: string;
+  postCopyProjects?: Map<string, PostCopyProject>;
 }
 
 export interface WorkspaceConfigInfo {
@@ -50,6 +52,9 @@ export interface TargetConfigInfo {
   remoteDebuggerCommand?: string;
   remoteDebuggerWorkingDirectory?: string;
   compileCommands?: string;
+  postCopyDestination?: string;
+  postCopyProject?: string;
+  postCopyProject2?: string;
 }
 
 export interface TargetInfo {
@@ -80,7 +85,7 @@ export class BuildSystemScanner {
 
   // --- Queue management to serialize scans and avoid race conditions ---
   private static taskQueue: Array<{
-    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'singleTargetConfig' | 'flush';
+    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'singleTargetConfig' | 'postCopyUpdate' | 'flush';
     workspaceFolder?: vscode.WorkspaceFolder;
     generatorPath?: string;
     workspacePath?: string;
@@ -94,7 +99,7 @@ export class BuildSystemScanner {
   private static processingQueue = false;
 
   private static enqueueTask(task: {
-    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'singleTargetConfig';
+    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'singleTargetConfig' | 'postCopyUpdate';
     workspaceFolder?: vscode.WorkspaceFolder;
     generatorPath?: string;
     workspacePath?: string;
@@ -140,6 +145,10 @@ export class BuildSystemScanner {
             case 'singleTargetConfig':
               if (task.targetConfigPath)
                 await this.updateSingleTargetConfiguration(task.targetConfigPath);
+              break;
+            case 'postCopyUpdate':
+              if (task.generatorPath)
+                await this.updatePostCopyData(task.generatorPath);
               break;
             case 'flush':
               // No scan; used to allow awaiting until prior tasks finish
@@ -222,6 +231,16 @@ export class BuildSystemScanner {
       kind: 'singleTargetConfig',
       targetConfigPath,
       event: 'targets',
+      key
+    });
+  }
+
+  private static queuePostCopyUpdate(generatorPath: string) {
+    const key = `postCopy:${generatorPath}`;
+    this.enqueueTask({
+      kind: 'postCopyUpdate',
+      generatorPath,
+      event: 'generators',
       key
     });
   }
@@ -329,6 +348,27 @@ export class BuildSystemScanner {
 
     disposables.push(configWatcher);
 
+    // Watch for PostCopy.MConfig changes
+    const postCopyPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/PostCopy.MConfig');
+    const postCopyWatcher = vscode.workspace.createFileSystemWatcher(postCopyPattern);
+
+    postCopyWatcher.onDidCreate(uri => {
+      const generatorPath = path.dirname(uri.fsPath);
+      this.queuePostCopyUpdate(generatorPath);
+    });
+
+    postCopyWatcher.onDidChange(uri => {
+      const generatorPath = path.dirname(uri.fsPath);
+      this.queuePostCopyUpdate(generatorPath);
+    });
+
+    postCopyWatcher.onDidDelete(uri => {
+      const generatorPath = path.dirname(uri.fsPath);
+      this.queuePostCopyUpdate(generatorPath);
+    });
+
+    disposables.push(postCopyWatcher);
+
     return vscode.Disposable.from(...disposables);
   }
 
@@ -338,6 +378,21 @@ export class BuildSystemScanner {
   public static getGenerators(workspaceFolder: vscode.WorkspaceFolder): GeneratorInfo[] {
     const generators = this.generators.get(workspaceFolder.uri.fsPath) || [];
     return this.sortByPriority(generators);
+  }
+
+  /**
+   * Get PostCopy projects for a specific generator
+   */
+  public static getPostCopyProjects(generatorPath: string): Map<string, PostCopyProject> | undefined {
+    // Find the workspace folder for this generator
+    const workspaceFolderPath = path.dirname(path.dirname(generatorPath));
+    const generators = this.generators.get(workspaceFolderPath);
+    
+    if (!generators)
+      return undefined;
+    
+    const generator = generators.find(g => g.path === generatorPath);
+    return generator?.postCopyProjects;
   }
 
   /**
@@ -602,6 +657,25 @@ export class BuildSystemScanner {
   }
 
   /**
+   * Get target configuration info for a specific target
+   */
+  public static getTargetConfigInfo(workspacePath: string, targetName: string, configurationName?: string): TargetConfigInfo | undefined {
+    const targets = this.getTargets(workspacePath);
+    const target = targets.find(t => t.name === targetName);
+    
+    if (!target || !target.configurations)
+      return undefined;
+    
+    // If configuration name is provided, return that specific config
+    if (configurationName)
+      return target.configurations.get(configurationName);
+    
+    // Otherwise, return the first available configuration
+    const firstConfig = target.configurations.values().next();
+    return firstConfig.done ? undefined : firstConfig.value;
+  }
+
+  /**
    * Check for auto-selection based on priority or single option for each level
    */
   public static getAutoSelectionPath(workspaceFolder: vscode.WorkspaceFolder): {
@@ -687,6 +761,12 @@ export class BuildSystemScanner {
           if (await BuildSystemScanner.pathExists(buildWorkspacePath))
             buildWorkspaceScript = buildWorkspacePath;
 
+          // Parse PostCopy.MConfig if it exists
+          let postCopyProjects: Map<string, PostCopyProject> | undefined;
+          const postCopyPath = path.join(generatorPath, 'PostCopy.MConfig');
+          if (await BuildSystemScanner.pathExists(postCopyPath))
+            postCopyProjects = await PostCopyParser.parse(postCopyPath);
+
           generators.push({
             name: generatorName,
             path: generatorPath,
@@ -698,7 +778,8 @@ export class BuildSystemScanner {
             generatorFamily,
             outputDir,
             buildTargetScript,
-            buildWorkspaceScript
+            buildWorkspaceScript,
+            postCopyProjects
           });
 
           // Scan workspaces for this generator
@@ -830,6 +911,42 @@ export class BuildSystemScanner {
   }
 
   /**
+   * Update PostCopy data for a generator
+   */
+  private static async updatePostCopyData(generatorPath: string): Promise<void> {
+    // Find the workspace folder for this generator
+    const workspaceFolderPath = path.dirname(path.dirname(generatorPath));
+    const generators = this.generators.get(workspaceFolderPath);
+    
+    if (!generators) {
+      console.log(`[BuildSystemScanner] No generators found for ${workspaceFolderPath}, skipping PostCopy update`);
+      return;
+    }
+    
+    // Find the specific generator
+    const generatorIndex = generators.findIndex(g => g.path === generatorPath);
+    if (generatorIndex === -1) {
+      console.log(`[BuildSystemScanner] Generator not found at ${generatorPath}, skipping PostCopy update`);
+      return;
+    }
+    
+    const generator = generators[generatorIndex];
+    
+    // Parse PostCopy.MConfig if it exists
+    const postCopyPath = path.join(generatorPath, 'PostCopy.MConfig');
+    if (await BuildSystemScanner.pathExists(postCopyPath)) {
+      generator.postCopyProjects = await PostCopyParser.parse(postCopyPath);
+      console.log(`[BuildSystemScanner] Updated PostCopy data for generator ${generator.name}`);
+    } else {
+      generator.postCopyProjects = undefined;
+      console.log(`[BuildSystemScanner] Removed PostCopy data for generator ${generator.name} (file deleted)`);
+    }
+    
+    // Update the generators map with the modified generator
+    this.generators.set(workspaceFolderPath, generators);
+  }
+
+  /**
    * Update a single target configuration in an existing target
    */
   private static async updateSingleTargetConfiguration(targetConfigPath: string): Promise<void> {
@@ -885,7 +1002,10 @@ export class BuildSystemScanner {
           localDebuggerWorkingDirectory: configJson.localDebuggerWorkingDirectory,
           remoteDebuggerCommand: configJson.remoteDebuggerCommand,
           remoteDebuggerWorkingDirectory: configJson.remoteDebuggerWorkingDirectory,
-          compileCommands: configJson.compileCommands
+          compileCommands: configJson.compileCommands,
+          postCopyDestination: configJson.postCopyDestination,
+          postCopyProject: configJson.postCopyProject,
+          postCopyProject2: configJson.postCopyProject2
         });
 
         console.log(`[BuildSystemScanner] Updated configuration ${configName} for target ${targetName}`);
@@ -935,7 +1055,10 @@ export class BuildSystemScanner {
             localDebuggerWorkingDirectory: configJson.localDebuggerWorkingDirectory,
             remoteDebuggerCommand: configJson.remoteDebuggerCommand,
             remoteDebuggerWorkingDirectory: configJson.remoteDebuggerWorkingDirectory,
-            compileCommands: configJson.compileCommands
+            compileCommands: configJson.compileCommands,
+            postCopyDestination: configJson.postCopyDestination,
+            postCopyProject: configJson.postCopyProject,
+            postCopyProject2: configJson.postCopyProject2
           });
         } catch (error) {
           console.error(`Error reading target configuration JSON for ${configName}: ${error}`);

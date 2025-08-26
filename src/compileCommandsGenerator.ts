@@ -374,8 +374,6 @@ export class CompileCommandsGenerator {
       if (workspace.path === currentWorkspacePath)
         continue;
 
-      console.log(`[${workspace.name}] Adding commands from other workspace:`);
-
       // Get all targets in this workspace
       const targets = BuildSystemScanner.getTargets(workspace.path);
 
@@ -397,14 +395,10 @@ export class CompileCommandsGenerator {
             selectedConfig = availableConfigs[0];
         }
 
-        if (!selectedConfig) {
-          console.log(`  [${workspace.name}, ${target.name}] No configuration found, skipping`);
+        if (!selectedConfig)
           continue;
-        }
 
         const commands = await this.getTargetCompileCommands(target, selectedConfig);
-
-        console.log(`  [${workspace.name}, ${target.name}] Adding commands from other target (config: ${selectedConfig}): ${commands.length} commands`);
 
         for (const command of commands) {
           const key = this.getCommandKey(command);
@@ -413,7 +407,6 @@ export class CompileCommandsGenerator {
           // This is different from the main selection which checks if commands are identical
           if (!commandMap.has(key)) {
             commandMap.set(key, [command]);
-            console.log("    Adding command from other workspace:", command.file);
 
             // Mark which workspace and target this command came from
             (command as any).__workspace = workspace.name;

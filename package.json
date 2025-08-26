@@ -218,8 +218,50 @@
       {
         "command": "malterlib.generateCompileCommands",
         "title": "Malterlib: Generate compile_commands.json"
+      },
+      {
+        "command": "malterlib.openDebugConfigEditor",
+        "title": "Malterlib: Open Debug Configuration"
+      },
+      {
+        "command": "malterlib.openLocalDebugConfigEditor",
+        "title": "Malterlib: Open Local Debug Configuration"
+      },
+      {
+        "command": "malterlib.openConfigJson",
+        "title": "Malterlib: Open Debug Config (JSON)",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "malterlib.openConfigUI",
+        "title": "Malterlib: Open Debug Config (UI)",
+        "icon": "$(go-to-file)"
       }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "malterlib.openConfigJson",
+          "when": "resourceFilename == malterlib.json && resourcePath =~ /\\.vscode[/\\\\]malterlib\\.json$/ && activeCustomEditorId == malterlib.configEditor",
+          "group": "navigation"
+        },
+        {
+          "command": "malterlib.openConfigUI",
+          "when": "resourceFilename == malterlib.json && resourcePath =~ /\\.vscode[/\\\\]malterlib\\.json$/ && activeCustomEditorId != malterlib.configEditor",
+          "group": "navigation"
+        },
+        {
+          "command": "malterlib.openConfigJson",
+          "when": "resourceFilename == malterlib.local.json && resourcePath =~ /\\.vscode[/\\\\]malterlib\\.local\\.json$/ && activeCustomEditorId == malterlib.configEditor",
+          "group": "navigation"
+        },
+        {
+          "command": "malterlib.openConfigUI",
+          "when": "resourceFilename == malterlib.local.json && resourcePath =~ /\\.vscode[/\\\\]malterlib\\.local\\.json$/ && activeCustomEditorId != malterlib.configEditor",
+          "group": "navigation"
+        }
+      ]
+    },
     "semanticTokenTypes": [
       {
         "id": "malterlib-unknown",
@@ -1546,6 +1588,21 @@
         "label": "Malterlib (sRGB)",
         "uiTheme": "vs-dark",
         "path": "./themes/malterlibSRGB.json"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "malterlib.configEditor",
+        "displayName": "Malterlib Config Editor",
+        "selector": [
+          {
+            "filenamePattern": "**/.vscode/malterlib.json"
+          },
+          {
+            "filenamePattern": "**/.vscode/malterlib.local.json"
+          }
+        ],
+        "priority": "default"
       }
     ],
     "taskDefinitions": [

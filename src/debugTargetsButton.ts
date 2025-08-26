@@ -6,9 +6,9 @@ export class DebugTargetsButton extends StatusBarButton {
   
   constructor(config: ConfigurationReader, priority: number) {
     super(config, priority);
-    this.command = 'malterlib.selectDebugTargets';
+    this.command = 'malterlib.openLocalDebugConfigEditor';
     this.icon = 'debug-alt';
-    this.tooltip = 'Click to select debug targets';
+    this.tooltip = 'Click to open local debug configuration editor';
     this.text = 'No Debug Targets';
   }
 
