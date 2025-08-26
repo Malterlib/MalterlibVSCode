@@ -42,6 +42,8 @@ export interface TargetConfigInfo {
   architecture: string;
   configuration: string;
   debugPriority?: number;
+  // If true, this target generates a buildable scheme for this configuration
+  generateScheme?: boolean;
   debuggerCommandArguments?: string[];
   localDebuggerCommand?: string;
   localDebuggerWorkingDirectory?: string;
@@ -877,6 +879,7 @@ export class BuildSystemScanner {
           architecture: configJson.architecture || '',
           configuration: configJson.configuration || '',
           debugPriority: configJson.debugPriority,
+          generateScheme: configJson.generateScheme,
           debuggerCommandArguments: configJson.debuggerCommandArguments,
           localDebuggerCommand: configJson.localDebuggerCommand,
           localDebuggerWorkingDirectory: configJson.localDebuggerWorkingDirectory,
@@ -926,6 +929,7 @@ export class BuildSystemScanner {
             architecture: configJson.architecture || '',
             configuration: configJson.configuration || '',
             debugPriority: configJson.debugPriority,
+            generateScheme: configJson.generateScheme,
             debuggerCommandArguments: configJson.debuggerCommandArguments,
             localDebuggerCommand: configJson.localDebuggerCommand,
             localDebuggerWorkingDirectory: configJson.localDebuggerWorkingDirectory,

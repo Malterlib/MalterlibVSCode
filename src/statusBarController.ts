@@ -123,7 +123,7 @@ export class StatusBarController implements vscode.Disposable {
     } else
       this.currentConfiguration = null;
 
-    // Validate target exists
+    // Validate target exists and is buildable for the current configuration
     if (this.currentGenerator && this.currentWorkspace && savedTarget && this.selectedWorkspaceFolder) {
       if (savedTarget === 'All Targets')
         this.currentTarget = savedTarget;
@@ -135,10 +135,13 @@ export class StatusBarController implements vscode.Disposable {
           const selectedWorkspace = workspaces.find(w => w.name === this.currentWorkspace);
           if (selectedWorkspace) {
             const targets = BuildSystemScanner.getTargets(selectedWorkspace.path);
-            if (targets.some(t => t.name === savedTarget))
+            const t = targets.find(x => x.name === savedTarget);
+            const cfg = this.currentConfiguration ? t?.configurations?.get(this.currentConfiguration) : undefined;
+            const buildable = cfg ? (cfg.generateScheme !== false) : true;
+            if (t && buildable)
               this.currentTarget = savedTarget;
             else {
-              this.output.appendLine(`Saved target '${savedTarget}' no longer exists`);
+              this.output.appendLine(`Saved target '${savedTarget}' no longer exists or is not buildable for the current configuration`);
               this.currentTarget = null;
             }
           }
@@ -147,7 +150,7 @@ export class StatusBarController implements vscode.Disposable {
     } else
       this.currentTarget = null;
 
-    // Validate debug targets exist
+    // Validate debug targets exist and have a local debugger for the current configuration
     if (this.currentGenerator && this.currentWorkspace && savedDebugTargets.length > 0 && this.selectedWorkspaceFolder) {
       const generators = BuildSystemScanner.getGenerators(this.selectedWorkspaceFolder);
       const selectedGenerator = generators.find(g => g.name === this.currentGenerator);
@@ -156,16 +159,20 @@ export class StatusBarController implements vscode.Disposable {
         const selectedWorkspace = workspaces.find(w => w.name === this.currentWorkspace);
         if (selectedWorkspace) {
           const targets = BuildSystemScanner.getTargets(selectedWorkspace.path);
-          const targetNames = targets.map(t => t.name);
-          const validDebugTargets = savedDebugTargets.filter(t => targetNames.includes(t));
+          const targetNames = new Set(targets.map(t => t.name));
+          const cfgName = this.currentConfiguration;
+          const debuggable = new Set(
+            cfgName ? targets.filter(t => !!t.configurations?.get(cfgName)?.localDebuggerCommand).map(t => t.name) : targets.map(t => t.name)
+          );
+          const validDebugTargets = savedDebugTargets.filter(t => targetNames.has(t) && debuggable.has(t));
           if (validDebugTargets.length > 0) {
             this.currentDebugTargets = validDebugTargets;
             if (validDebugTargets.length < savedDebugTargets.length) {
-              const invalidTargets = savedDebugTargets.filter(t => !targetNames.includes(t));
-              this.output.appendLine(`Some saved debug targets no longer exist: ${invalidTargets.join(', ')}`);
+              const invalidTargets = savedDebugTargets.filter(t => !targetNames.has(t) || !debuggable.has(t));
+              this.output.appendLine(`Some saved debug targets no longer exist or lack a local debugger: ${invalidTargets.join(', ')}`);
             }
           } else {
-            this.output.appendLine(`None of the saved debug targets exist anymore`);
+            this.output.appendLine(`None of the saved debug targets exist or have a local debugger anymore`);
             this.currentDebugTargets = [];
           }
         } else
@@ -393,7 +400,7 @@ export class StatusBarController implements vscode.Disposable {
       const defaultBuildTarget = BuildSystemScanner.getDefaultBuildTarget(selectedWorkspaceInfo.path, this.currentConfiguration);
       const targetNames = targets.map(t => t.name);
 
-      if (fallbacks?.target && (fallbacks.target === 'All Targets' || targetNames.includes(fallbacks.target))) {
+      if (fallbacks?.target && (fallbacks.target === 'All Targets' || (targetNames.includes(fallbacks.target) && (() => { const t = targets.find(x => x.name === fallbacks.target); const cfg = t?.configurations?.get(this.currentConfiguration!); return cfg?.generateScheme !== false; })()))) {
         this.currentTarget = fallbacks.target;
         this.statusBar.setTargetText(fallbacks.target);
         this.statusBar.setTargetTooltip(`Preserved target: ${fallbacks.target} (${workspace.name})`);
@@ -403,7 +410,7 @@ export class StatusBarController implements vscode.Disposable {
         this.statusBar.setTargetText('All Targets');
         this.statusBar.setTargetTooltip(`Auto-selected target: All Targets (${workspace.name})`);
         this.output.appendLine('Auto-selected target: All Targets (no specific targets)');
-      } else if (defaultBuildTarget && targets.some(t => t.name === defaultBuildTarget)) {
+      } else if (defaultBuildTarget && targets.some(t => t.name === defaultBuildTarget) && (() => { const t = targets.find(x => x.name === defaultBuildTarget); const cfg = t?.configurations?.get(this.currentConfiguration!); return cfg?.generateScheme !== false; })()) {
         this.currentTarget = defaultBuildTarget;
         this.statusBar.setTargetText(defaultBuildTarget);
         this.statusBar.setTargetTooltip(`Auto-selected target: ${defaultBuildTarget} (${workspace.name})`);
@@ -433,7 +440,11 @@ export class StatusBarController implements vscode.Disposable {
       const targetNames = targets.map(t => t.name);
 
       if (fallbacks?.debugTargets && fallbacks.debugTargets.length > 0) {
-        const validFallbacks = fallbacks.debugTargets.filter(name => targetNames.includes(name));
+        const cfgName = this.currentConfiguration!;
+        const validFallbacks = fallbacks.debugTargets.filter(name => {
+          const t = targets.find(x => x.name === name);
+          return !!t && !!t.configurations?.get(cfgName)?.localDebuggerCommand;
+        });
         if (validFallbacks.length > 0) {
           this.currentDebugTargets = [...validFallbacks];
           const text = validFallbacks.length === 1 ? validFallbacks[0] : `${validFallbacks.length} targets`;
@@ -444,7 +455,14 @@ export class StatusBarController implements vscode.Disposable {
         }
       }
 
-      const defaultDebugTargets = BuildSystemScanner.getDefaultDebugTargets(selectedWorkspaceInfo.path, this.currentConfiguration);
+      const debuggableSet = new Set<string>(
+        targets
+          .filter(t => !!t.configurations?.get(this.currentConfiguration!)?.localDebuggerCommand)
+          .map(t => t.name)
+      );
+      const defaultDebugTargets = BuildSystemScanner
+        .getDefaultDebugTargets(selectedWorkspaceInfo.path, this.currentConfiguration)
+        .filter(name => debuggableSet.has(name));
       const workspaceConfig = BuildSystemScanner.getWorkspaceConfiguration(selectedWorkspaceInfo.path, this.currentConfiguration);
       const explicitTargets = workspaceConfig?.defaultDebugTargets || [];
 
@@ -459,11 +477,12 @@ export class StatusBarController implements vscode.Disposable {
         else
           this.output.appendLine(`Auto-selected debug targets via priority: ${defaultDebugTargets.join(', ')}`);
       } else {
-        if (targets.length === 1) {
-          this.currentDebugTargets = [targets[0].name];
-          this.statusBar.setDebugTargetsText(targets[0].name);
-          this.statusBar.setDebugTargetsTooltip(`Auto-selected debug target: ${targets[0].name} (${workspace.name})`);
-          this.output.appendLine(`Auto-selected debug target: ${targets[0].name} (only option)`);
+        const debuggableTargets = targets.filter(t => !!t.configurations?.get(this.currentConfiguration!)?.localDebuggerCommand);
+        if (debuggableTargets.length === 1) {
+          this.currentDebugTargets = [debuggableTargets[0].name];
+          this.statusBar.setDebugTargetsText(debuggableTargets[0].name);
+          this.statusBar.setDebugTargetsTooltip(`Auto-selected debug target: ${debuggableTargets[0].name} (${workspace.name})`);
+          this.output.appendLine(`Auto-selected debug target: ${debuggableTargets[0].name} (only option with local debugger)`);
         } else
           this.output.appendLine('No debug targets configured or available for auto-selection');
       }
@@ -775,7 +794,7 @@ export class StatusBarController implements vscode.Disposable {
     // Select Target
     this.disposables.push(vscode.commands.registerCommand('malterlib.selectTarget', async () => {
       const workspace = this.selectedWorkspaceFolder || MalterlibProjectDetector.getActiveMalterlibWorkspace();
-      if (!workspace || !this.currentGenerator || !this.currentWorkspace) {
+      if (!workspace || !this.currentGenerator || !this.currentWorkspace || !this.currentConfiguration) {
         vscode.window.showWarningMessage('Please select generator, workspace, and configuration first.');
         return;
       }
@@ -789,7 +808,14 @@ export class StatusBarController implements vscode.Disposable {
       if (!selectedWorkspaceInfo) return;
 
       const targets = BuildSystemScanner.getTargets(selectedWorkspaceInfo.path);
-      const sortedTargetNames = targets.map(target => target.name).sort();
+      const cfgName = this.currentConfiguration!;
+      const sortedTargetNames = targets
+        .filter(t => {
+          const cfg = t.configurations?.get(cfgName);
+          return cfg?.generateScheme !== false; // default true when undefined
+        })
+        .map(target => target.name)
+        .sort();
       const itemNames = ['All Targets', ...sortedTargetNames];
 
       let selected: string | undefined;
@@ -838,8 +864,8 @@ export class StatusBarController implements vscode.Disposable {
     // Select Debug Targets (multi)
     this.disposables.push(vscode.commands.registerCommand('malterlib.selectDebugTargets', async () => {
       const workspace = this.selectedWorkspaceFolder || MalterlibProjectDetector.getActiveMalterlibWorkspace();
-      if (!workspace || !this.currentGenerator || !this.currentWorkspace) {
-        vscode.window.showWarningMessage('Please select generator and workspace first.');
+      if (!workspace || !this.currentGenerator || !this.currentWorkspace || !this.currentConfiguration) {
+        vscode.window.showWarningMessage('Please select generator, workspace, and configuration first.');
         return;
       }
       const generators = BuildSystemScanner.getGenerators(workspace);
@@ -849,9 +875,13 @@ export class StatusBarController implements vscode.Disposable {
       const selectedWorkspaceInfo = workspaces.find(ws => ws.name === this.currentWorkspace);
       if (!selectedWorkspaceInfo) return;
       const targets = BuildSystemScanner.getTargets(selectedWorkspaceInfo.path);
-      const itemNames = targets.map(target => target.name).sort();
+      const cfgName = this.currentConfiguration!;
+      const itemNames = targets
+        .filter(t => (t.configurations?.get(cfgName)?.localDebuggerCommand))
+        .map(target => target.name)
+        .sort();
       if (itemNames.length === 0) {
-        vscode.window.showWarningMessage('No targets found for debugging.');
+        vscode.window.showWarningMessage('No debug targets available with a local debugger.');
         return;
       }
       let selected: string[] | undefined;
@@ -876,9 +906,9 @@ export class StatusBarController implements vscode.Disposable {
     this.disposables.push(vscode.commands.registerCommand('malterlib.selectSingleDebugTarget', async () => {
       this.output.appendLine('Single debug target command started');
       const workspace = this.selectedWorkspaceFolder || MalterlibProjectDetector.getActiveMalterlibWorkspace();
-      if (!workspace || !this.currentGenerator || !this.currentWorkspace) {
+      if (!workspace || !this.currentGenerator || !this.currentWorkspace || !this.currentConfiguration) {
         this.output.appendLine('Missing prerequisites: workspace, generator, or workspace not selected');
-        vscode.window.showWarningMessage('Please select generator and workspace first.');
+        vscode.window.showWarningMessage('Please select generator, workspace, and configuration first.');
         return;
       }
       this.output.appendLine(`Prerequisites OK: workspace=${workspace.name}, generator=${this.currentGenerator}, currentWorkspace=${this.currentWorkspace}`);
@@ -895,13 +925,17 @@ export class StatusBarController implements vscode.Disposable {
       this.output.appendLine(`Found workspace info: ${selectedWorkspaceInfo.name}`);
 
       const targets = BuildSystemScanner.getTargets(selectedWorkspaceInfo.path);
-      const itemNames = targets.map(target => target.name).sort();
+      const cfgName2 = this.currentConfiguration!;
+      const itemNames = targets
+        .filter(t => (t.configurations?.get(cfgName2)?.localDebuggerCommand))
+        .map(target => target.name)
+        .sort();
       this.output.appendLine(`Found ${itemNames.length} targets: ${itemNames.join(', ')}`);
       this.output.appendLine(`Current debug targets: ${this.currentDebugTargets.join(', ')}`);
 
       if (itemNames.length === 0) {
-        this.output.appendLine('No targets found for debugging');
-        vscode.window.showWarningMessage('No targets found for debugging.');
+        this.output.appendLine('No targets with local debugger found for debugging');
+        vscode.window.showWarningMessage('No debug targets available with a local debugger.');
         return;
       }
 
@@ -1023,5 +1057,3 @@ export class StatusBarController implements vscode.Disposable {
     }
   }
 }
-
-
