@@ -33,3 +33,5 @@ coverage/
 
 # Python virtual environment
 .venv/
+
+*.local.json
