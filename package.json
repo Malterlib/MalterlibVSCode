@@ -1785,6 +1785,7 @@
             "optional": true,
             "loop": true,
             "staticSubProblemCategory": "Included From",
+            "uniqueSubProblemCategory": true,
             "introduceSubProblem": true
           },
           {
@@ -1795,6 +1796,7 @@
             "severity": 4,
             "message": 5,
             "introduceMainProblem": true,
+            "loopPattern": true,
             "pattern": [
               {
                 "regexp": "^ +[0-9]* +\\|( .+)$",
@@ -1811,30 +1813,50 @@
                 "column": 4,
                 "optional": true,
                 "loop": true,
-                "ignore": true,
+                "staticSubProblemCategory": "Included From",
+                "uniqueSubProblemCategory": true,
+                "introduceSubProblem": true
+              },
+              {
+                "regexp": "^(.+):(\\d+):(\\d+):\\s+(note):\\s+(in instantiation of .+)$",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "severity": 4,
+                "message": 5,
+                "optional": true,
+                "loop": true,
+                "introduceSubProblem": true,
+                "reverseSubProblemCategory": true,
+                "staticSubProblemCategory": " Template Instantiation Stack",
                 "pattern": [
                   {
-                    "regexp": "^(.+):(\\d+):(\\d+):\\s+(?:(note):\\s+)?(.+)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5,
+                    "regexp": "^ +[0-9]* +\\|( .+)$",
+                    "message": 1,
                     "optional": true,
                     "loop": true,
-                    "introduceSubProblem": true,
-                    "reverseSubProblemCategory": true,
-                    "staticSubProblemCategory": " Template Instantiation Stack",
-                    "SubProblemCategory": "Reverse",
-                    "pattern": [
-                      {
-                        "regexp": "^ +[0-9]* +\\|( .+)$",
-                        "message": 1,
-                        "optional": true,
-                        "loop": true,
-                        "ignore": true
-                      }
-                    ]
+                    "ignore": true
+                  }
+                ]
+              },
+              {
+                "regexp": "^(.+):(\\d+):(\\d+):\\s+(?:(note):\\s+)?(.+)$",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "severity": 4,
+                "message": 5,
+                "optional": true,
+                "loop": true,
+                "introduceSubProblem": true,
+                "staticSubProblemCategory": "  Notes",
+                "pattern": [
+                  {
+                    "regexp": "^ +[0-9]* +\\|( .+)$",
+                    "message": 1,
+                    "optional": true,
+                    "loop": true,
+                    "ignore": true
                   }
                 ]
               }
