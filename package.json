@@ -1665,35 +1665,142 @@
             "line": 2,
             "column": 3,
             "severity": 4,
+            "message": 5,
+            "pattern": [
+              {
+                "regexp": "(^\\s{4,}.*$)|(?:^$)",
+                "message": 1,
+                "optional": true,
+                "multiLineMessage": true
+              },
+              {
+                "regexp": "^--- (.*) ---$",
+                "subProblemCategory": 1,
+                "loop": true,
+                "optional": true,
+                "pattern": [
+                  {
+                    "regexp": "^(?!--- (?:.*) ---$)(.+):(\\d+):(\\d+):(?!\\s+(?:error|warning|info):)\\s+(.+)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4,
+                    "optional": true,
+                    "loop": true,
+                    "introduceSubProblem": true,
+                    "pattern": [
+                      {
+                        "regexp": "((?:^\\s{4,}.*$)|(?:^$))",
+                        "message": 1,
+                        "optional": true,
+                        "multiLineMessage": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "malterlib-buildsystem-windows",
+        "owner": "malterlib",
+        "fileLocation": [
+          "absolute"
+        ],
+        "pattern": [
+          {
+            "regexp": "^\\s*(.+)\\((\\d+),(\\d+)\\):\\s+(?:(error|warning|info):\\s+)?(.+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
             "message": 5
-          },
+          }
+        ],
+        "advancedPattern": [
           {
-            "regexp": "(^\\s{4,}.*$)|(?:^$)",
-            "message": 1,
-            "optional": true,
-            "multiLineMessage": true
-          },
-          {
-            "regexp": "^--- (.*) ---$",
-            "subProblemCategory": 1,
-            "loop": true,
+            "regexp": "^\\s{4,}(.+)\\((\\d+),(\\d+)\\):\\s+(?:(error|warning|info):\\s+)?(.+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5,
             "optional": true,
             "pattern": [
               {
-                "regexp": "^(?!--- (?:.*) ---$)(.+):(\\d+):(\\d+):(?!\\s+(?:error|warning|info):)\\s+(.+)$",
-                "file": 1,
-                "line": 2,
-                "column": 3,
-                "message": 4,
+                "regexp": "(?!\\s{8,}--- (?:.*) ---$)(?:^\\s{4}(\\s{4,}.*$))|(?:^(?:\\s{4,})?$)",
+                "message": 1,
                 "optional": true,
+                "multiLineMessage": true
+              },
+              {
+                "regexp": "^\\s{8,}--- (.*) ---$",
+                "subProblemCategory": 1,
                 "loop": true,
-                "introduceSubProblem": true,
+                "optional": true,
                 "pattern": [
                   {
-                    "regexp": "((?:^\\s{4,}.*$)|(?:^$))",
-                    "message": 1,
+                    "regexp": "^(?!\\s{8,}--- (?:.*) ---$)\\s{8,}(.+)\\((\\d+),(\\d+)\\):(?!\\s+(?:error|warning|info):)\\s+(.+)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4,
                     "optional": true,
-                    "multiLineMessage": true
+                    "loop": true,
+                    "introduceSubProblem": true,
+                    "pattern": [
+                      {
+                        "regexp": "(?!\\s{8,}--- (?:.*) ---$)(?:^\\s{4}(\\s{4,}.*$))|(?:^(?:\\s{4,})?$)",
+                        "message": 1,
+                        "optional": true,
+                        "multiLineMessage": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "regexp": "^([A-Za-z/\\\\].+)\\((\\d+),(\\d+)\\):\\s+(?:(error|warning|info):\\s+)?(.+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5,
+            "optional": true,
+            "pattern": [
+              {
+                "regexp": "(?!\\s{4,}--- (?:.*) ---$)(^\\s{4,}.*$)|(?:^(?:\\s{4,})?$)",
+                "message": 1,
+                "optional": true,
+                "multiLineMessage": true
+              },
+              {
+                "regexp": "^\\s{4,}--- (.*) ---$",
+                "subProblemCategory": 1,
+                "loop": true,
+                "optional": true,
+                "pattern": [
+                  {
+                    "regexp": "^(?!\\s{4,}--- (?:.*) ---$)\\s{4,}(.+)\\((\\d+),(\\d+)\\):(?!\\s+(?:error|warning|info):)\\s+(.+)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4,
+                    "optional": true,
+                    "loop": true,
+                    "introduceSubProblem": true,
+                    "pattern": [
+                      {
+                        "regexp": "(?!\\s{4,}--- (?:.*) ---$)(^\\s{4,}.*$)|(?:^(?:\\s{4,})?$)",
+                        "message": 1,
+                        "optional": true,
+                        "multiLineMessage": true
+                      }
+                    ]
                   }
                 ]
               }

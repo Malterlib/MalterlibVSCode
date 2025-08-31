@@ -190,7 +190,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
       taskName,
       'Malterlib',
       execution,
-      ['$malterlib-buildsystem'] // Build matcher
+      ['$malterlib-buildsystem', '$malterlib-buildsystem-windows'] // Build matcher
     );
 
     task.group = vscode.TaskGroup.Build;
@@ -255,10 +255,10 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 
     // Create the task
     // Convert Windows path to Unix path for Git Bash on Windows
-    const scriptPath = process.platform === 'win32' 
+    const scriptPath = process.platform === 'win32'
       ? vscode.Uri.file(selectedGenerator.buildWorkspaceScript).path.replace(/^\/([a-z]):/, '/$1')
       : selectedGenerator.buildWorkspaceScript;
-    
+
     const execution = new vscode.ShellExecution(
       scriptPath,
       args,
@@ -350,10 +350,10 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 
     // Create the task
     // Convert Windows path to Unix path for Git Bash on Windows
-    const scriptPath = process.platform === 'win32' 
+    const scriptPath = process.platform === 'win32'
       ? vscode.Uri.file(selectedGenerator.buildTargetScript).path.replace(/^\/([a-z]):/, '/$1')
       : selectedGenerator.buildTargetScript;
-    
+
     const execution = new vscode.ShellExecution(
       scriptPath,
       args,
