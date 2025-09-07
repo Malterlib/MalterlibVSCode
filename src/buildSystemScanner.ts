@@ -43,6 +43,7 @@ export interface TargetConfigInfo {
   platform: string;
   architecture: string;
   configuration: string;
+  targetName?: string;
   debugPriority?: number;
   // If true, this target generates a buildable scheme for this configuration
   generateScheme?: boolean;
@@ -387,10 +388,10 @@ export class BuildSystemScanner {
     // Find the workspace folder for this generator
     const workspaceFolderPath = path.dirname(path.dirname(generatorPath));
     const generators = this.generators.get(workspaceFolderPath);
-    
+
     if (!generators)
       return undefined;
-    
+
     const generator = generators.find(g => g.path === generatorPath);
     return generator?.postCopyProjects;
   }
@@ -662,14 +663,14 @@ export class BuildSystemScanner {
   public static getTargetConfigInfo(workspacePath: string, targetName: string, configurationName?: string): TargetConfigInfo | undefined {
     const targets = this.getTargets(workspacePath);
     const target = targets.find(t => t.name === targetName);
-    
+
     if (!target || !target.configurations)
       return undefined;
-    
+
     // If configuration name is provided, return that specific config
     if (configurationName)
       return target.configurations.get(configurationName);
-    
+
     // Otherwise, return the first available configuration
     const firstConfig = target.configurations.values().next();
     return firstConfig.done ? undefined : firstConfig.value;
@@ -917,21 +918,21 @@ export class BuildSystemScanner {
     // Find the workspace folder for this generator
     const workspaceFolderPath = path.dirname(path.dirname(generatorPath));
     const generators = this.generators.get(workspaceFolderPath);
-    
+
     if (!generators) {
       console.log(`[BuildSystemScanner] No generators found for ${workspaceFolderPath}, skipping PostCopy update`);
       return;
     }
-    
+
     // Find the specific generator
     const generatorIndex = generators.findIndex(g => g.path === generatorPath);
     if (generatorIndex === -1) {
       console.log(`[BuildSystemScanner] Generator not found at ${generatorPath}, skipping PostCopy update`);
       return;
     }
-    
+
     const generator = generators[generatorIndex];
-    
+
     // Parse PostCopy.MConfig if it exists
     const postCopyPath = path.join(generatorPath, 'PostCopy.MConfig');
     if (await BuildSystemScanner.pathExists(postCopyPath)) {
@@ -941,7 +942,7 @@ export class BuildSystemScanner {
       generator.postCopyProjects = undefined;
       console.log(`[BuildSystemScanner] Removed PostCopy data for generator ${generator.name} (file deleted)`);
     }
-    
+
     // Update the generators map with the modified generator
     this.generators.set(workspaceFolderPath, generators);
   }
@@ -995,6 +996,7 @@ export class BuildSystemScanner {
           platform: configJson.platform || '',
           architecture: configJson.architecture || '',
           configuration: configJson.configuration || '',
+          targetName: configJson.targetName,
           debugPriority: configJson.debugPriority,
           generateScheme: configJson.generateScheme,
           debuggerCommandArguments: configJson.debuggerCommandArguments,
@@ -1048,6 +1050,7 @@ export class BuildSystemScanner {
             platform: configJson.platform || '',
             architecture: configJson.architecture || '',
             configuration: configJson.configuration || '',
+            targetName: configJson.targetName,
             debugPriority: configJson.debugPriority,
             generateScheme: configJson.generateScheme,
             debuggerCommandArguments: configJson.debuggerCommandArguments,

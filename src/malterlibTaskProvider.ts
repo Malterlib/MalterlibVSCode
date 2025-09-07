@@ -21,7 +21,7 @@ interface GeneratorConfig {
   priority?: number;
 }
 
-const buildProblemMatchers = ['$malterlib-build-clang', '$malterlib-build-ld'];
+const buildProblemMatchers = ['$malterlib-build-clang', '$malterlib-build-ld', '$malterlib-build-cl', '$malterlib-build-clang-cl'];
 
 export class MalterlibTaskProvider implements vscode.TaskProvider {
   static readonly taskType = 'malterlib';
@@ -239,6 +239,17 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 
     // Build command arguments
     // BuildXcodeWorkspace.sh Workspace Platform Architecture Configuration BuildSystemDir
+
+    // Helper function to escape shell arguments
+    const escapeShellArg = (arg: string): string => {
+      // If the argument contains special characters, wrap it in single quotes
+      // and escape any single quotes within it
+      if (/[\\$`"'\s]/.test(arg))
+        return `'${arg.replace(/'/g, "'\\''")}'`;
+
+      return arg;
+    };
+
     const args = [
       definition.workspace,
       workspaceConfig.platform,
@@ -259,9 +270,11 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
       ? vscode.Uri.file(selectedGenerator.buildWorkspaceScript).path.replace(/^\/([a-z]):/, '/$1')
       : selectedGenerator.buildWorkspaceScript;
 
+    // Build the command as a single string with properly escaped arguments
+    const commandLine = `${escapeShellArg(scriptPath)} ${args.map(escapeShellArg).join(' ')}`;
+
     const execution = new vscode.ShellExecution(
-      scriptPath,
-      args,
+      commandLine,
       {
         cwd: selectedGenerator.buildSystemBasePath || workspaceFolder.uri.fsPath,
         env
@@ -310,17 +323,15 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     let platform: string | undefined;
     let architecture: string | undefined;
     let configurationName: string | undefined;
+    let targetNameOverride: string | undefined;
 
-    const targets = BuildSystemScanner.getTargets(selectedWorkspace.path);
-    const selectedTarget = targets.find(t => t.name === definition.target);
-    if (selectedTarget) {
-      const targetConfigs = BuildSystemScanner.getConfigurations(selectedTarget.path);
-      const matchingTargetConfig = targetConfigs.find(c => c.name === definition.configuration);
-      if (matchingTargetConfig) {
-        platform = matchingTargetConfig.platform;
-        architecture = matchingTargetConfig.architecture;
-        configurationName = matchingTargetConfig.configuration;
-      }
+    // Get the full target configuration info
+    const targetConfigInfo = BuildSystemScanner.getTargetConfigInfo(selectedWorkspace.path, definition.target, definition.configuration);
+    if (targetConfigInfo) {
+      platform = targetConfigInfo.platform;
+      architecture = targetConfigInfo.architecture;
+      configurationName = targetConfigInfo.configuration;
+      targetNameOverride = targetConfigInfo.targetName;
     }
 
     if (!platform || !architecture || !configurationName) {
@@ -333,9 +344,20 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 
     // Build command arguments
     // BuildXcodeTarget.sh Workspace Target Platform Architecture Configuration BuildSystemDir
+    // Use targetName override if specified in configuration, otherwise use the original target name
+
+    // Helper function to escape shell arguments
+    const escapeShellArg = (arg: string): string => {
+      // If the argument contains special characters, wrap it in single quotes
+      // and escape any single quotes within it
+      if (/[\\$`"'\s]/.test(arg))
+        return `'${arg.replace(/'/g, "'\\''")}'`;
+      return arg;
+    };
+
     const args = [
       definition.workspace,
-      definition.target,
+      targetNameOverride || definition.target,
       platform,
       architecture,
       configurationName,
@@ -354,9 +376,11 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
       ? vscode.Uri.file(selectedGenerator.buildTargetScript).path.replace(/^\/([a-z]):/, '/$1')
       : selectedGenerator.buildTargetScript;
 
+    // Build the command as a single string with properly escaped arguments
+    const commandLine = `${escapeShellArg(scriptPath)} ${args.map(escapeShellArg).join(' ')}`;
+
     const execution = new vscode.ShellExecution(
-      scriptPath,
-      args,
+      commandLine,
       {
         cwd: selectedGenerator.buildSystemBasePath || workspaceFolder.uri.fsPath,
         env
