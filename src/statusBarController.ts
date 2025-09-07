@@ -257,7 +257,7 @@ export class StatusBarController implements vscode.Disposable {
       if (this.currentWorkspace) {
         this.statusBar.setWorkspaceText(this.currentWorkspace);
         this.statusBar.setWorkspaceTooltip(this.selectedWorkspaceFolder
-      ? `Current workspace: ${this.currentWorkspace} (${this.selectedWorkspaceFolder.name})`
+          ? `Current workspace: ${this.currentWorkspace} (${this.selectedWorkspaceFolder.name})`
           : `Current workspace: ${this.currentWorkspace}`);
       } else
         this.statusBar.setWorkspaceText('No Workspace');
@@ -275,7 +275,7 @@ export class StatusBarController implements vscode.Disposable {
               const configurations = BuildSystemScanner.getWorkspaceConfigurations(selectedWorkspaceInfo.path);
               const config = configurations.find(c => c.name === this.currentConfiguration);
               if (config)
-                displayName = config.configuration;
+                displayName = `${config.platform} ${config.architecture} ${config.configuration}`;
             }
           }
         }
@@ -432,9 +432,10 @@ export class StatusBarController implements vscode.Disposable {
       const defaultConfiguration = BuildSystemScanner.getDefaultConfiguration(selectedWorkspaceInfo.path, fallbacks?.configuration);
       if (defaultConfiguration) {
         this.setConfiguration(defaultConfiguration.name);
-        this.statusBar.setConfigurationText(defaultConfiguration.configuration);
-        this.statusBar.setConfigurationTooltip(`Auto-selected configuration: ${defaultConfiguration.configuration} (${workspace.name})`);
-        this.output.appendLine(`Auto-selected configuration: ${defaultConfiguration.configuration}`);
+        const displayName = `${defaultConfiguration.platform} ${defaultConfiguration.architecture} ${defaultConfiguration.configuration}`;
+        this.statusBar.setConfigurationText(displayName);
+        this.statusBar.setConfigurationTooltip(`Auto-selected configuration: ${displayName} (${workspace.name})`);
+        this.output.appendLine(`Auto-selected configuration: ${displayName}`);
       } else {
         this.output.appendLine('Multiple configurations available - manual selection required');
         return;
@@ -790,14 +791,14 @@ export class StatusBarController implements vscode.Disposable {
       });
 
       const sortedConfigs = configurations.sort((a, b) => a.configuration.localeCompare(b.configuration));
-      const items = sortedConfigs.map(config => ({ label: config.configuration }));
+      const items = sortedConfigs.map(config => ({ label: `${config.platform} ${config.architecture} ${config.configuration}`, id: config.name }));
       const quickPick = vscode.window.createQuickPick();
       quickPick.items = items;
       quickPick.placeholder = `Select a configuration for ${workspace.name}`;
       if (this.currentConfiguration) {
         const currentConfig = configurations.find(c => c.name === this.currentConfiguration);
         if (currentConfig) {
-          const currentItem = items.find(item => item.label === currentConfig.configuration);
+          const currentItem = items.find(item => item.id === currentConfig.name);
           if (currentItem)
             quickPick.activeItems = [currentItem];
         }
@@ -810,7 +811,7 @@ export class StatusBarController implements vscode.Disposable {
           const selectedItem = quickPick.activeItems[0];
           quickPick.dispose();
           // Map the display label back to the name
-          const name = selectedItem ? configMap.get(selectedItem.label) : undefined;
+          const name = selectedItem && (selectedItem as any).id;
           resolve(name);
         });
         quickPick.onDidHide(() => {
@@ -834,7 +835,9 @@ export class StatusBarController implements vscode.Disposable {
 
         // Find the configuration object to get the display name
         const selectedConfig = configurations.find(c => c.name === selected);
-        const displayName = selectedConfig?.configuration || selected;
+        const displayName = selectedConfig 
+          ? `${selectedConfig.platform} ${selectedConfig.architecture} ${selectedConfig.configuration}`
+          : selected;
         this.statusBar.setConfigurationText(displayName);
         this.statusBar.setConfigurationTooltip(`Current configuration: ${displayName} (${workspace.name})`);
         this.statusBar.setTargetText('All Targets');
