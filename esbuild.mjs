@@ -1,8 +1,14 @@
 import path from 'node:path';
 import * as esbuild from 'esbuild';
 
-const production = process.argv.includes('--production');
-const watch = process.argv.includes('--watch');
+const args = process.argv.slice(2);
+const production = args.includes('--production');
+const watch = args.includes('--watch');
+const outputRootIndex = args.indexOf('--outputRoot');
+const outputRoot = outputRootIndex !== -1 ? args[outputRootIndex + 1] : undefined;
+
+const outputDir = outputRoot ?? import.meta.dirname;
+const outFile = path.join(outputDir, 'dist/extension.js');
 
 async function main() {
 	const ctx = await esbuild.context({
@@ -13,7 +19,7 @@ async function main() {
 		sourcemap: true,
 		sourcesContent: false,
 		platform: 'node',
-		outfile: path.join(import.meta.dirname, 'dist/extension.js'),
+		outfile: outFile,
 		external: ['vscode'],
 		logLevel: 'warning',
 		plugins: [
