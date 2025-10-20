@@ -1488,9 +1488,15 @@ syntax coloring of Malterlib identifiers:
 <details><summary>Recommended .clangd</summary>
 
 ```yaml
+CompileFlags:
+  Compiler: Binaries/MalterlibLLVM/HostPlatformArchitecture/bin/clang++
+  HeaderCompilation: InContext
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None
 SemanticTokens:
   Rules:
-    Type|Primitive|Typedef:
+    Type|Primitive|Typedef|Class:
       - regex: '^(double|float|fp1024|fp128|fp16|fp2048|fp256|fp32|fp4096|fp512|fp64|fp8|fp80|ufp1024|ufp128|ufp16|ufp2048|ufp256|ufp32|ufp4096|ufp512|ufp64|ufp8|ufp80|zfp1024|zfp128|zfp16|zfp2048|zfp256|zfp32|zfp4096|zfp512|zfp64|zfp8|zfp80|zufp1024|zufp128|zufp16|zufp2048|zufp256|zufp32|zufp4096|zufp512|zufp64|zufp8|zufp80)$'
         add: [Custom0, Custom1]  # malterlib.keyword.builtin.float.types
       - regex: '^(__int16|__int32|__int64|__int8|aint|int|int1024|int128|int16|int160|int2048|int256|int32|int4096|int512|int64|int8|int80|int8192|mint|size_t|smint|uaint|uint1024|uint128|uint16|uint160|uint2048|uint256|uint32|uint4096|uint512|uint64|uint8|uint80|uint8192|umint|zamint|zint1024|zint128|zint16|zint160|zint2048|zint256|zint32|zint4096|zint512|zint64|zint8|zint80|zint8192|zmint|zsmint|zuamint|zuint1024|zuint128|zuint16|zuint160|zuint2048|zuint256|zuint32|zuint4096|zuint512|zuint64|zuint8|zuint80|zuint8192|zumint)$'
@@ -1503,6 +1509,8 @@ SemanticTokens:
         add: [Custom0, Custom5]  # malterlib.keyword.builtin.vector.types
       - regex: '^auto$'
         add: [Custom4]  # malterlib.keyword.auto
+      - regex: '^(__wchar_t|ch16|ch32|ch8|char|char16_t|char32_t|uch16|uch32|uch8|wchar_t|zch16|zch32|zch8|zuch16|zuch32|zuch8)$'
+        add: [Custom5]  # malterlib.keyword.builtin.character.types
     Parameter:
       - regex: '^_f[A-Z][A-Za-z0-9_]*$'
         add: [Custom1, Custom2, Custom4, Custom6]  # malterlib.function.parameter.functor
