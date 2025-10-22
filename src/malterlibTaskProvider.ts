@@ -194,13 +194,18 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     );
 
     task.group = vscode.TaskGroup.Build;
+
+    // Get clear terminal configuration
+    const config = vscode.workspace.getConfiguration('malterlib', workspaceFolder);
+    const clearTerminal = config.get<boolean>('clearTerminalOnBuild', true);
+
     task.presentationOptions = {
       echo: true,
       reveal: vscode.TaskRevealKind.Always,
       focus: false,
       panel: vscode.TaskPanelKind.Shared,
       showReuseMessage: true,
-      clear: false
+      clear: clearTerminal
     };
 
     return task;
@@ -293,13 +298,18 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     );
 
     task.group = vscode.TaskGroup.Build;
+
+    // Get clear terminal configuration
+    const config = vscode.workspace.getConfiguration('malterlib', workspaceFolder);
+    const clearTerminal = config.get<boolean>('clearTerminalOnBuild', true);
+
     task.presentationOptions = {
       echo: true,
       reveal: vscode.TaskRevealKind.Always,
       focus: false,
       panel: vscode.TaskPanelKind.Shared,
       showReuseMessage: true,
-      clear: false
+      clear: clearTerminal
     };
 
     return task;
@@ -399,13 +409,18 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     );
 
     task.group = vscode.TaskGroup.Build;
+
+    // Get clear terminal configuration
+    const config = vscode.workspace.getConfiguration('malterlib', workspaceFolder);
+    const clearTerminal = config.get<boolean>('clearTerminalOnBuild', true);
+
     task.presentationOptions = {
       echo: true,
       reveal: vscode.TaskRevealKind.Always,
       focus: false,
       panel: vscode.TaskPanelKind.Shared,
       showReuseMessage: true,
-      clear: false
+      clear: clearTerminal
     };
 
     return task;

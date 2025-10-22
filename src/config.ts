@@ -5,6 +5,7 @@ export type StatusBarOptionVisibility = StatusBarVisibility | 'inherit';
 
 export interface ConfigurationOptions {
   statusBarVisibility: StatusBarVisibility;
+  clearTerminalOnBuild: boolean;
   advanced: {
     [key: string]: {
       statusBarVisibility?: StatusBarOptionVisibility;
@@ -29,6 +30,7 @@ export class ConfigurationReader {
     const config = vscode.workspace.getConfiguration('malterlib', this.workspaceFolder);
     return {
       statusBarVisibility: config.get('statusBarVisibility', 'visible'),
+      clearTerminalOnBuild: config.get('clearTerminalOnBuild', true),
       advanced: config.get('advanced', {})
     };
   }

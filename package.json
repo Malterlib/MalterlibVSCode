@@ -72,6 +72,11 @@
           ],
           "description": "Controls the visibility of the status bar items"
         },
+        "malterlib.clearTerminalOnBuild": {
+          "type": "boolean",
+          "default": true,
+          "description": "Clear the terminal when running build tasks"
+        },
         "malterlib.advanced": {
           "type": "object",
           "default": {},
