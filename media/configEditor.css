@@ -656,3 +656,42 @@ body {
     font-size: 11px;
     font-weight: normal;
 }
+
+/* Additional Options JSON textarea */
+.additional-options-textarea {
+    width: 100%;
+    padding: 8px;
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 2px;
+    font-family: var(--vscode-editor-font-family), 'Courier New', monospace;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 80px;
+    box-sizing: border-box;
+}
+
+.additional-options-textarea:focus {
+    outline: none;
+    border-color: var(--vscode-focusBorder);
+}
+
+.additional-options-textarea.default-value {
+    color: var(--vscode-input-placeholderForeground);
+}
+
+.additional-options-textarea.json-error {
+    border-color: var(--vscode-inputValidation-errorBorder);
+    background-color: var(--vscode-inputValidation-errorBackground);
+}
+
+.json-error-message {
+    color: var(--vscode-errorForeground);
+    font-size: 12px;
+    margin-top: 4px;
+    padding: 4px 8px;
+    background-color: var(--vscode-inputValidation-errorBackground);
+    border-left: 3px solid var(--vscode-inputValidation-errorBorder);
+    border-radius: 2px;
+}

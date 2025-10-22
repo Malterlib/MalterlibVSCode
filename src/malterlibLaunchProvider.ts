@@ -286,7 +286,9 @@ export class MalterlibLaunchProvider implements vscode.DebugConfigurationProvide
       program,
       args,
       cwd,
-      env
+      env,
+      // Spread any additional options directly into the debug configuration
+      ...(customLaunch.additionalOptions || {})
     };
 
     return lldbConfig;

@@ -1,4 +1,4 @@
-(function() {
+(function () {
   const vscode = acquireVsCodeApi();
 
   // Special GUID marker for new environment variable inputs to avoid conflicts with actual var names
@@ -73,7 +73,8 @@
           executablePath: baseLaunch.executablePath || defaultConfig.executablePath || '',
           workingDirectory: baseLaunch.workingDirectory || defaultConfig.workingDirectory || '',
           arguments: baseLaunch.arguments || defaultConfig.arguments || [],
-          environment: baseLaunch.environment || defaultConfig.environment || {}
+          environment: baseLaunch.environment || defaultConfig.environment || {},
+          additionalOptions: baseLaunch.additionalOptions || defaultConfig.additionalOptions || {}
         };
       }
     }
@@ -167,8 +168,8 @@
         if (previousWorkspace && previousTarget && (!isFiltered || selectionState.selectedWorkspace === previousWorkspace)) {
           // Check if the workspace and target still exist in the new config
           if (scannerData[previousWorkspace] &&
-              scannerData[previousWorkspace].targets &&
-              scannerData[previousWorkspace].targets.includes(previousTarget)) {
+            scannerData[previousWorkspace].targets &&
+            scannerData[previousWorkspace].targets.includes(previousTarget)) {
             // Restore the active tab index if it's still valid
             const launches = config.workspaces[previousWorkspace]?.targets?.[previousTarget]?.launches || [];
             if (previousTabIndex < launches.length)
@@ -176,7 +177,7 @@
             selectTarget(previousWorkspace, previousTarget);
           } else
             selectedWorkspace = selectedTarget = null;
-            autoSelectFirstDebugTarget();
+          autoSelectFirstDebugTarget();
         } else {
           selectedWorkspace = selectedTarget = null;
           autoSelectFirstDebugTarget();
@@ -397,7 +398,7 @@
       document.querySelectorAll('.tree-item').forEach(item => {
         item.classList.remove('selected');
         if (item.dataset.workspace === currentWorkspace &&
-            item.dataset.target === currentTarget)
+          item.dataset.target === currentTarget)
           item.classList.add('selected');
       });
     }
@@ -652,6 +653,8 @@
         selector = `input[data-launch-index="${focusState.launchIndex}"][data-arg-index="${focusState.argIndex}"]`;
       else if (focusState.envKey !== undefined)
         selector = `input[data-launch-index="${focusState.launchIndex}"][data-env-key="${focusState.envKey}"][data-field="${focusState.field}"]`;
+      else if (focusState.field === 'additionalOptions')
+        selector = `textarea[data-launch-index="${focusState.launchIndex}"][data-field="additionalOptions"]`;
       else if (focusState.field)
         selector = `.launch-config[data-index="${focusState.launchIndex}"] input[data-field="${focusState.field}"]`;
 
@@ -750,7 +753,7 @@
           executablePath: defaultConfig.executablePath || '',
           workingDirectory: defaultConfig.workingDirectory || '',
           arguments: defaultConfig.arguments ? [...defaultConfig.arguments] : [],
-          environment: defaultConfig.environment ? {...defaultConfig.environment} : {}
+          environment: defaultConfig.environment ? { ...defaultConfig.environment } : {}
         });
         launches = config.workspaces[workspaceName].targets[targetName].launches;
       }
@@ -761,7 +764,7 @@
           launch.executablePath = launch.executablePath || (defaultConfig.executablePath || '');
           launch.workingDirectory = launch.workingDirectory || (defaultConfig.workingDirectory || '');
           launch.arguments = launch.arguments || (defaultConfig.arguments ? [...defaultConfig.arguments] : []);
-          launch.environment = launch.environment || (defaultConfig.environment ? {...defaultConfig.environment} : {});
+          launch.environment = launch.environment || (defaultConfig.environment ? { ...defaultConfig.environment } : {});
         }
       }
     }
@@ -1063,6 +1066,70 @@
     envGroup.appendChild(addEnvRow);
 
     contentDiv.appendChild(envGroup);
+
+    // Additional Options (JSON textarea)
+    const additionalOptsGroup = document.createElement('div');
+    additionalOptsGroup.className = 'form-group';
+
+    const additionalOptsLabel = document.createElement('label');
+    additionalOptsLabel.textContent = 'Additional Debug Options:';
+    additionalOptsGroup.appendChild(additionalOptsLabel);
+
+    const additionalOptsTextarea = document.createElement('textarea');
+    additionalOptsTextarea.className = 'additional-options-textarea';
+    additionalOptsTextarea.placeholder = 'Enter additional debug options as JSON (e.g., {"stopOnEntry": true})';
+    additionalOptsTextarea.rows = 4;
+    additionalOptsTextarea.spellcheck = false;
+    additionalOptsTextarea.dataset.field = 'additionalOptions';
+    additionalOptsTextarea.dataset.launchIndex = index;
+
+    // Handle Tab key to insert 4 spaces instead of moving focus
+    additionalOptsTextarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = e.target.selectionStart;
+        const end = e.target.selectionEnd;
+        const value = e.target.value;
+
+        // Insert 4 spaces at cursor position
+        e.target.value = value.substring(0, start) + '    ' + value.substring(end);
+
+        // Move cursor to after the inserted spaces
+        e.target.selectionStart = e.target.selectionEnd = start + 4;
+
+        // Trigger input event to save changes
+        e.target.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+
+    // Format the JSON for display
+    if (launch.additionalOptions && Object.keys(launch.additionalOptions).length > 0) {
+      try {
+        additionalOptsTextarea.value = JSON.stringify(launch.additionalOptions, null, 4);
+      } catch (e) {
+        additionalOptsTextarea.value = '';
+      }
+    } else
+      additionalOptsTextarea.value = '';
+
+    // Check if additionalOptions match default for styling
+    const additionalOptsMatchDefault = JSON.stringify(launch.additionalOptions || {}) === JSON.stringify(compareConfig.additionalOptions || {});
+    if (additionalOptsMatchDefault)
+      additionalOptsTextarea.classList.add('default-value');
+
+    additionalOptsGroup.appendChild(additionalOptsTextarea);
+
+    // Add error message container
+    const errorMsg = document.createElement('div');
+    errorMsg.className = 'json-error-message';
+    errorMsg.style.display = 'none';
+    errorMsg.style.color = 'var(--vscode-errorForeground)';
+    errorMsg.style.fontSize = '12px';
+    errorMsg.style.marginTop = '4px';
+    additionalOptsGroup.appendChild(errorMsg);
+
+    contentDiv.appendChild(additionalOptsGroup);
+
     div.appendChild(contentDiv);
 
     // Auto-size env var keys after rendering
@@ -1333,7 +1400,10 @@
     // We want input event for text fields but not for complex operations
 
     // Handle checkbox inputs (enabled field)
-    if (e.target.type === 'checkbox' && e.target.dataset.field === 'enabled') {
+    // Handle additionalOptions JSON textarea changes
+    if (e.target.dataset.field === 'additionalOptions')
+      updateAdditionalOptions(index, e.target.value, e.target);
+    else if (e.target.type === 'checkbox' && e.target.dataset.field === 'enabled') {
       updateLaunchConfig(index, 'enabled', e.target.checked);
       // Update visual state of the container
       const container = e.target.closest('.launch-config');
@@ -2082,6 +2152,69 @@
     renderLaunchConfigs(selectedWorkspace, selectedTarget);
   }
 
+  function updateAdditionalOptions(index, jsonString, textarea) {
+    if (!selectedWorkspace || !selectedTarget) return;
+
+    const launch = getOrCreateLaunchForEdit(index);
+    if (!launch) return;
+
+    // Find the error message container
+    const errorMsg = textarea.parentElement.querySelector('.json-error-message');
+
+    // Handle empty string - clear additionalOptions
+    if (!jsonString || jsonString.trim() === '') {
+      launch.additionalOptions = undefined;
+      textarea.classList.remove('json-error');
+      textarea.classList.add('default-value');
+      if (errorMsg) {
+        errorMsg.style.display = 'none';
+        errorMsg.textContent = '';
+      }
+      saveConfiguration();
+      renderTree();
+      return;
+    }
+
+    // Try to parse JSON
+    try {
+      const parsed = JSON.parse(jsonString);
+
+      // Validate that it's an object (not an array or primitive)
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))
+        throw new Error('Additional options must be a JSON object, not an array or primitive value');
+
+      // Valid JSON - update the config
+      launch.additionalOptions = parsed;
+      textarea.classList.remove('json-error');
+
+      // Check if it matches default for styling
+      const compareConfig = getComparisonConfig(selectedWorkspace, selectedTarget, index);
+      const matchesDefault = JSON.stringify(parsed) === JSON.stringify(compareConfig.additionalOptions || {});
+      if (matchesDefault || Object.keys(parsed).length === 0)
+        textarea.classList.add('default-value');
+      else
+        textarea.classList.remove('default-value');
+
+      // Clear error message
+      if (errorMsg) {
+        errorMsg.style.display = 'none';
+        errorMsg.textContent = '';
+      }
+
+      saveConfiguration();
+      renderTree();
+    } catch (error) {
+      // Invalid JSON - show error but don't update config
+      textarea.classList.add('json-error');
+      textarea.classList.remove('default-value');
+      if (errorMsg) {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = `JSON Error: ${error.message}`;
+      }
+      // Don't save invalid JSON
+    }
+  }
+
   function showPostCopyDropdown(button, launchIndex) {
     if (!selectedWorkspace || !selectedTarget) return;
 
@@ -2290,7 +2423,7 @@
         executablePath: fullExecutablePath,
         workingDirectory: destPath,
         arguments: defaultConfig.arguments ? [...defaultConfig.arguments] : [],
-        environment: defaultConfig.environment ? {...defaultConfig.environment} : {},
+        environment: defaultConfig.environment ? { ...defaultConfig.environment } : {},
         enabled: true
       };
 
@@ -2350,7 +2483,8 @@
           executablePath: launch.executablePath || defaultConfig.executablePath || '',
           workingDirectory: launch.workingDirectory || defaultConfig.workingDirectory || '',
           arguments: launch.arguments || defaultConfig.arguments || [],
-          environment: launch.environment || defaultConfig.environment || {}
+          environment: launch.environment || defaultConfig.environment || {},
+          additionalOptions: launch.additionalOptions || defaultConfig.additionalOptions || {}
         }));
 
         // Clean empty fields from launches; keep entries, then drop only
@@ -2400,6 +2534,13 @@
               const envMatchesDefault = JSON.stringify(launch.environment || {}) === JSON.stringify(compareConfig.environment || {});
               if (envMatchesDefault || Object.keys(launch.environment).length === 0)
                 delete launch.environment;
+            }
+
+            // Check if additionalOptions matches default
+            if (launch.additionalOptions) {
+              const additionalOptsMatchDefault = JSON.stringify(launch.additionalOptions || {}) === JSON.stringify(compareConfig.additionalOptions || {});
+              if (additionalOptsMatchDefault || Object.keys(launch.additionalOptions).length === 0)
+                delete launch.additionalOptions;
             }
 
             // Check enabled field

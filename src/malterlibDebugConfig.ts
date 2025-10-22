@@ -23,6 +23,9 @@ export interface MalterlibLaunchConfig {
 
   /** Override the executable path */
   executablePath?: string;
+
+  /** Additional debug options to forward to the debug adapter */
+  additionalOptions?: { [key: string]: any };
 }
 
 /**
@@ -228,7 +231,7 @@ export class MalterlibConfigManager {
               if (baseLaunch) {
                 // Merge local properties into base launch
                 const merged: MalterlibLaunchConfig = { ...baseLaunch };
-                
+
                 // Override with local values if they're defined
                 if (localLaunch.name !== undefined) merged.name = localLaunch.name;
                 if (localLaunch.enabled !== undefined) merged.enabled = localLaunch.enabled;
@@ -236,7 +239,8 @@ export class MalterlibConfigManager {
                 if (localLaunch.workingDirectory !== undefined) merged.workingDirectory = localLaunch.workingDirectory;
                 if (localLaunch.arguments !== undefined) merged.arguments = localLaunch.arguments;
                 if (localLaunch.environment !== undefined) merged.environment = localLaunch.environment;
-                
+                if (localLaunch.additionalOptions !== undefined) merged.additionalOptions = { ...baseLaunch.additionalOptions, ...localLaunch.additionalOptions };
+
                 launchMap.set(localLaunchName, merged);
               } else {
                 // New local launch, add it entirely (with default name if needed)
