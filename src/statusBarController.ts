@@ -26,6 +26,8 @@ export class StatusBarController implements vscode.Disposable {
   private currentDebugTargets: string[] = [];
   private selectedWorkspaceFolder: vscode.WorkspaceFolder | null = null;
   private compileCommandsWatcher: vscode.Disposable | null = null;
+  private cascadeAutoSelectionTimer: NodeJS.Timeout | null = null;
+  private lastLoggedMessage: string | null = null;
 
   // Event emitter for selection changes
   private onSelectionChangedEmitter = new vscode.EventEmitter<SelectionChangeEvent>();
@@ -48,6 +50,15 @@ export class StatusBarController implements vscode.Disposable {
       BuildSystemScanner.onDidChangeScanningAsync(async () => {
         this.statusBar.update();
         this.restoreSelections();
+
+        // Debounce cascadeAutoSelection to allow old selections to be restored first
+        if (this.cascadeAutoSelectionTimer)
+          clearTimeout(this.cascadeAutoSelectionTimer);
+
+        this.cascadeAutoSelectionTimer = setTimeout(() => {
+          this.cascadeAutoSelection();
+          this.cascadeAutoSelectionTimer = null;
+        }, 500); // 500ms delay
       })
     );
 
@@ -58,6 +69,10 @@ export class StatusBarController implements vscode.Disposable {
   dispose(): void {
     this.disposables.forEach(d => d.dispose());
     this.compileCommandsWatcher?.dispose();
+    if (this.cascadeAutoSelectionTimer) {
+      clearTimeout(this.cascadeAutoSelectionTimer);
+      this.cascadeAutoSelectionTimer = null;
+    }
     this.onSelectionChangedEmitter.dispose();
   }
 
@@ -114,6 +129,13 @@ export class StatusBarController implements vscode.Disposable {
     this.cascadeAutoSelection();
   }
 
+  private logOnce(message: string): void {
+    if (message !== this.lastLoggedMessage) {
+      this.lastLoggedMessage = message;
+      this.output.appendLine(message);
+    }
+  }
+
   private restoreSelections(): void {
     // Restore saved workspace folder path
     const savedWorkspacePath = this.workspaceState.get<string>(StatusBarController.WORKSPACE_FOLDER_KEY);
@@ -124,7 +146,7 @@ export class StatusBarController implements vscode.Disposable {
       else {
         this.selectedWorkspaceFolder = null;
         if (savedWorkspacePath)
-          this.output.appendLine(`Saved workspace folder no longer valid: ${savedWorkspacePath}`);
+          this.logOnce(`Saved workspace folder no longer valid: ${savedWorkspacePath}`);
       }
     }
 
@@ -141,7 +163,7 @@ export class StatusBarController implements vscode.Disposable {
       if (generators.some(g => g.name === savedGenerator))
         this.setGenerator(savedGenerator);
       else {
-        this.output.appendLine(`Saved generator '${savedGenerator}' no longer exists`);
+        this.logOnce(`Saved generator '${savedGenerator}' no longer exists`);
         this.setGenerator(null);
       }
     } else
@@ -156,7 +178,7 @@ export class StatusBarController implements vscode.Disposable {
         if (workspaces.some(w => w.name === savedWorkspace))
           this.setWorkspace(savedWorkspace);
         else {
-          this.output.appendLine(`Saved workspace '${savedWorkspace}' no longer exists`);
+          this.logOnce(`Saved workspace '${savedWorkspace}' no longer exists`);
           this.setWorkspace(null);
         }
       }
@@ -175,7 +197,7 @@ export class StatusBarController implements vscode.Disposable {
           if (configurations.some(c => c.name === savedConfiguration))
             this.setConfiguration(savedConfiguration);
           else {
-            this.output.appendLine(`Saved configuration '${savedConfiguration}' no longer exists`);
+            this.logOnce(`Saved configuration '${savedConfiguration}' no longer exists`);
             this.setConfiguration(null);
           }
         }
@@ -201,7 +223,7 @@ export class StatusBarController implements vscode.Disposable {
             if (t && buildable)
               this.setTarget(savedTarget);
             else {
-              this.output.appendLine(`Saved target '${savedTarget}' no longer exists or is not buildable for the current configuration`);
+              this.logOnce(`Saved target '${savedTarget}' no longer exists or is not buildable for the current configuration`);
               this.setTarget(null);
             }
           }
@@ -229,10 +251,10 @@ export class StatusBarController implements vscode.Disposable {
             this.setDebugTargets(validDebugTargets);
             if (validDebugTargets.length < savedDebugTargets.length) {
               const invalidTargets = savedDebugTargets.filter(t => !targetNames.has(t) || !debuggable.has(t));
-              this.output.appendLine(`Some saved debug targets no longer exist or lack a local debugger: ${invalidTargets.join(', ')}`);
+              this.logOnce(`Some saved debug targets no longer exist or lack a local debugger: ${invalidTargets.join(', ')}`);
             }
           } else {
-            this.output.appendLine(`None of the saved debug targets exist or have a local debugger anymore`);
+            this.logOnce(`None of the saved debug targets exist or have a local debugger anymore`);
             this.setDebugTargets([]);
           }
         } else
@@ -318,6 +340,9 @@ export class StatusBarController implements vscode.Disposable {
     await this.workspaceState.update(StatusBarController.CONFIGURATION_KEY, this.currentConfiguration);
     await this.workspaceState.update(StatusBarController.TARGET_KEY, this.currentTarget);
     await this.workspaceState.update(StatusBarController.DEBUG_TARGETS_KEY, this.currentDebugTargets);
+
+    // Clear logged messages since we have new valid selections
+    this.lastLoggedMessage = null;
   }
 
   public getSelectionSnapshot(): { generator: string | null; workspace: string | null; configuration: string | null; target: string | null } {
@@ -835,7 +860,7 @@ export class StatusBarController implements vscode.Disposable {
 
         // Find the configuration object to get the display name
         const selectedConfig = configurations.find(c => c.name === selected);
-        const displayName = selectedConfig 
+        const displayName = selectedConfig
           ? `${selectedConfig.platform} ${selectedConfig.architecture} ${selectedConfig.configuration}`
           : selected;
         this.statusBar.setConfigurationText(displayName);

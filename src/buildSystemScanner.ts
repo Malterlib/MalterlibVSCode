@@ -316,6 +316,30 @@ export class BuildSystemScanner {
 
     disposables.push(workspaceWatcher);
 
+    // Watch for workspace configuration changes
+    const workspaceConfigPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Configs/*');
+    const workspaceConfigWatcher = vscode.workspace.createFileSystemWatcher(workspaceConfigPattern);
+
+    workspaceConfigWatcher.onDidCreate(uri => {
+      const workspacePath = path.dirname(path.dirname(uri.fsPath));
+      const generatorPath = path.dirname(path.dirname(workspacePath));
+      this.queueWorkspaces(generatorPath);
+    });
+
+    workspaceConfigWatcher.onDidChange(uri => {
+      const workspacePath = path.dirname(path.dirname(uri.fsPath));
+      const generatorPath = path.dirname(path.dirname(workspacePath));
+      this.queueWorkspaces(generatorPath);
+    });
+
+    workspaceConfigWatcher.onDidDelete(uri => {
+      const workspacePath = path.dirname(path.dirname(uri.fsPath));
+      const generatorPath = path.dirname(path.dirname(workspacePath));
+      this.queueWorkspaces(generatorPath);
+    });
+
+    disposables.push(workspaceConfigWatcher);
+
     // Watch for target changes
     const targetPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Targets/*');
     const targetWatcher = vscode.workspace.createFileSystemWatcher(targetPattern);
