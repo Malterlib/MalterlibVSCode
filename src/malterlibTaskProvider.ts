@@ -21,7 +21,7 @@ interface GeneratorConfig {
   priority?: number;
 }
 
-const buildProblemMatchers = ['$malterlib-build-clang', '$malterlib-build-ld', '$malterlib-build-cl', '$malterlib-build-clang-cl'];
+const buildProblemMatchers = ['$malterlib-build-clang', '$malterlib-build-ld', '$malterlib-build-cl', '$malterlib-build-clang-cl', '$malterlib-buildsystem', '$malterlib-buildsystem-windows'];
 
 export class MalterlibTaskProvider implements vscode.TaskProvider {
   static readonly taskType = 'malterlib';
