@@ -1898,16 +1898,7 @@
             "loop": true,
             "staticSubProblemCategory": "Included From",
             "uniqueSubProblemCategory": true,
-            "introduceSubProblem": true,
-            "loopPattern": true,
-            "pattern": [
-              {
-                "regexp": "^\\s*$",
-                "ignore": true,
-                "optional": true,
-                "loop": true
-              }
-            ]
+            "introduceSubProblem": true
           },
           {
             "regexp": "^(.+):(\\d+):(\\d+):\\s+(fatal|fatal error|error|warning|info):\\s+(.+)$",
@@ -1936,16 +1927,7 @@
                 "loop": true,
                 "staticSubProblemCategory": "Included From",
                 "uniqueSubProblemCategory": true,
-                "introduceSubProblem": true,
-                "loopPattern": true,
-                "pattern": [
-                  {
-                    "regexp": "^\\s*$",
-                    "ignore": true,
-                    "optional": true,
-                    "loop": true
-                  }
-                ]
+                "introduceSubProblem": true
               },
               {
                 "regexp": "^(.+):(\\d+):(\\d+):\\s+(note):\\s+(in instantiation of .+)$",
@@ -2032,11 +2014,6 @@
             "pattern": [
               {
                 "regexp": "^\\s*\\(compiling source file .*\\)$",
-                "ignore": true
-              },
-              {
-                "regexp": "^\\s*$",
-                "optional": true,
                 "ignore": true
               },
               {
@@ -2151,15 +2128,7 @@
             "loop": true,
             "staticSubProblemCategory": "Included From",
             "uniqueSubProblemCategory": true,
-            "introduceSubProblem": true,
-            "pattern": [
-              {
-                "regexp": "^\\s*$",
-                "ignore": true,
-                "optional": true,
-                "loop": true
-              }
-            ]
+            "introduceSubProblem": true
           },
           {
             "regexp": "^([A-Za-z/\\\\].+)\\((\\d+),(\\d+)\\):\\s+(?:(fatal|fatal error|error|warning|info) *: *)(.+?)(?: \\[.*\\])?$",
