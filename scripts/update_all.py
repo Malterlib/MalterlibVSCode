@@ -14,6 +14,7 @@ SCRIPTS = [
     "scripts/generate_settings_from_theme.py",
     "scripts/combine_scopes.py",
     "scripts/convert_theme_to_srgb.py",
+    "scripts/generate_theme_no_tokens.py",
     "scripts/generate_clangd_config.py",
     "scripts/generate_readme.py",
 ]
