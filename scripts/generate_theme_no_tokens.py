@@ -2,10 +2,51 @@
 """
 Generate a theme based on malterlib.json but with tokenColors from Dark Modern.
 Creates themes/malterlibNoTokens.json with Malterlib colors + Dark Modern tokens.
+Token colors are converted from sRGB to Display P3 to match the theme's color space.
 """
 import json
 import json5
 import pathlib
+from color_utils import srgb_hex_to_displayp3_hex
+
+
+def convert_token_colors_to_p3(token_colors):
+    """Convert token colors from sRGB to Display P3.
+
+    Parameters
+    ----------
+    token_colors : list
+        List of token color entries from the Dark Modern theme (sRGB).
+
+    Returns
+    -------
+    list
+        Token color entries with colors converted to Display P3.
+    """
+    converted = []
+    for entry in token_colors:
+        converted_entry = entry.copy()
+        settings = converted_entry.get("settings", {})
+
+        # Convert foreground color if present
+        if "foreground" in settings:
+            try:
+                settings["foreground"] = srgb_hex_to_displayp3_hex(settings["foreground"])
+            except (ValueError, KeyError) as e:
+                print(f"Warning: Could not convert foreground color '{settings['foreground']}': {e}")
+
+        # Convert background color if present
+        if "background" in settings:
+            try:
+                settings["background"] = srgb_hex_to_displayp3_hex(settings["background"])
+            except (ValueError, KeyError) as e:
+                print(f"Warning: Could not convert background color '{settings['background']}': {e}")
+
+        converted_entry["settings"] = settings
+        converted.append(converted_entry)
+
+    return converted
+
 
 def main():
     # Define paths
@@ -43,9 +84,15 @@ def main():
         "colors": theme_data.get("colors", {})
     }
 
-    # Add tokenColors if we have them
+    # Convert hardcoded editor colors from sRGB to Display P3
+    new_theme["colors"]["editor.background"] = srgb_hex_to_displayp3_hex("#1f1f1f")
+    new_theme["colors"]["editor.foreground"] = srgb_hex_to_displayp3_hex("#cccccc")
+    new_theme["colors"]["editorGutter.background"] = srgb_hex_to_displayp3_hex("#1f1f1f")
+
+    # Add tokenColors if we have them (convert from sRGB to Display P3)
     if token_colors:
-        new_theme["tokenColors"] = token_colors
+        print(f"Converting {len(token_colors)} token colors from sRGB to Display P3...")
+        new_theme["tokenColors"] = convert_token_colors_to_p3(token_colors)
 
     # Write the new theme
     with open(output_path, 'w') as f:

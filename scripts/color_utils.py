@@ -4,6 +4,8 @@ Utility helpers for colour conversions used by conversion scripts.
 Currently provides:
     • displayp3_hex_to_srgb_hex – perceptually maps a Display-P3 hex colour
       to sRGB using an ICC transform (Display P3 ➔ sRGB, perceptual intent)
+    • srgb_hex_to_displayp3_hex – perceptually maps an sRGB hex colour
+      to Display P3 using an ICC transform (sRGB ➔ Display P3, perceptual intent)
 
 Requirements: Pillow (with LittleCMS) must be available.
 """
@@ -17,10 +19,20 @@ SRGB_PROFILE_PATH = "/System/Library/ColorSync/Profiles/sRGB Profile.icc"
 P3_PROFILE = ImageCms.getOpenProfile(P3_PROFILE_PATH)
 SRGB_PROFILE = ImageCms.getOpenProfile(SRGB_PROFILE_PATH)
 
-# Build a single transform and reuse it for all colours.
-TRANSFORM = ImageCms.buildTransformFromOpenProfiles(
+# Build transforms and reuse them for all colours.
+# P3 → sRGB transform
+TRANSFORM_P3_TO_SRGB = ImageCms.buildTransformFromOpenProfiles(
     P3_PROFILE,
     SRGB_PROFILE,
+    "RGB",
+    "RGB",
+    renderingIntent=ImageCms.Intent.PERCEPTUAL,
+)
+
+# sRGB → P3 transform (inverse)
+TRANSFORM_SRGB_TO_P3 = ImageCms.buildTransformFromOpenProfiles(
+    SRGB_PROFILE,
+    P3_PROFILE,
     "RGB",
     "RGB",
     renderingIntent=ImageCms.Intent.PERCEPTUAL,
@@ -59,9 +71,52 @@ def displayp3_hex_to_srgb_hex(hex_color: str) -> str:
 
     # Build a 1×1 image in Display-P3 RGB and run the ICC transform.
     img_p3 = Image.new("RGB", (1, 1), rgb_int)
-    img_srgb = ImageCms.applyTransform(img_p3, TRANSFORM)
+    img_srgb = ImageCms.applyTransform(img_p3, TRANSFORM_P3_TO_SRGB)
 
     r, g, b = img_srgb.getpixel((0, 0))
+
+    # Append alpha channel if it was present
+    if alpha_str is not None:
+        return f"#{r:02x}{g:02x}{b:02x}{alpha_str}"
+    else:
+        return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def srgb_hex_to_displayp3_hex(hex_color: str) -> str:
+    """Convert an sRGB hex colour (e.g. "#ff00ff" or "#ff00ff80") to Display P3.
+
+    Parameters
+    ----------
+    hex_color: str
+        Hex string representing a colour in the sRGB colourspace
+        (leading '#', 8-bit per channel). Supports both 6-character RGB
+        and 8-character RGBA formats.
+
+    Returns
+    -------
+    str
+        Hex string for the perceptually-mapped colour in Display P3.
+        Alpha channel (if present) is preserved unchanged.
+    """
+    # Remove leading '#', parse into integer 0–255 triplet.
+    hex_str = hex_color.lstrip("#")
+
+    # Check for alpha channel
+    alpha_str = None
+    if len(hex_str) == 8:
+        # Extract alpha channel (last 2 characters)
+        alpha_str = hex_str[6:8]
+        hex_str = hex_str[0:6]
+    elif len(hex_str) != 6:
+        raise ValueError(f"Invalid hex colour: {hex_color}")
+
+    rgb_int = tuple(int(hex_str[i : i + 2], 16) for i in (0, 2, 4))
+
+    # Build a 1×1 image in sRGB RGB and run the ICC transform.
+    img_srgb = Image.new("RGB", (1, 1), rgb_int)
+    img_p3 = ImageCms.applyTransform(img_srgb, TRANSFORM_SRGB_TO_P3)
+
+    r, g, b = img_p3.getpixel((0, 0))
 
     # Append alpha channel if it was present
     if alpha_str is not None:
