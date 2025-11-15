@@ -29,3 +29,6 @@ semanticScopesForPackage.json
 src/
 vsc-extension-quickstart.md
 darkModern.json
+CLAUDE.md
+AGENTS.md
+esbuild.mjs
