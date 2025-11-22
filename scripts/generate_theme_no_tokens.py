@@ -48,6 +48,29 @@ def convert_token_colors_to_p3(token_colors):
     return converted
 
 
+def convert_semantic_token_colors_to_p3(semantic_token_colors):
+    """Convert semantic token colors from sRGB to Display P3.
+
+    Parameters
+    ----------
+    semantic_token_colors : dict
+        Dictionary mapping token types to color strings (sRGB).
+
+    Returns
+    -------
+    dict
+        Token color dictionary with colors converted to Display P3.
+    """
+    converted = {}
+    for token_type, color in semantic_token_colors.items():
+        try:
+            converted[token_type] = srgb_hex_to_displayp3_hex(color)
+        except (ValueError, KeyError) as e:
+            print(f"Warning: Could not convert semantic token color '{token_type}': '{color}': {e}")
+            converted[token_type] = color  # Keep original on failure
+    return converted
+
+
 def main():
     # Define paths
     root = pathlib.Path(__file__).resolve().parents[1]
@@ -61,14 +84,17 @@ def main():
     with open(input_path, 'r') as f:
         theme_data = json5.load(f)
 
-    # Try to read Dark Modern theme for tokenColors
+    # Try to read Dark Modern theme for tokenColors and semanticTokenColors
     token_colors = []
+    semantic_token_colors = {}
     if dark_modern_path.exists():
         try:
             with open(dark_modern_path, 'r') as f:
                 dark_modern_data = json5.load(f)
                 token_colors = dark_modern_data.get("tokenColors", [])
+                semantic_token_colors = dark_modern_data.get("semanticTokenColors", {})
                 print(f"Loaded {len(token_colors)} token colors from {dark_modern_path.name}")
+                print(f"Loaded {len(semantic_token_colors)} semantic token colors from {dark_modern_path.name}")
         except Exception as e:
             print(f"Warning: Could not load Dark Modern theme: {e}")
             print("Theme will have no token colors (relying on semantic highlighting)")
@@ -94,6 +120,11 @@ def main():
         print(f"Converting {len(token_colors)} token colors from sRGB to Display P3...")
         new_theme["tokenColors"] = convert_token_colors_to_p3(token_colors)
 
+    # Add semanticTokenColors if we have them (convert from sRGB to Display P3)
+    if semantic_token_colors:
+        print(f"Converting {len(semantic_token_colors)} semantic token colors from sRGB to Display P3...")
+        new_theme["semanticTokenColors"] = convert_semantic_token_colors_to_p3(semantic_token_colors)
+
     # Write the new theme
     with open(output_path, 'w') as f:
         json.dump(new_theme, f, indent=4)
@@ -104,6 +135,10 @@ def main():
         print(f"Token colors: {len(token_colors)} entries from Dark Modern")
     else:
         print(f"Token colors: none (relying on semantic highlighting only)")
+    if semantic_token_colors:
+        print(f"Semantic token colors: {len(semantic_token_colors)} entries from Dark Modern")
+    else:
+        print(f"Semantic token colors: none")
 
 if __name__ == "__main__":
     main()
