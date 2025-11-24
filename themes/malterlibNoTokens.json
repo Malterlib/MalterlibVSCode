@@ -215,7 +215,12 @@
         "editor.wordHighlightStrongBackground": "#00497280",
         "terminal.findMatchHighlightBackground": "#a8000080",
         "terminal.selectionBackground": "#00a85480",
-        "terminal.inactiveSelectionBackground": "#00a85480"
+        "terminal.inactiveSelectionBackground": "#00a85480",
+        "debugConsole.infoForeground": "#fffeff",
+        "debugConsole.errorForeground": "#f15959",
+        "debugConsole.warningForeground": "#ffb833",
+        "debugConsole.background": "#000000",
+        "outputView.background": "#000000"
     },
     "tokenColors": [
         {
