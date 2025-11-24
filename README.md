@@ -190,7 +190,8 @@ Here are the recommmended colors:
         "scope": [
           "constant.numeric",
           "keyword.other.unit",
-          "keyword.operator.redirect.stderr.shell"
+          "keyword.operator.redirect.stderr.shell",
+          "punctuation.separator.constant.numeric"
         ],
         "settings": {
           "foreground": "#ff0080"
@@ -916,7 +917,8 @@ If you have a Visual Studio Code that doesn't support changing color space (or i
         "scope": [
           "constant.numeric",
           "keyword.other.unit",
-          "keyword.operator.redirect.stderr.shell"
+          "keyword.operator.redirect.stderr.shell",
+          "punctuation.separator.constant.numeric"
         ],
         "settings": {
           "foreground": "#ff0080"

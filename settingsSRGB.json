@@ -158,7 +158,8 @@
         "scope": [
           "constant.numeric",
           "keyword.other.unit",
-          "keyword.operator.redirect.stderr.shell"
+          "keyword.operator.redirect.stderr.shell",
+          "punctuation.separator.constant.numeric"
         ],
         "settings": {
           "foreground": "#ff0080"
