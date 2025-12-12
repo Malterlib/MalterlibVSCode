@@ -778,13 +778,8 @@ export class BuildSystemScanner {
           let buildTargetScript: string | undefined;
           let buildWorkspaceScript: string | undefined;
 
-          const buildTargetPath = path.join(configStorePath, 'BuildTarget.sh');
-          if (await BuildSystemScanner.pathExists(buildTargetPath))
-            buildTargetScript = buildTargetPath;
-
-          const buildWorkspacePath = path.join(configStorePath, 'BuildWorkspace.sh');
-          if (await BuildSystemScanner.pathExists(buildWorkspacePath))
-            buildWorkspaceScript = buildWorkspacePath;
+          buildTargetScript = path.join(configStorePath, 'BuildTarget.sh');
+          buildWorkspaceScript = path.join(configStorePath, 'BuildWorkspace.sh');
 
           // Parse PostCopy.MConfig if it exists
           let postCopyProjects: Map<string, PostCopyProject> | undefined;
