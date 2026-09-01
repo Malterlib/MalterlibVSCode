@@ -75,7 +75,26 @@ export interface ConfigurationInfo {
   debugPriority?: number;
 }
 
+type ScanningEvent = 'generators' | 'workspaces' | 'targets' | 'configurations';
+
+interface ScanTask {
+  kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'singleTargetConfig' | 'postCopyUpdate';
+  workspaceFolder?: vscode.WorkspaceFolder;
+  generatorPath?: string;
+  workspacePath?: string;
+  targetPath?: string;
+  targetConfigPath?: string;
+  event: ScanningEvent;
+  key: string;
+}
+
+type QueuedTask = ScanTask | {
+  kind: 'flush';
+  resolve: () => void;
+};
+
 export class BuildSystemScanner {
+  private static readonly changeCoalesceDelay = 100;
   private static generators = new Map<string, GeneratorInfo[]>();
   private static workspaces = new Map<string, WorkspaceInfo[]>();
   private static targets = new Map<string, TargetInfo[]>();
@@ -85,45 +104,118 @@ export class BuildSystemScanner {
   private static asyncScanningListeners = new Set<(event: string) => Promise<void> | void>();
 
   // --- Queue management to serialize scans and avoid race conditions ---
-  private static taskQueue: Array<{
-    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'singleTargetConfig' | 'postCopyUpdate' | 'flush';
-    workspaceFolder?: vscode.WorkspaceFolder;
-    generatorPath?: string;
-    workspacePath?: string;
-    targetPath?: string;
-    targetConfigPath?: string;
-    event?: 'generators' | 'workspaces' | 'targets' | 'configurations';
-    key?: string;
-    resolve?: () => void; // only for flush tasks
-  }> = [];
+  private static taskQueue: QueuedTask[] = [];
   private static queuedKeys = new Set<string>();
+  private static pendingTasks = new Map<string, ScanTask>();
+  private static changeCoalesceTimer: NodeJS.Timeout | undefined;
+  private static deferredScanningEvent: ScanningEvent | undefined;
+  private static deferredFlushWaiters: Array<() => void> = [];
   private static processingQueue = false;
 
-  private static enqueueTask(task: {
-    kind: 'buildSystem' | 'workspaces' | 'targets' | 'configurations' | 'singleTargetConfig' | 'postCopyUpdate';
-    workspaceFolder?: vscode.WorkspaceFolder;
-    generatorPath?: string;
-    workspacePath?: string;
-    targetPath?: string;
-    targetConfigPath?: string;
-    event: 'generators' | 'workspaces' | 'targets' | 'configurations';
-    key: string;
-  }): void {
+  private static enqueueTask(task: ScanTask): void {
     if (this.queuedKeys.has(task.key))
       return;
+
+    for (const queuedTask of this.taskQueue) {
+      if (queuedTask.kind !== 'flush' && this.taskSubsumes(queuedTask, task))
+        return;
+    }
+
+    for (let index = this.taskQueue.length - 1; index >= 0; index--) {
+      const queuedTask = this.taskQueue[index];
+      if (queuedTask.kind !== 'flush' && this.taskSubsumes(task, queuedTask)) {
+        this.taskQueue.splice(index, 1);
+        this.queuedKeys.delete(queuedTask.key);
+      }
+    }
+
     this.taskQueue.push(task);
     this.queuedKeys.add(task.key);
     void this.processQueue();
+  }
+
+  private static scheduleTask(task: ScanTask): void {
+    for (const pendingTask of this.pendingTasks.values()) {
+      if (this.taskSubsumes(pendingTask, task))
+        return;
+    }
+
+    for (const [key, pendingTask] of this.pendingTasks) {
+      if (this.taskSubsumes(task, pendingTask))
+        this.pendingTasks.delete(key);
+    }
+
+    this.pendingTasks.set(task.key, task);
+
+    if (this.changeCoalesceTimer)
+      clearTimeout(this.changeCoalesceTimer);
+    this.changeCoalesceTimer = setTimeout(() => this.flushPendingTasks(), this.changeCoalesceDelay);
+  }
+
+  private static taskSubsumes(task: ScanTask, candidate: ScanTask): boolean {
+    if (task.key === candidate.key)
+      return true;
+
+    const candidatePath = this.getTaskPath(candidate);
+    if (!candidatePath)
+      return false;
+
+    switch (task.kind) {
+      case 'buildSystem':
+        return !!task.workspaceFolder && this.isEqualOrParent(path.join(task.workspaceFolder.uri.fsPath, 'BuildSystem'), candidatePath);
+      case 'workspaces':
+        return !!task.generatorPath && candidate.kind !== 'postCopyUpdate' && this.isEqualOrParent(path.join(task.generatorPath, 'ConfigStore'), candidatePath);
+      case 'targets':
+        return !!task.workspacePath && (candidate.kind === 'configurations' || candidate.kind === 'singleTargetConfig') && this.isEqualOrParent(path.join(task.workspacePath, 'Targets'), candidatePath);
+      default:
+        return false;
+    }
+  }
+
+  private static getTaskPath(task: ScanTask): string | undefined {
+    switch (task.kind) {
+      case 'buildSystem':
+        return task.workspaceFolder?.uri.fsPath;
+      case 'workspaces':
+      case 'postCopyUpdate':
+        return task.generatorPath;
+      case 'targets':
+        return task.workspacePath;
+      case 'configurations':
+        return task.targetPath;
+      case 'singleTargetConfig':
+        return task.targetConfigPath;
+    }
+  }
+
+  private static isEqualOrParent(parentPath: string, candidatePath: string): boolean {
+    const relativePath = path.relative(parentPath, candidatePath);
+    return relativePath === '' || (!relativePath.startsWith(`..${path.sep}`) && relativePath !== '..' && !path.isAbsolute(relativePath));
+  }
+
+  private static flushPendingTasks(): void {
+    if (this.changeCoalesceTimer) {
+      clearTimeout(this.changeCoalesceTimer);
+      this.changeCoalesceTimer = undefined;
+    }
+
+    const tasks = Array.from(this.pendingTasks.values());
+    this.pendingTasks.clear();
+    tasks.forEach(task => this.enqueueTask(task));
   }
 
   private static async processQueue(): Promise<void> {
     if (this.processingQueue)
       return;
     this.processingQueue = true;
+    let scanningEvent = this.deferredScanningEvent;
+    this.deferredScanningEvent = undefined;
+    const flushWaiters = this.deferredFlushWaiters;
+    this.deferredFlushWaiters = [];
     try {
       while (this.taskQueue.length > 0) {
         const task = this.taskQueue.shift()!;
-        if (task.key)
+        if (task.kind !== 'flush')
           this.queuedKeys.delete(task.key);
         try {
           switch (task.kind) {
@@ -153,31 +245,60 @@ export class BuildSystemScanner {
               break;
             case 'flush':
               // No scan; used to allow awaiting until prior tasks finish
+              flushWaiters.push(task.resolve);
               break;
           }
-          // Notify async listeners (awaited) so queue waits for processing
-          if (task.event)
-            await this.notifyAsyncScanningListeners(task.event);
-          // Finally resolve any flush waiter
-          if (task.resolve)
-            task.resolve();
+          if (task.kind !== 'flush')
+            scanningEvent = this.getBroaderScanningEvent(scanningEvent, task.event);
         } catch (err) {
           console.error(`[BuildSystemScanner] Error processing scan task ${task.kind}:`, err);
         }
       }
+
+      // A ConfigStore operation can produce hundreds of watcher events. Notify
+      // consumers only after the coalesced scans have produced a consistent view.
+      if (scanningEvent) {
+        if (this.pendingTasks.size > 0)
+          this.deferredScanningEvent = this.getBroaderScanningEvent(this.deferredScanningEvent, scanningEvent);
+        else
+          await this.notifyAsyncScanningListeners(scanningEvent);
+      }
     } finally {
       this.processingQueue = false;
+      if (this.pendingTasks.size > 0 || this.taskQueue.length > 0)
+        this.deferredFlushWaiters.push(...flushWaiters);
+      else
+        flushWaiters.forEach(resolve => resolve());
+      if (this.taskQueue.length > 0)
+        void this.processQueue();
     }
   }
 
-  private static queueBuildSystem(workspaceFolder: vscode.WorkspaceFolder) {
+  private static getBroaderScanningEvent(current: ScanningEvent | undefined, candidate: ScanningEvent): ScanningEvent {
+    if (!current)
+      return candidate;
+
+    const priority: Record<ScanningEvent, number> = {
+      generators: 3,
+      workspaces: 2,
+      targets: 1,
+      configurations: 0
+    };
+    return priority[candidate] > priority[current] ? candidate : current;
+  }
+
+  private static queueBuildSystem(workspaceFolder: vscode.WorkspaceFolder, coalesce: boolean = false) {
     const key = `buildSystem:${workspaceFolder.uri.fsPath}`;
-    this.enqueueTask({
+    const task: ScanTask = {
       kind: 'buildSystem',
       workspaceFolder,
       event: 'generators',
       key
-    });
+    };
+    if (coalesce)
+      this.scheduleTask(task);
+    else
+      this.enqueueTask(task);
   }
 
   /**
@@ -196,54 +317,74 @@ export class BuildSystemScanner {
     await Promise.allSettled(tasks);
   }
 
-  private static queueWorkspaces(generatorPath: string) {
+  private static queueWorkspaces(generatorPath: string, coalesce: boolean = false) {
     const key = `workspaces:${generatorPath}`;
-    this.enqueueTask({
+    const task: ScanTask = {
       kind: 'workspaces',
       generatorPath,
       event: 'workspaces',
       key
-    });
+    };
+    if (coalesce)
+      this.scheduleTask(task);
+    else
+      this.enqueueTask(task);
   }
 
-  private static queueTargets(workspacePath: string) {
+  private static queueTargets(workspacePath: string, coalesce: boolean = false) {
     const key = `targets:${workspacePath}`;
-    this.enqueueTask({
+    const task: ScanTask = {
       kind: 'targets',
       workspacePath,
       event: 'targets',
       key
-    });
+    };
+    if (coalesce)
+      this.scheduleTask(task);
+    else
+      this.enqueueTask(task);
   }
 
-  private static queueConfigurations(targetPath: string) {
+  private static queueConfigurations(targetPath: string, coalesce: boolean = false) {
     const key = `configurations:${targetPath}`;
-    this.enqueueTask({
+    const task: ScanTask = {
       kind: 'configurations',
       targetPath,
       event: 'configurations',
       key
-    });
+    };
+    if (coalesce)
+      this.scheduleTask(task);
+    else
+      this.enqueueTask(task);
   }
 
-  private static queueSingleTargetConfiguration(targetConfigPath: string) {
+  private static queueSingleTargetConfiguration(targetConfigPath: string, coalesce: boolean = false) {
     const key = `singleTargetConfig:${targetConfigPath}`;
-    this.enqueueTask({
+    const task: ScanTask = {
       kind: 'singleTargetConfig',
       targetConfigPath,
       event: 'targets',
       key
-    });
+    };
+    if (coalesce)
+      this.scheduleTask(task);
+    else
+      this.enqueueTask(task);
   }
 
-  private static queuePostCopyUpdate(generatorPath: string) {
+  private static queuePostCopyUpdate(generatorPath: string, coalesce: boolean = false) {
     const key = `postCopy:${generatorPath}`;
-    this.enqueueTask({
+    const task: ScanTask = {
       kind: 'postCopyUpdate',
       generatorPath,
       event: 'generators',
       key
-    });
+    };
+    if (coalesce)
+      this.scheduleTask(task);
+    else
+      this.enqueueTask(task);
   }
 
   /**
@@ -251,6 +392,7 @@ export class BuildSystemScanner {
    * enqueue a flush task that resolves when all prior tasks have completed.
    */
   public static async waitForScannerQueue(): Promise<void> {
+    this.flushPendingTasks();
     const isBusy = this.processingQueue || this.taskQueue.length > 0;
     if (!isBusy)
       return;
@@ -276,11 +418,11 @@ export class BuildSystemScanner {
     const generatorWatcher = vscode.workspace.createFileSystemWatcher(generatorPattern);
 
     generatorWatcher.onDidCreate(() => {
-      this.queueBuildSystem(workspaceFolder);
+      this.queueBuildSystem(workspaceFolder, true);
     });
 
     generatorWatcher.onDidDelete(() => {
-      this.queueBuildSystem(workspaceFolder);
+      this.queueBuildSystem(workspaceFolder, true);
     });
 
     disposables.push(generatorWatcher);
@@ -291,11 +433,11 @@ export class BuildSystemScanner {
 
     configStoreWatcher.onDidCreate(() => {
       // Re-scan full BuildSystem to pick up new generator workspaces
-      this.queueBuildSystem(workspaceFolder);
+      this.queueBuildSystem(workspaceFolder, true);
     });
 
     configStoreWatcher.onDidDelete(() => {
-      this.queueBuildSystem(workspaceFolder);
+      this.queueBuildSystem(workspaceFolder, true);
     });
 
     disposables.push(configStoreWatcher);
@@ -306,12 +448,12 @@ export class BuildSystemScanner {
 
     workspaceWatcher.onDidCreate(uri => {
       const generatorPath = path.dirname(path.dirname(uri.fsPath));
-      this.queueWorkspaces(generatorPath);
+      this.queueWorkspaces(generatorPath, true);
     });
 
     workspaceWatcher.onDidDelete(uri => {
       const generatorPath = path.dirname(path.dirname(uri.fsPath));
-      this.queueWorkspaces(generatorPath);
+      this.queueWorkspaces(generatorPath, true);
     });
 
     disposables.push(workspaceWatcher);
@@ -323,19 +465,19 @@ export class BuildSystemScanner {
     workspaceConfigWatcher.onDidCreate(uri => {
       const workspacePath = path.dirname(path.dirname(uri.fsPath));
       const generatorPath = path.dirname(path.dirname(workspacePath));
-      this.queueWorkspaces(generatorPath);
+      this.queueWorkspaces(generatorPath, true);
     });
 
     workspaceConfigWatcher.onDidChange(uri => {
       const workspacePath = path.dirname(path.dirname(uri.fsPath));
       const generatorPath = path.dirname(path.dirname(workspacePath));
-      this.queueWorkspaces(generatorPath);
+      this.queueWorkspaces(generatorPath, true);
     });
 
     workspaceConfigWatcher.onDidDelete(uri => {
       const workspacePath = path.dirname(path.dirname(uri.fsPath));
       const generatorPath = path.dirname(path.dirname(workspacePath));
-      this.queueWorkspaces(generatorPath);
+      this.queueWorkspaces(generatorPath, true);
     });
 
     disposables.push(workspaceConfigWatcher);
@@ -346,12 +488,12 @@ export class BuildSystemScanner {
 
     targetWatcher.onDidCreate(uri => {
       const workspacePath = path.dirname(path.dirname(uri.fsPath));
-      this.queueTargets(workspacePath);
+      this.queueTargets(workspacePath, true);
     });
 
     targetWatcher.onDidDelete(uri => {
       const workspacePath = path.dirname(path.dirname(uri.fsPath));
-      this.queueTargets(workspacePath);
+      this.queueTargets(workspacePath, true);
     });
 
     disposables.push(targetWatcher);
@@ -362,13 +504,13 @@ export class BuildSystemScanner {
 
     configWatcher.onDidCreate(uri => {
       const targetPath = path.dirname(path.dirname(uri.fsPath));
-      this.queueConfigurations(targetPath);
-      this.queueSingleTargetConfiguration(uri.fsPath);
+      this.queueConfigurations(targetPath, true);
+      this.queueSingleTargetConfiguration(uri.fsPath, true);
     });
 
     configWatcher.onDidDelete(uri => {
       const targetPath = path.dirname(path.dirname(uri.fsPath));
-      this.queueConfigurations(targetPath);
+      this.queueConfigurations(targetPath, true);
     });
 
     disposables.push(configWatcher);
@@ -379,17 +521,17 @@ export class BuildSystemScanner {
 
     postCopyWatcher.onDidCreate(uri => {
       const generatorPath = path.dirname(uri.fsPath);
-      this.queuePostCopyUpdate(generatorPath);
+      this.queuePostCopyUpdate(generatorPath, true);
     });
 
     postCopyWatcher.onDidChange(uri => {
       const generatorPath = path.dirname(uri.fsPath);
-      this.queuePostCopyUpdate(generatorPath);
+      this.queuePostCopyUpdate(generatorPath, true);
     });
 
     postCopyWatcher.onDidDelete(uri => {
       const generatorPath = path.dirname(uri.fsPath);
-      this.queuePostCopyUpdate(generatorPath);
+      this.queuePostCopyUpdate(generatorPath, true);
     });
 
     disposables.push(postCopyWatcher);
