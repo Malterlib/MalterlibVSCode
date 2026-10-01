@@ -68,12 +68,19 @@ export class MalterlibLaunchProvider implements vscode.DebugConfigurationProvide
     debugConfiguration: vscode.DebugConfiguration,
     _token?: vscode.CancellationToken
   ): Promise<vscode.DebugConfiguration | undefined> {
+    const isEmpty = !debugConfiguration || Object.keys(debugConfiguration).length === 0;
+    const isStub = !isEmpty && (debugConfiguration.malterlib?.useSelection === true || (!debugConfiguration.program && typeof debugConfiguration.name === 'string' && debugConfiguration.name.startsWith('Malterlib:')));
+
+    // This provider is called for every lldb configuration. Leave the ones that are not ours alone.
+    if (!isEmpty && !isStub)
+      return debugConfiguration;
+
     const workspaceFolder = this.getSelectedWorkspaceFolder();
     if (!workspaceFolder)
-      return undefined;
+      return isEmpty ? debugConfiguration : undefined;
 
     // If user invoked generic 'Run and Debug' without launch.json, synthesize from selection
-    if (!debugConfiguration || Object.keys(debugConfiguration).length === 0) {
+    if (isEmpty) {
       const configs = await this.createDebugConfigurations();
       if (configs.length > 1) {
         const preLaunchTask = debugConfiguration?.preLaunchTask;
@@ -90,27 +97,23 @@ export class MalterlibLaunchProvider implements vscode.DebugConfigurationProvide
       return undefined;
     }
 
-    // If a stub was inserted into launch.json, resolve it to the current selection
-    if (debugConfiguration.malterlib?.useSelection === true || (!debugConfiguration.program && typeof debugConfiguration.name === 'string' && debugConfiguration.name.startsWith('Malterlib:'))) {
-      const configs = await this.createDebugConfigurations();
-      if (configs.length === 0)
-        return undefined;
-      if (configs.length > 1) {
-        const preLaunchTask = debugConfiguration.preLaunchTask;
-        void Promise.all(configs.map(cfg => {
-          const merged = { ...cfg } as vscode.DebugConfiguration;
-          if (preLaunchTask) merged.preLaunchTask = preLaunchTask;
-          return vscode.debug.startDebugging(workspaceFolder, merged);
-        }));
-        return undefined;
-      }
-      const resolved = configs[0];
-      // Strip our internal marker if present
-      delete debugConfiguration.malterlib;
-      return { ...debugConfiguration, ...resolved };
+    // A stub was inserted into launch.json, resolve it to the current selection
+    const configs = await this.createDebugConfigurations();
+    if (configs.length === 0)
+      return undefined;
+    if (configs.length > 1) {
+      const preLaunchTask = debugConfiguration.preLaunchTask;
+      void Promise.all(configs.map(cfg => {
+        const merged = { ...cfg } as vscode.DebugConfiguration;
+        if (preLaunchTask) merged.preLaunchTask = preLaunchTask;
+        return vscode.debug.startDebugging(workspaceFolder, merged);
+      }));
+      return undefined;
     }
-
-    return debugConfiguration;
+    const resolved = configs[0];
+    // Strip our internal marker if present
+    delete debugConfiguration.malterlib;
+    return { ...debugConfiguration, ...resolved };
   }
 
   private async createDebugConfigurations(): Promise<vscode.DebugConfiguration[]> {
