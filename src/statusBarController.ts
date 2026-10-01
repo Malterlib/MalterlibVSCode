@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { StatusBar } from './statusBar';
-import { BuildSystemScanner, GeneratorInfo } from './buildSystemScanner';
+import { BuildSystemScanner, GeneratorInfo, WorkspaceInfo } from './buildSystemScanner';
 import { MalterlibProjectDetector } from './malterlibProject';
-import { CompileCommandsGenerator } from './compileCommandsGenerator';
+import { CompileCommandsGenerator, CompileCommandsInput } from './compileCommandsGenerator';
 
 export interface SelectionChangeEvent {
   generator: string | null;
@@ -10,6 +10,14 @@ export interface SelectionChangeEvent {
   configuration: string | null;
   target: string | null;
   debugTargets: string[];
+}
+
+interface CompileCommandsSelection {
+  workspaceFolder: vscode.WorkspaceFolder;
+  generator: GeneratorInfo;
+  workspace: WorkspaceInfo;
+  configuration: string;
+  target: string | undefined;
 }
 
 export class StatusBarController implements vscode.Disposable {
@@ -26,6 +34,11 @@ export class StatusBarController implements vscode.Disposable {
   private currentDebugTargets: string[] = [];
   private selectedWorkspaceFolder: vscode.WorkspaceFolder | null = null;
   private compileCommandsWatcher: vscode.Disposable | null = null;
+  private compileCommandsWatcherPath: string | null = null;
+  private compileCommandsTimer: NodeJS.Timeout | null = null;
+  // Selection and per-target inputs of the last requested compile_commands.json merge
+  private compileCommandsSignature: string | null = null;
+  private compileCommandsInputKeys = new Set<string>();
   private cascadeAutoSelectionTimer: NodeJS.Timeout | null = null;
   private lastLoggedMessage: string | null = null;
 
@@ -44,6 +57,7 @@ export class StatusBarController implements vscode.Disposable {
     this.statusBar = statusBar;
     this.output = output;
     this.workspaceState = workspaceState;
+    CompileCommandsGenerator.setOutputChannel(output);
 
     // Update status bar and validate selections on scanning changes
     this.disposables.push(
@@ -58,6 +72,9 @@ export class StatusBarController implements vscode.Disposable {
         this.cascadeAutoSelectionTimer = setTimeout(() => {
           this.cascadeAutoSelection();
           this.cascadeAutoSelectionTimer = null;
+
+          // A rescan may add, remove or retarget the per-target files that make up compile_commands.json
+          this.generateCompileCommandsIfInputsChanged();
         }, 500); // 500ms delay
       })
     );
@@ -69,6 +86,11 @@ export class StatusBarController implements vscode.Disposable {
   dispose(): void {
     this.disposables.forEach(d => d.dispose());
     this.compileCommandsWatcher?.dispose();
+    this.compileCommandsWatcher = null;
+    if (this.compileCommandsTimer) {
+      clearTimeout(this.compileCommandsTimer);
+      this.compileCommandsTimer = null;
+    }
     if (this.cascadeAutoSelectionTimer) {
       clearTimeout(this.cascadeAutoSelectionTimer);
       this.cascadeAutoSelectionTimer = null;
@@ -689,6 +711,9 @@ export class StatusBarController implements vscode.Disposable {
         this.selectedWorkspaceFolder = selectedChoice.workspaceFolder;
         this.cascadeAutoSelection(fallbacks);
 
+        // The generator decides which ConfigStore the merged compile_commands.json comes from
+        void this.generateCompileCommands();
+
         // Save selections to workspace state
         void this.saveSelections();
       }
@@ -1092,56 +1117,182 @@ export class StatusBarController implements vscode.Disposable {
    */
   public async generateCompileCommands(showNotification: boolean = false): Promise<void> {
     if (!this.selectedWorkspaceFolder || !this.currentGenerator || !this.currentWorkspace || !this.currentConfiguration) {
+      this.stopCompileCommandsTracking();
       if (showNotification)
         vscode.window.showWarningMessage('Please select generator, workspace, and configuration first.');
       return;
     }
 
-    const generators = BuildSystemScanner.getGenerators(this.selectedWorkspaceFolder);
-    const selectedGenerator = generators.find(gen => gen.name === this.currentGenerator);
-    if (!selectedGenerator)
+    const selection = this.getCompileCommandsSelection();
+    if (!selection) {
+      this.stopCompileCommandsTracking();
       return;
-
-    const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
-    const selectedWorkspaceInfo = workspaces.find(ws => ws.name === this.currentWorkspace);
-    if (!selectedWorkspaceInfo)
-      return;
-
-    // Dispose existing watcher
-    if (this.compileCommandsWatcher) {
-      this.compileCommandsWatcher.dispose();
-      this.compileCommandsWatcher = null;
     }
+
+    // Watch before merging so that per-target files written while the merge runs are not missed
+    this.setCompileCommandsWatcher(selection.generator.configStorePath);
+    const inputs = this.getCompileCommandsInputs(selection);
+    this.compileCommandsSignature = this.getCompileCommandsSignature(selection, inputs);
+    this.compileCommandsInputKeys = this.getCompileCommandsInputKeys(inputs);
 
     try {
       this.output.appendLine('Generating compile_commands.json...');
 
       const outputPath = await CompileCommandsGenerator.generateForWorkspace(
-        this.selectedWorkspaceFolder,
-        selectedWorkspaceInfo.path,
-        this.currentConfiguration,
-        this.currentTarget || undefined,
-        selectedGenerator.path
+        selection.workspaceFolder,
+        selection.workspace.path,
+        selection.configuration,
+        selection.target,
+        selection.generator.path
       );
 
       if (outputPath) {
         this.output.appendLine(`Generated compile_commands.json at: ${outputPath}`);
         if (showNotification)
-          vscode.window.showInformationMessage(`Generated compile_commands.json for ${this.currentConfiguration}`);
-
-        // Set up watcher for changes
-        this.compileCommandsWatcher = CompileCommandsGenerator.createWatcher(
-          this.selectedWorkspaceFolder,
-          selectedWorkspaceInfo.path,
-          this.currentConfiguration,
-          this.currentTarget || undefined,
-          selectedGenerator.path
-        );
+          vscode.window.showInformationMessage(`Generated compile_commands.json for ${selection.configuration}`);
       }
     } catch (error) {
       this.output.appendLine(`Error generating compile_commands.json: ${error}`);
       if (showNotification)
         vscode.window.showErrorMessage(`Failed to generate compile_commands.json: ${error}`);
     }
+  }
+
+  /**
+   * Regenerate compile_commands.json if the selection or the set of per-target files it is merged from changed
+   * since the last merge, e.g. after a ConfigStore rescan found new targets or configurations
+   */
+  private generateCompileCommandsIfInputsChanged(): void {
+    const selection = this.getCompileCommandsSelection();
+    if (!selection) {
+      this.stopCompileCommandsTracking();
+      return;
+    }
+
+    const inputs = this.getCompileCommandsInputs(selection);
+
+    // While the ConfigStore is being regenerated the scanner can briefly see no targets. Merging would only warn
+    // and leave the file as is, and the scan that sees the targets again compares against the last real merge
+    if (inputs.length === 0)
+      return;
+
+    if (this.getCompileCommandsSignature(selection, inputs) !== this.compileCommandsSignature)
+      void this.generateCompileCommands();
+  }
+
+  /**
+   * Regenerate compile_commands.json once a burst of per-target compile_commands.json writes has settled
+   */
+  private scheduleCompileCommandsGeneration(): void {
+    if (this.compileCommandsTimer)
+      clearTimeout(this.compileCommandsTimer);
+
+    this.compileCommandsTimer = setTimeout(() => {
+      this.compileCommandsTimer = null;
+      void this.generateCompileCommands();
+    }, 1000);
+  }
+
+  /**
+   * Called for every per-target compile_commands.json in the selected generator's ConfigStore. Only files that are
+   * merged for the current selection matter: a file for a target or configuration the scanner doesn't know yet is
+   * picked up by the merge that follows the rescan that finds it.
+   */
+  private onCompileCommandsFileChanged(uri: vscode.Uri): void {
+    const selection = this.getCompileCommandsSelection();
+    if (!selection) {
+      // The selection is being restored after a rescan. Make the merge check that follows the rescan regenerate,
+      // as this change can't be attributed now
+      this.compileCommandsSignature = null;
+      return;
+    }
+
+    const inputKey = CompileCommandsGenerator.getInputKey(uri.fsPath);
+    if (this.getCompileCommandsInputKeys(this.getCompileCommandsInputs(selection)).has(inputKey))
+      this.scheduleCompileCommandsGeneration();
+    else if (this.compileCommandsInputKeys.has(inputKey)) {
+      // A file of the last merge whose target the scanner has dropped, possibly only while the ConfigStore is being
+      // regenerated. If the rescan that finds it again restores the same inputs, the signature alone would not show
+      // that its content changed, so make that check regenerate
+      this.compileCommandsSignature = null;
+    }
+  }
+
+  /**
+   * Stop watching per-target files and forget the last merge, so the next merge check regenerates. Changes made
+   * while nothing was watching can only be picked up by merging again.
+   */
+  private stopCompileCommandsTracking(): void {
+    this.setCompileCommandsWatcher(null);
+    this.compileCommandsSignature = null;
+    this.compileCommandsInputKeys.clear();
+    if (this.compileCommandsTimer) {
+      clearTimeout(this.compileCommandsTimer);
+      this.compileCommandsTimer = null;
+    }
+  }
+
+  /**
+   * Watch the per-target compile_commands.json files of a generator's ConfigStore, or stop watching with null.
+   * The watcher reads the current selection when files change, so it only needs replacing when the generator changes.
+   */
+  private setCompileCommandsWatcher(configStorePath: string | null): void {
+    if (configStorePath === this.compileCommandsWatcherPath)
+      return;
+
+    // Create the new watcher before disposing the old one so there is no window without a watcher
+    const previousWatcher = this.compileCommandsWatcher;
+    this.compileCommandsWatcher = configStorePath
+      ? CompileCommandsGenerator.createWatcher(configStorePath, uri => this.onCompileCommandsFileChanged(uri))
+      : null;
+    this.compileCommandsWatcherPath = configStorePath;
+    previousWatcher?.dispose();
+  }
+
+  private getCompileCommandsSelection(): CompileCommandsSelection | null {
+    if (!this.selectedWorkspaceFolder || !this.currentGenerator || !this.currentWorkspace || !this.currentConfiguration)
+      return null;
+
+    const generators = BuildSystemScanner.getGenerators(this.selectedWorkspaceFolder);
+    const selectedGenerator = generators.find(gen => gen.name === this.currentGenerator);
+    if (!selectedGenerator)
+      return null;
+
+    const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
+    const selectedWorkspaceInfo = workspaces.find(ws => ws.name === this.currentWorkspace);
+    if (!selectedWorkspaceInfo)
+      return null;
+
+    return {
+      workspaceFolder: this.selectedWorkspaceFolder,
+      generator: selectedGenerator,
+      workspace: selectedWorkspaceInfo,
+      configuration: this.currentConfiguration,
+      target: this.currentTarget || undefined
+    };
+  }
+
+  private getCompileCommandsInputs(selection: CompileCommandsSelection): CompileCommandsInput[] {
+    return CompileCommandsGenerator.getInputs(selection.workspace.path, selection.configuration, selection.generator.path);
+  }
+
+  private getCompileCommandsInputKeys(inputs: CompileCommandsInput[]): Set<string> {
+    const keys = new Set<string>();
+    for (const input of inputs) {
+      if (input.compileCommandsPath)
+        keys.add(CompileCommandsGenerator.getInputKey(input.compileCommandsPath));
+    }
+    return keys;
+  }
+
+  private getCompileCommandsSignature(selection: CompileCommandsSelection, inputs: CompileCommandsInput[]): string {
+    return JSON.stringify({
+      workspaceFolder: selection.workspaceFolder.uri.fsPath,
+      generator: selection.generator.path,
+      workspace: selection.workspace.path,
+      configuration: selection.configuration,
+      target: selection.target ?? null,
+      inputs: inputs.map(input => [input.workspaceName, input.targetName, input.configurationName, input.compileCommandsPath ?? null])
+    });
   }
 }

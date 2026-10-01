@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { promises as fsp } from 'fs';
 import * as path from 'path';
-import { BuildSystemScanner, TargetInfo } from './buildSystemScanner';
+import { BuildSystemScanner } from './buildSystemScanner';
 
 export interface CompileCommand {
   directory: string;
@@ -11,6 +11,20 @@ export interface CompileCommand {
   output?: string;
 }
 
+/**
+ * A per-target compile_commands.json that contributes to the merged file
+ */
+export interface CompileCommandsInput {
+  workspaceName: string;
+  targetName: string;
+  configurationName: string;
+  compileCommandsPath?: string;
+  // True for targets in other workspaces of the generator, which only fill in files the selected workspace lacks
+  otherWorkspace: boolean;
+  // True when an other-workspace target has no configuration matching the selected one
+  fallbackConfiguration: boolean;
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -18,6 +32,8 @@ function sleep(ms: number): Promise<void> {
 }
 
 export class CompileCommandsGenerator {
+  private static output: vscode.OutputChannel | undefined;
+  private static lastFallbackMessage: string | undefined;
   private static isGenerating = false;
   private static pendingRequests = new Map<string, {
     workspacePath: string;
@@ -29,6 +45,13 @@ export class CompileCommandsGenerator {
       reject: (error: any) => void;
     }>;
   }>();
+
+  /**
+   * Set the output channel used to report how the merged file was assembled
+   */
+  public static setOutputChannel(output: vscode.OutputChannel): void {
+    this.output = output;
+  }
 
   /**
    * Generate a merged compile_commands.json file for a workspace
@@ -169,36 +192,47 @@ export class CompileCommandsGenerator {
         return null;
       }
 
+      const inputs = this.getInputs(workspacePath, configurationName, generatorPath);
+      this.logFallbackConfigurations(inputs, configurationName);
+
       // Collect all compile commands from all targets
       const commandMap = new Map<string, CompileCommand[]>();
 
-      for (const target of targets) {
-        const commands = await this.getTargetCompileCommands(target, configurationName);
-        if (commands.length > 0) {
-          // Group commands by file
-          for (const command of commands) {
-            const key = this.getCommandKey(command);
-            if (!commandMap.has(key))
-              commandMap.set(key, []);
-            const existingCommands = commandMap.get(key)!;
+      for (const input of inputs) {
+        const commands = await this.readCompileCommands(input);
+        for (const command of commands) {
+          const key = this.getCommandKey(command);
 
-            // Check if this exact command already exists
-            const isDuplicate = existingCommands.some(existing =>
-              this.areCommandsIdentical(existing, command)
-            );
+          // Other workspaces only add files that are not already in the map.
+          // This is different from the selected workspace which checks if commands are identical
+          if (input.otherWorkspace) {
+            if (!commandMap.has(key)) {
+              commandMap.set(key, [command]);
 
-            if (!isDuplicate) {
-              existingCommands.push(command);
-              // Mark which target this command came from
-              (command as any).__target = target.name;
+              // Mark which workspace and target this command came from
+              (command as any).__workspace = input.workspaceName;
+              (command as any).__target = input.targetName;
             }
+            continue;
+          }
+
+          // Group commands by file
+          if (!commandMap.has(key))
+            commandMap.set(key, []);
+          const existingCommands = commandMap.get(key)!;
+
+          // Check if this exact command already exists
+          const isDuplicate = existingCommands.some(existing =>
+            this.areCommandsIdentical(existing, command)
+          );
+
+          if (!isDuplicate) {
+            existingCommands.push(command);
+            // Mark which target this command came from
+            (command as any).__target = input.targetName;
           }
         }
       }
-
-      // Add commands from other workspaces if generator path is provided
-      if (generatorPath)
-        await this.addCommandsFromOtherWorkspaces(commandMap, workspacePath, generatorPath, configurationName);
 
       // Build final command list with proper ordering
       const allCommands: CompileCommand[] = [];
@@ -253,31 +287,130 @@ export class CompileCommandsGenerator {
   }
 
   /**
-   * Get compile commands for a specific target and configuration
+   * Get the per-target compile_commands.json files that make up the merged file, in merge order:
+   * the selected workspace's targets first, then the targets of the generator's other workspaces
    */
-  private static async getTargetCompileCommands(
-    target: TargetInfo,
-    configurationName: string
-  ): Promise<CompileCommand[]> {
-    try {
-      // Get the target's configurations
-      if (!target.configurations)
-        return [];
+  public static getInputs(
+    workspacePath: string,
+    configurationName: string,
+    generatorPath?: string
+  ): CompileCommandsInput[] {
+    const inputs: CompileCommandsInput[] = [];
+    const workspaceName = path.basename(workspacePath);
 
-      const targetConfig = target.configurations.get(configurationName);
-      if (!targetConfig || !targetConfig.compileCommands || !(await BuildSystemScanner.pathExists(targetConfig.compileCommands)))
+    for (const target of BuildSystemScanner.getTargets(workspacePath)) {
+      const targetConfig = target.configurations?.get(configurationName);
+      if (!targetConfig)
+        continue;
+      inputs.push({
+        workspaceName,
+        targetName: target.name,
+        configurationName,
+        compileCommandsPath: targetConfig.compileCommands,
+        otherWorkspace: false,
+        fallbackConfiguration: false
+      });
+    }
+
+    if (!generatorPath)
+      return inputs;
+
+    // Extract base configuration name (strip suffix like " (Tests)")
+    const baseConfigName = configurationName.replace(/ \(.*\)$/, '');
+
+    for (const workspace of BuildSystemScanner.getWorkspaces(generatorPath)) {
+      // Skip the current workspace
+      if (workspace.path === workspacePath)
+        continue;
+
+      for (const target of BuildSystemScanner.getTargets(workspace.path)) {
+        if (!target.configurations)
+          continue;
+
+        // Try to find the best matching configuration
+        const availableConfigs = Array.from(target.configurations.keys());
+        let selectedConfig: string | undefined;
+        let fallbackConfiguration = false;
+
+        // 1. Try exact match
+        if (availableConfigs.includes(configurationName))
+          selectedConfig = configurationName;
+        // 2. Try base config match (e.g., "Release Testing" matches "Release Testing (Tests)")
+        else if (availableConfigs.some(c => c.replace(/ \(.*\)$/, '') === baseConfigName))
+          selectedConfig = availableConfigs.find(c => c.replace(/ \(.*\)$/, '') === baseConfigName);
+        // 3. Use any available configuration as fallback
+        else if (availableConfigs.length > 0) {
+          selectedConfig = availableConfigs[0];
+          fallbackConfiguration = true;
+        }
+
+        if (!selectedConfig)
+          continue;
+
+        inputs.push({
+          workspaceName: workspace.name,
+          targetName: target.name,
+          configurationName: selectedConfig,
+          compileCommandsPath: target.configurations.get(selectedConfig)?.compileCommands,
+          otherWorkspace: true,
+          fallbackConfiguration
+        });
+      }
+    }
+
+    return inputs;
+  }
+
+  /**
+   * Get a key that identifies a per-target compile_commands.json both from the absolute path stored in its target
+   * configuration and from a file watcher event, even when the two are spelled with different roots (for example
+   * through a symlinked workspace folder). The layout is <Workspace>/Targets/<Target>/<Configuration>/compile_commands.json.
+   */
+  public static getInputKey(compileCommandsPath: string): string {
+    const key = path.normalize(compileCommandsPath).split(path.sep).slice(-5).join('/');
+    return process.platform === 'linux' ? key : key.toLowerCase();
+  }
+
+  /**
+   * Read the compile commands of one input
+   */
+  private static async readCompileCommands(input: CompileCommandsInput): Promise<CompileCommand[]> {
+    try {
+      if (!input.compileCommandsPath || !(await BuildSystemScanner.pathExists(input.compileCommandsPath)))
         return [];
 
       // Read the compile_commands.json file
-      const compileCommandsPath = targetConfig.compileCommands;
-      const content = await fsp.readFile(compileCommandsPath, 'utf8');
-      const commands = JSON.parse(content) as CompileCommand[];
-
-      return commands;
+      const content = await fsp.readFile(input.compileCommandsPath, 'utf8');
+      return JSON.parse(content) as CompileCommand[];
     } catch (error) {
-      console.error(`Error reading compile commands for target ${target.name}:`, error);
+      console.error(`Error reading compile commands for target ${input.targetName}:`, error);
       return [];
     }
+  }
+
+  /**
+   * Report other-workspace targets whose commands come from an unrelated configuration (which may be another
+   * platform or architecture). Only logs when the set changes, as merges repeat whenever per-target files change.
+   */
+  private static logFallbackConfigurations(inputs: CompileCommandsInput[], configurationName: string): void {
+    const counts = new Map<string, number>();
+    for (const input of inputs) {
+      if (!input.fallbackConfiguration)
+        continue;
+      const key = `${input.workspaceName}: '${input.configurationName}'`;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+
+    const message = counts.size === 0
+      ? undefined
+      : `compile_commands.json: some targets in other workspaces have no '${configurationName}' configuration, using fallback configurations: ` +
+        Array.from(counts, ([key, count]) => `${key} (${count} target${count === 1 ? '' : 's'})`).join(', ');
+
+    if (message === this.lastFallbackMessage)
+      return;
+    this.lastFallbackMessage = message;
+    if (message)
+      this.output?.appendLine(message);
   }
 
   /**
@@ -311,27 +444,20 @@ export class CompileCommandsGenerator {
   }
 
   /**
-   * Watch for changes in compile_commands.json files and regenerate merged file
+   * Watch the per-target compile_commands.json files of a generator
+   * @param configStorePath The generator's ConfigStore directory
+   * @param listener Called with the changed file, which may or may not be an input of the current merge
    */
-  public static createWatcher(
-    workspaceFolder: vscode.WorkspaceFolder,
-    workspacePath: string,
-    configurationName: string,
-    selectedTarget?: string,
-    generatorPath?: string
-  ): vscode.Disposable {
-    const pattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Targets/*/*/compile_commands.json');
+  public static createWatcher(configStorePath: string, listener: (uri: vscode.Uri) => void): vscode.Disposable {
+    const pattern = new vscode.RelativePattern(vscode.Uri.file(configStorePath), '*/Targets/*/*/compile_commands.json');
     const watcher = vscode.workspace.createFileSystemWatcher(pattern);
 
-    const regenerate = async () => {
-      await this.generateForWorkspace(workspaceFolder, workspacePath, configurationName, selectedTarget, generatorPath);
-    };
-
-    watcher.onDidCreate(regenerate);
-    watcher.onDidChange(regenerate);
-    watcher.onDidDelete(regenerate);
-
-    return watcher;
+    return vscode.Disposable.from(
+      watcher,
+      watcher.onDidCreate(listener),
+      watcher.onDidChange(listener),
+      watcher.onDidDelete(listener)
+    );
   }
 
   /**
@@ -348,73 +474,6 @@ export class CompileCommandsGenerator {
     }
 
     this.pendingRequests.clear();
-  }
-
-  /**
-   * Add compile commands from other workspaces with the same generator
-   * @param commandMap The existing command map to add to
-   * @param currentWorkspacePath The current workspace path to exclude
-   * @param generatorPath The generator path to find other workspaces for
-   * @param configurationName The configuration to use for the other workspaces
-   */
-  private static async addCommandsFromOtherWorkspaces(
-    commandMap: Map<string, CompileCommand[]>,
-    currentWorkspacePath: string,
-    generatorPath: string,
-    configurationName: string
-  ): Promise<void> {
-    // Get all workspaces for this generator
-    const allWorkspaces = BuildSystemScanner.getWorkspaces(generatorPath);
-
-    // Extract base configuration name (strip suffix like " (Tests)")
-    const baseConfigName = configurationName.replace(/ \(.*\)$/, '');
-
-    for (const workspace of allWorkspaces) {
-      // Skip the current workspace
-      if (workspace.path === currentWorkspacePath)
-        continue;
-
-      // Get all targets in this workspace
-      const targets = BuildSystemScanner.getTargets(workspace.path);
-
-      for (const target of targets) {
-        // Try to find the best matching configuration
-        let selectedConfig: string | undefined;
-
-        if (target.configurations) {
-          const availableConfigs = Array.from(target.configurations.keys());
-
-          // 1. Try exact match
-          if (availableConfigs.includes(configurationName))
-            selectedConfig = configurationName;
-          // 2. Try base config match (e.g., "Release Testing" matches "Release Testing (Tests)")
-          else if (availableConfigs.some(c => c.replace(/ \(.*\)$/, '') === baseConfigName))
-            selectedConfig = availableConfigs.find(c => c.replace(/ \(.*\)$/, '') === baseConfigName);
-          // 3. Use any available configuration as fallback
-          else if (availableConfigs.length > 0)
-            selectedConfig = availableConfigs[0];
-        }
-
-        if (!selectedConfig)
-          continue;
-
-        const commands = await this.getTargetCompileCommands(target, selectedConfig);
-
-        for (const command of commands) {
-          const key = this.getCommandKey(command);
-
-          // Only add if the file is not already in the map
-          // This is different from the main selection which checks if commands are identical
-          if (!commandMap.has(key)) {
-            commandMap.set(key, [command]);
-
-            // Mark which workspace and target this command came from
-            (command as any).__workspace = workspace.name;
-            (command as any).__target = target.name;
-          }
-        }
-      }
-    }
   }
 
   /**

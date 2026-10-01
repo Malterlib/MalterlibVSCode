@@ -496,17 +496,31 @@ export class BuildSystemScanner {
       this.queueTargets(workspacePath, true);
     });
 
+    // A target JSON's priority decides the target order, which also orders the merged compile_commands.json.
+    // Only the JSON files: change events for the target directories would rescan the workspace on every write inside them
+    targetWatcher.onDidChange(uri => {
+      if (!uri.fsPath.endsWith('.json'))
+        return;
+      const workspacePath = path.dirname(path.dirname(uri.fsPath));
+      this.queueTargets(workspacePath, true);
+    });
+
     disposables.push(targetWatcher);
 
     // Watch for configuration changes
     const configPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Targets/*/Configs/*');
     const configWatcher = vscode.workspace.createFileSystemWatcher(configPattern);
 
-    configWatcher.onDidCreate(uri => {
+    const onConfigCreatedOrChanged = (uri: vscode.Uri) => {
       const targetPath = path.dirname(path.dirname(uri.fsPath));
       this.queueConfigurations(targetPath, true);
       this.queueSingleTargetConfiguration(uri.fsPath, true);
-    });
+    };
+
+    configWatcher.onDidCreate(onConfigCreatedOrChanged);
+
+    // Existing configurations are rewritten when their settings change, e.g. when they gain a compileCommands path
+    configWatcher.onDidChange(onConfigCreatedOrChanged);
 
     configWatcher.onDidDelete(uri => {
       const targetPath = path.dirname(path.dirname(uri.fsPath));
