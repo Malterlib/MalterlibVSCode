@@ -15,6 +15,8 @@ export interface GeneratorInfo {
   outputDir?: string;
   buildTargetScript?: string;
   buildWorkspaceScript?: string;
+  tidyTargetScript?: string;
+  tidyWorkspaceScript?: string;
   postCopyProjects?: Map<string, PostCopyProject>;
 }
 
@@ -937,6 +939,10 @@ export class BuildSystemScanner {
           buildTargetScript = path.join(configStorePath, 'BuildTarget.sh');
           buildWorkspaceScript = path.join(configStorePath, 'BuildWorkspace.sh');
 
+          // The tidy scripts take the same arguments as the build scripts. A build system without them has no tidy tasks.
+          const tidyTargetScript = path.join(configStorePath, 'TidyTarget.sh');
+          const tidyWorkspaceScript = path.join(configStorePath, 'TidyWorkspace.sh');
+
           // Parse PostCopy.MConfig if it exists
           let postCopyProjects: Map<string, PostCopyProject> | undefined;
           const postCopyPath = path.join(generatorPath, 'PostCopy.MConfig');
@@ -955,6 +961,8 @@ export class BuildSystemScanner {
             outputDir,
             buildTargetScript,
             buildWorkspaceScript,
+            tidyTargetScript,
+            tidyWorkspaceScript,
             postCopyProjects
           });
 

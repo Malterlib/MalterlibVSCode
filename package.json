@@ -1629,6 +1629,8 @@
               "generate",
               "build",
               "buildTarget",
+              "tidyWorkspace",
+              "tidyTarget",
               "clean"
             ],
             "description": "The action to perform"

@@ -6,7 +6,7 @@ import { MalterlibProjectDetector } from './malterlibProject';
 
 interface MalterlibTaskDefinition extends vscode.TaskDefinition {
   type: 'malterlib';
-  action: 'generate' | 'build' | 'buildTarget' | 'clean';
+  action: 'generate' | 'build' | 'buildTarget' | 'tidyWorkspace' | 'tidyTarget' | 'clean';
   generator?: string;
   workspace?: string;
   configuration?: string;
@@ -22,6 +22,18 @@ interface GeneratorConfig {
 }
 
 const buildProblemMatchers = ['$malterlib-build-clang', '$malterlib-build-ld', '$malterlib-build-cl', '$malterlib-build-clang-cl', '$malterlib-buildsystem', '$malterlib-buildsystem-windows'];
+// The tidy scripts report clang-tidy's diagnostics in clang's format, with absolute paths.
+const tidyProblemMatchers = ['$malterlib-build-clang', '$malterlib-buildsystem', '$malterlib-buildsystem-windows'];
+
+/**
+ * Quote an argument for the shell that runs the tasks, Bash or Git Bash, unless the shell takes all its characters
+ * literally
+ */
+function escapeShellArg(arg: string): string {
+  if (/^[A-Za-z0-9_@%+=:,./-]+$/.test(arg))
+    return arg;
+  return `'${arg.replace(/'/g, "'\\''")}'`;
+}
 
 export class MalterlibTaskProvider implements vscode.TaskProvider {
   static readonly taskType = 'malterlib';
@@ -87,6 +99,33 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
         const buildTargetTask = this.createBuildTargetTask(workspaceFolder, selections);
         if (buildTargetTask)
           tasks.push(buildTargetTask);
+      }
+
+      // Task 5: Tidy workspace, with the compile commands of every target of the workspace and configuration
+      if (selections.workspace && selections.configuration) {
+        const tidyTask = this.createTask({
+          type: 'malterlib',
+          action: 'tidyWorkspace',
+          generator: selections.generator,
+          workspace: selections.workspace,
+          configuration: selections.configuration
+        }, workspaceFolder);
+        if (tidyTask)
+          tasks.push(tidyTask);
+      }
+
+      // Task 6: Tidy target (only when a specific target is selected)
+      if (selections.workspace && selections.configuration && selections.target && selections.target !== 'All Targets') {
+        const tidyTargetTask = this.createTask({
+          type: 'malterlib',
+          action: 'tidyTarget',
+          generator: selections.generator,
+          workspace: selections.workspace,
+          configuration: selections.configuration,
+          target: selections.target
+        }, workspaceFolder);
+        if (tidyTargetTask)
+          tasks.push(tidyTargetTask);
       }
     }
 
@@ -156,6 +195,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     if (definition.action === 'generate') return this.createGenerateTaskImpl(definition, wsFolder, includeWorkspace);
     if (definition.action === 'build') return this.createBuildTaskImpl(definition, wsFolder);
     if (definition.action === 'buildTarget') return this.createBuildTargetTaskImpl(definition, wsFolder);
+    if (definition.action === 'tidyWorkspace' || definition.action === 'tidyTarget') return this.createTidyTaskImpl(definition, wsFolder);
 
     return undefined;
   }
@@ -244,16 +284,6 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 
     // Build command arguments
     // BuildXcodeWorkspace.sh Workspace Platform Architecture Configuration BuildSystemDir
-
-    // Helper function to escape shell arguments
-    const escapeShellArg = (arg: string): string => {
-      // If the argument contains special characters, wrap it in single quotes
-      // and escape any single quotes within it
-      if (/[\\$`"'\s]/.test(arg))
-        return `'${arg.replace(/'/g, "'\\''")}'`;
-
-      return arg;
-    };
 
     const args = [
       definition.workspace,
@@ -356,15 +386,6 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     // BuildXcodeTarget.sh Workspace Target Platform Architecture Configuration BuildSystemDir
     // Use targetName override if specified in configuration, otherwise use the original target name
 
-    // Helper function to escape shell arguments
-    const escapeShellArg = (arg: string): string => {
-      // If the argument contains special characters, wrap it in single quotes
-      // and escape any single quotes within it
-      if (/[\\$`"'\s]/.test(arg))
-        return `'${arg.replace(/'/g, "'\\''")}'`;
-      return arg;
-    };
-
     const args = [
       definition.workspace,
       targetNameOverride || definition.target,
@@ -411,6 +432,94 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     task.group = vscode.TaskGroup.Build;
 
     // Get clear terminal configuration
+    const config = vscode.workspace.getConfiguration('malterlib', workspaceFolder);
+    const clearTerminal = config.get<boolean>('clearTerminalOnBuild', true);
+
+    task.presentationOptions = {
+      echo: true,
+      reveal: vscode.TaskRevealKind.Always,
+      focus: false,
+      panel: vscode.TaskPanelKind.Shared,
+      showReuseMessage: true,
+      clear: clearTerminal
+    };
+
+    return task;
+  }
+
+  // Runs the TidyWorkspace.sh or TidyTarget.sh script of the ConfigStore, with the arguments of the matching build
+  // script: Workspace [Target] Platform Architecture Configuration BuildSystemDir. Malterlib's run mib tidy over the
+  // compile commands of the workspace's targets, or of the target; another build system can supply its own.
+  private createTidyTaskImpl(definition: MalterlibTaskDefinition, workspaceFolder: vscode.WorkspaceFolder): vscode.Task | undefined {
+    if (!definition.generator || !definition.workspace || !definition.configuration) return undefined;
+    const bTarget = definition.action === 'tidyTarget';
+    if (bTarget && (!definition.target || definition.target === 'All Targets')) return undefined;
+
+    const generators = BuildSystemScanner.getGenerators(workspaceFolder);
+    const selectedGenerator = generators.find(gen => gen.name === definition.generator);
+    const tidyScript = bTarget ? selectedGenerator?.tidyTargetScript : selectedGenerator?.tidyWorkspaceScript;
+    if (!selectedGenerator || !tidyScript || !fs.existsSync(tidyScript)) return undefined;
+
+    const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
+    const selectedWorkspace = workspaces.find(ws => ws.name === definition.workspace);
+    if (!selectedWorkspace) return undefined;
+
+    let platform: string | undefined;
+    let architecture: string | undefined;
+    let configurationName: string | undefined;
+    if (bTarget && definition.target) {
+      const targetConfigInfo = BuildSystemScanner.getTargetConfigInfo(selectedWorkspace.path, definition.target, definition.configuration);
+      platform = targetConfigInfo?.platform;
+      architecture = targetConfigInfo?.architecture;
+      configurationName = targetConfigInfo?.configuration;
+    }
+    if (!platform || !architecture || !configurationName) {
+      const workspaceConfig = BuildSystemScanner.getWorkspaceConfiguration(selectedWorkspace.path, definition.configuration);
+      if (!workspaceConfig) return undefined;
+      platform = platform || workspaceConfig.platform;
+      architecture = architecture || workspaceConfig.architecture;
+      configurationName = configurationName || workspaceConfig.configuration;
+    }
+
+    // The target by the name of its directory in the ConfigStore, which is how mib tidy selects it
+    const args = [
+      definition.workspace,
+      ...(bTarget && definition.target ? [definition.target] : []),
+      platform,
+      architecture,
+      configurationName,
+      selectedGenerator.outputDir || 'BuildSystem/Default'
+    ];
+
+    const env = {
+      ...process.env,
+      MalterlibWorkspaceRoot: selectedGenerator.buildSystemBasePath || workspaceFolder.uri.fsPath
+    };
+
+    // Convert Windows path to Unix path for Git Bash on Windows
+    const scriptPath = process.platform === 'win32'
+      ? vscode.Uri.file(tidyScript).path.replace(/^\/([a-z]):/, '/$1')
+      : tidyScript;
+
+    const execution = new vscode.ShellExecution(
+      `${escapeShellArg(scriptPath)} ${args.map(escapeShellArg).join(' ')}`,
+      {
+        cwd: selectedGenerator.buildSystemBasePath || workspaceFolder.uri.fsPath,
+        env
+      }
+    );
+
+    const task = new vscode.Task(
+      definition,
+      workspaceFolder,
+      bTarget ? 'Tidy Target' : 'Tidy Workspace',
+      'Malterlib',
+      execution,
+      tidyProblemMatchers
+    );
+
+    task.group = vscode.TaskGroup.Build;
+
     const config = vscode.workspace.getConfiguration('malterlib', workspaceFolder);
     const clearTerminal = config.get<boolean>('clearTerminalOnBuild', true);
 
