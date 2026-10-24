@@ -29,10 +29,41 @@ async function waitForExtension(name: string, retries: number = 10) {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
+  const output = vscode.window.createOutputChannel('Malterlib');
+
+  // Only the semantic coloring runs in Restricted Mode: it reads the open documents and the extension's own data. The
+  // build system integration runs the workspace's tools and writes to it, so it waits for the workspace to be trusted.
+  if (vscode.workspace.isTrusted) {
+    await activateTrusted(context, output);
+    return;
+  }
+
+  output.appendLine('Malterlib initialized in Restricted Mode');
+  let semanticTokens = registerSemanticTokens(context, output);
+  context.subscriptions.push({ dispose: () => semanticTokens.dispose() });
+  // The config editor is the default editor of malterlib.json files and needs the build system integration, so until
+  // then the files open as text
+  let configEditor = vscode.window.registerCustomEditorProvider(MalterlibConfigEditorProvider.viewType, {
+    async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel): Promise<void> {
+      await vscode.commands.executeCommand('vscode.openWith', document.uri, 'default', webviewPanel.viewColumn);
+      webviewPanel.dispose();
+    }
+  });
+  context.subscriptions.push({ dispose: () => configEditor.dispose() });
+  context.subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(async () => {
+    // clangd only starts once the workspace is trusted, and the semantic tokens of the provider registered last win
+    semanticTokens.dispose();
+    semanticTokens = new vscode.Disposable(() => {});
+    configEditor.dispose();
+    configEditor = new vscode.Disposable(() => {});
+    await activateTrusted(context, output);
+  }));
+}
+
+async function activateTrusted(context: vscode.ExtensionContext, output: vscode.OutputChannel) {
   await waitForExtension('llvm-vs-code-extensions.vscode-clangd');
   //	await waitForExtension('ms-vscode.cpptools');
 
-  const output = vscode.window.createOutputChannel('Malterlib');
   output.appendLine('Malterlib initialized');
 
   // Initialize Malterlib project detector

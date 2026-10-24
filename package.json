@@ -23,6 +23,12 @@
     "onDebugDynamicConfigurations:lldb"
   ],
   "main": "./dist/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In Restricted Mode only the semantic coloring runs. The build system integration, tasks, debug configurations and compile_commands.json generation need a trusted workspace."
+    }
+  },
   "scripts": {
     "compile": "npm run check-types && node esbuild.mjs",
     "check-types": "tsc --noEmit",
