@@ -32,6 +32,8 @@ export interface WorkspaceConfigInfo {
   configurationPriority?: number;
   defaultBuildTarget?: string;
   defaultDebugTargets?: string[];
+  // The build.ninja that builds the configuration, whose outputs BuildTarget.sh builds as targets
+  ninjaFile?: string;
 }
 
 export interface WorkspaceInfo {
@@ -1328,6 +1330,7 @@ export class BuildSystemScanner {
         let configurationPriority: number | undefined;
         let defaultBuildTarget: string | undefined;
         let defaultDebugTargets: string[] | undefined;
+        let ninjaFile: string | undefined;
 
         // Try to read workspace configuration data
         try {
@@ -1339,6 +1342,7 @@ export class BuildSystemScanner {
           configurationPriority = configJson.configurationPriority;
           defaultBuildTarget = configJson.defaultBuildTarget;
           defaultDebugTargets = configJson.defaultDebugTargets;
+          ninjaFile = configJson.ninjaFile;
         } catch (error) {
           console.error(`Error reading workspace configuration JSON for ${configName}: ${error}`);
         }
@@ -1351,7 +1355,8 @@ export class BuildSystemScanner {
           configuration,
           configurationPriority,
           defaultBuildTarget,
-          defaultDebugTargets
+          defaultDebugTargets,
+          ninjaFile
         });
       }
     } catch (error) {

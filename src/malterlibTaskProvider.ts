@@ -6,11 +6,14 @@ import { MalterlibProjectDetector } from './malterlibProject';
 
 interface MalterlibTaskDefinition extends vscode.TaskDefinition {
   type: 'malterlib';
-  action: 'generate' | 'build' | 'buildTarget' | 'tidyWorkspace' | 'tidyTarget' | 'format' | 'formatCheck' | 'clean';
+  action: 'generate' | 'build' | 'buildTarget' | 'buildFile' | 'tidyWorkspace' | 'tidyTarget' | 'format' | 'formatCheck' | 'clean';
   generator?: string;
   workspace?: string;
   configuration?: string;
   target?: string;
+  // buildFile: the document to build, and the object file of the target that compiles it, or that includes it
+  file?: string;
+  object?: string;
 }
 
 // Generator.json. Only a ConfigStore that mib generated has the fields that the generate tasks need.
@@ -160,6 +163,21 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     return tasks;
   }
 
+  /**
+   * The Build File task, which builds an object file of the selected workspace and configuration with BuildTarget.sh
+   * @param target The target that compiles the object
+   * @param file The document the object is built for, which is the object's source or a header it includes
+   */
+  public createBuildFileTask(
+    workspaceFolder: vscode.WorkspaceFolder,
+    selections: { generator: string; workspace: string; configuration: string },
+    target: string,
+    object: string,
+    file: string
+  ): vscode.Task | undefined {
+    return this.createTask({ type: 'malterlib', action: 'buildFile', ...selections, target, object, file }, workspaceFolder);
+  }
+
   private createGenerateTask(
     workspaceFolder: vscode.WorkspaceFolder,
     selections: { generator: string | null; workspace: string | null; configuration: string | null; target: string | null },
@@ -222,7 +240,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 
     if (definition.action === 'generate') return this.createGenerateTaskImpl(definition, wsFolder, includeWorkspace);
     if (definition.action === 'build') return this.createBuildTaskImpl(definition, wsFolder);
-    if (definition.action === 'buildTarget') return this.createBuildTargetTaskImpl(definition, wsFolder);
+    if (definition.action === 'buildTarget' || definition.action === 'buildFile') return this.createBuildTargetTaskImpl(definition, wsFolder);
     if (definition.action in scriptTasks) return this.createScriptTaskImpl(definition, definition.action as ScriptTaskAction, wsFolder);
 
     return undefined;
@@ -383,10 +401,16 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     const selectedGenerator = generators.find(gen => gen.name === definition.generator);
     if (!selectedGenerator || !selectedGenerator.buildTargetScript || !fs.existsSync(selectedGenerator.buildTargetScript)) return undefined;
 
+    // A configuration that names its build.ninja has a BuildTarget.sh that builds any of its outputs, such as an object
+    // file, and takes a comma separated list of them
+    const bBuildFile = definition.action === 'buildFile';
+    if (bBuildFile && (!definition.object || definition.object.includes(','))) return undefined;
+
     // Get workspace info
     const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
     const selectedWorkspace = workspaces.find(ws => ws.name === definition.workspace);
     if (!selectedWorkspace) return undefined;
+    if (bBuildFile && !BuildSystemScanner.getWorkspaceConfiguration(selectedWorkspace.path, definition.configuration)?.ninjaFile) return undefined;
 
     // Determine platform/architecture/configuration from target-specific config if available; fall back to workspace-level config
     let platform: string | undefined;
@@ -417,7 +441,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 
     const args = [
       definition.workspace,
-      targetNameOverride || definition.target,
+      bBuildFile ? definition.object! : targetNameOverride || definition.target,
       platform,
       architecture,
       configurationName,
@@ -447,7 +471,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
       }
     );
 
-    const taskName = 'Build Target';
+    const taskName = bBuildFile ? 'Build File' : 'Build Target';
 
     const task = new vscode.Task(
       definition,

@@ -12,6 +12,7 @@ import { StatusBarController } from './statusBarController';
 import { CompileCommandsGenerator } from './compileCommandsGenerator';
 import { MalterlibConfigEditorProvider } from './malterlibConfigEditorProvider';
 import { MalterlibFormattingProvider } from './malterlibFormattingProvider';
+import { BuildFileCommand } from './buildFile';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -110,7 +111,7 @@ async function activateTrusted(context: vscode.ExtensionContext, output: vscode.
   // Status bar controller handles scanning updates internally
 
   // After activation, wait for initial Malterlib detection and BuildSystem scanning to settle
-  (async () => {
+  const initialSelection = (async () => {
     try {
       await MalterlibProjectDetector.waitForDetectorQueue();
       await BuildSystemScanner.waitForScannerQueue();
@@ -133,6 +134,15 @@ async function activateTrusted(context: vscode.ExtensionContext, output: vscode.
   context.subscriptions.push(
     vscode.tasks.registerTaskProvider(MalterlibTaskProvider.taskType, taskProvider)
   );
+
+  // Build the object file of the active document, or of a source file that includes it
+  context.subscriptions.push(new BuildFileCommand(
+    initialSelection,
+    () => statusController.getSelectionSnapshot(),
+    () => statusController.getSelectedWorkspaceFolder(),
+    taskProvider,
+    output
+  ));
 
   // Format documents and selections with the ConfigStore's FormatFile.sh
   const formattingProvider = new MalterlibFormattingProvider(

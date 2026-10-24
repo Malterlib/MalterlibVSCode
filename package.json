@@ -235,6 +235,10 @@
         "title": "Malterlib: Generate compile_commands.json"
       },
       {
+        "command": "malterlib.buildCurrentFile",
+        "title": "Malterlib: Build Current File"
+      },
+      {
         "command": "malterlib.openDebugConfigEditor",
         "title": "Malterlib: Open Debug Configuration"
       },
@@ -1638,6 +1642,7 @@
               "generate",
               "build",
               "buildTarget",
+              "buildFile",
               "tidyWorkspace",
               "tidyTarget",
               "format",
@@ -1661,6 +1666,14 @@
           "target": {
             "type": "string",
             "description": "The target to build (automatically filled from current selection)"
+          },
+          "file": {
+            "type": "string",
+            "description": "The file to build with the buildFile action, a source file or a header"
+          },
+          "object": {
+            "type": "string",
+            "description": "The object file the buildFile action builds, of the source file or of a source file that includes the header"
           }
         }
       }

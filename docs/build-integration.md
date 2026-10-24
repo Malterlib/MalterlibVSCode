@@ -59,6 +59,9 @@ Builds a specific target selected from the status bar, with the ConfigStore's `B
 3. Faster than full workspace build
 4. Useful for iterative development
 
+#### Malterlib: Build Current File
+Builds the object file of the active document, for a workspace configuration that names its `build.ninja`, which mib does for the Ninja generator. For a header it builds a source file that includes it, preferring the one used most recently. See [Building a Single File](config-store.md#building-a-single-file).
+
 #### Malterlib: Format and Malterlib: Check Format
 Run the ConfigStore's `Format.sh` and `FormatCheck.sh`, which for mib run `mib format` and `mib format --check` over the repositories that set `Repository.Format`. What can't be fixed is reported in the Problems panel.
 
