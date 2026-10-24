@@ -1477,6 +1477,39 @@
   "pair": {
     "classification": "EClassification_TemplateType"
   },
+  "pfp1024": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp128": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp16": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp2048": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp256": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp32": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp4096": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp512": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp64": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp8": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
+  "pfp80": {
+    "classification": "EClassification_KeywordBulitInFloatTypes"
+  },
   "po_Test": {
     "classification": "EClassification_FunctionParameter_Output_Pack",
     "example": true
