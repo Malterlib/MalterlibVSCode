@@ -59,6 +59,11 @@ Builds a specific target selected from the status bar, with the ConfigStore's `B
 3. Faster than full workspace build
 4. Useful for iterative development
 
+#### Malterlib: Format and Malterlib: Check Format
+Run the ConfigStore's `Format.sh` and `FormatCheck.sh`, which for mib run `mib format` and `mib format --check` over the repositories that set `Repository.Format`. What can't be fixed is reported in the Problems panel.
+
+Format Document and Format Selection format with the ConfigStore's `FormatFile.sh`, see [Formatting in the Editor](config-store.md#formatting-in-the-editor).
+
 ## Problem Matchers
 
 The extension includes problem matchers that automatically parse build output and populate the VS Code Problems panel with errors and warnings from the Malterlib build system.

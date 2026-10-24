@@ -17,6 +17,9 @@ export interface GeneratorInfo {
   buildWorkspaceScript?: string;
   tidyTargetScript?: string;
   tidyWorkspaceScript?: string;
+  formatFileScript?: string;
+  formatScript?: string;
+  formatCheckScript?: string;
   postCopyProjects?: Map<string, PostCopyProject>;
 }
 
@@ -976,6 +979,12 @@ export class BuildSystemScanner {
           const tidyTargetScript = path.join(configStorePath, 'TidyTarget.sh');
           const tidyWorkspaceScript = path.join(configStorePath, 'TidyWorkspace.sh');
 
+          // FormatFile.sh formats an editor's buffer, and Format.sh and FormatCheck.sh take the arguments of the
+          // workspace scripts. A build system without them has no formatting.
+          const formatFileScript = path.join(configStorePath, 'FormatFile.sh');
+          const formatScript = path.join(configStorePath, 'Format.sh');
+          const formatCheckScript = path.join(configStorePath, 'FormatCheck.sh');
+
           // Parse PostCopy.MConfig if it exists
           let postCopyProjects: Map<string, PostCopyProject> | undefined;
           const postCopyPath = path.join(generatorPath, 'PostCopy.MConfig');
@@ -996,6 +1005,9 @@ export class BuildSystemScanner {
             buildWorkspaceScript,
             tidyTargetScript,
             tidyWorkspaceScript,
+            formatFileScript,
+            formatScript,
+            formatCheckScript,
             postCopyProjects
           });
 

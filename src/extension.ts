@@ -11,6 +11,7 @@ import { MalterlibLaunchProvider } from './malterlibLaunchProvider';
 import { StatusBarController } from './statusBarController';
 import { CompileCommandsGenerator } from './compileCommandsGenerator';
 import { MalterlibConfigEditorProvider } from './malterlibConfigEditorProvider';
+import { MalterlibFormattingProvider } from './malterlibFormattingProvider';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -132,6 +133,14 @@ async function activateTrusted(context: vscode.ExtensionContext, output: vscode.
   context.subscriptions.push(
     vscode.tasks.registerTaskProvider(MalterlibTaskProvider.taskType, taskProvider)
   );
+
+  // Format documents and selections with the ConfigStore's FormatFile.sh
+  const formattingProvider = new MalterlibFormattingProvider(
+    () => statusController.getSelectionSnapshot().generator,
+    () => statusController.getSelectedWorkspaceFolder(),
+    output
+  );
+  context.subscriptions.push(formattingProvider.register());
 
   // Register semantic tokens via helper
   context.subscriptions.push(registerSemanticTokens(context, output));

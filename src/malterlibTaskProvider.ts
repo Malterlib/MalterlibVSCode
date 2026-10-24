@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { BuildSystemScanner } from './buildSystemScanner';
+import { BuildSystemScanner, GeneratorInfo } from './buildSystemScanner';
 import { MalterlibProjectDetector } from './malterlibProject';
 
 interface MalterlibTaskDefinition extends vscode.TaskDefinition {
   type: 'malterlib';
-  action: 'generate' | 'build' | 'buildTarget' | 'tidyWorkspace' | 'tidyTarget' | 'clean';
+  action: 'generate' | 'build' | 'buildTarget' | 'tidyWorkspace' | 'tidyTarget' | 'format' | 'formatCheck' | 'clean';
   generator?: string;
   workspace?: string;
   configuration?: string;
@@ -25,6 +25,18 @@ interface GeneratorConfig {
 const buildProblemMatchers = ['$malterlib-build-clang', '$malterlib-build-ld', '$malterlib-build-cl', '$malterlib-build-clang-cl', '$malterlib-buildsystem', '$malterlib-buildsystem-windows'];
 // The tidy scripts report clang-tidy's diagnostics in clang's format, with absolute paths.
 const tidyProblemMatchers = ['$malterlib-build-clang', '$malterlib-buildsystem', '$malterlib-buildsystem-windows'];
+// The format scripts report what they can't fix as <path>:<line>:<col>: <rule>: <explanation>, and lines over the
+// maximum line length without a column. The build system's own errors have a severity, which the rule pattern skips.
+const formatProblemMatchers = ['$malterlib-format', '$malterlib-format-line-length', '$malterlib-build-clang', '$malterlib-buildsystem-windows'];
+
+// The tasks that run a script of the ConfigStore with the arguments of the matching build script
+const scriptTasks = {
+  tidyWorkspace: { name: 'Tidy Workspace', target: false, problemMatchers: tidyProblemMatchers, getScript: (generator: GeneratorInfo) => generator.tidyWorkspaceScript },
+  tidyTarget: { name: 'Tidy Target', target: true, problemMatchers: tidyProblemMatchers, getScript: (generator: GeneratorInfo) => generator.tidyTargetScript },
+  format: { name: 'Format', target: false, problemMatchers: formatProblemMatchers, getScript: (generator: GeneratorInfo) => generator.formatScript },
+  formatCheck: { name: 'Check Format', target: false, problemMatchers: formatProblemMatchers, getScript: (generator: GeneratorInfo) => generator.formatCheckScript },
+};
+type ScriptTaskAction = keyof typeof scriptTasks;
 
 /**
  * Quote an argument for the shell that runs the tasks, Bash or Git Bash, unless the shell takes all its characters
@@ -128,6 +140,21 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
         if (tidyTargetTask)
           tasks.push(tidyTargetTask);
       }
+
+      // Tasks 7 and 8: Format, and check the formatting of, what the build system formats
+      if (selections.workspace && selections.configuration) {
+        for (const action of ['format', 'formatCheck'] as const) {
+          const formatTask = this.createTask({
+            type: 'malterlib',
+            action,
+            generator: selections.generator,
+            workspace: selections.workspace,
+            configuration: selections.configuration
+          }, workspaceFolder);
+          if (formatTask)
+            tasks.push(formatTask);
+        }
+      }
     }
 
     return tasks;
@@ -196,7 +223,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     if (definition.action === 'generate') return this.createGenerateTaskImpl(definition, wsFolder, includeWorkspace);
     if (definition.action === 'build') return this.createBuildTaskImpl(definition, wsFolder);
     if (definition.action === 'buildTarget') return this.createBuildTargetTaskImpl(definition, wsFolder);
-    if (definition.action === 'tidyWorkspace' || definition.action === 'tidyTarget') return this.createTidyTaskImpl(definition, wsFolder);
+    if (definition.action in scriptTasks) return this.createScriptTaskImpl(definition, definition.action as ScriptTaskAction, wsFolder);
 
     return undefined;
   }
@@ -449,18 +476,20 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     return task;
   }
 
-  // Runs the TidyWorkspace.sh or TidyTarget.sh script of the ConfigStore, with the arguments of the matching build
+  // Runs a script of the ConfigStore, such as TidyWorkspace.sh or Format.sh, with the arguments of the matching build
   // script: Workspace [Target] Platform Architecture Configuration BuildSystemDir. Malterlib's run mib tidy over the
-  // compile commands of the workspace's targets, or of the target; another build system can supply its own.
-  private createTidyTaskImpl(definition: MalterlibTaskDefinition, workspaceFolder: vscode.WorkspaceFolder): vscode.Task | undefined {
+  // compile commands of the workspace's targets or of the target, and mib format over the repositories; another build
+  // system can supply its own.
+  private createScriptTaskImpl(definition: MalterlibTaskDefinition, action: ScriptTaskAction, workspaceFolder: vscode.WorkspaceFolder): vscode.Task | undefined {
     if (!definition.generator || !definition.workspace || !definition.configuration) return undefined;
-    const bTarget = definition.action === 'tidyTarget';
+    const scriptTask = scriptTasks[action];
+    const bTarget = scriptTask.target;
     if (bTarget && (!definition.target || definition.target === 'All Targets')) return undefined;
 
     const generators = BuildSystemScanner.getGenerators(workspaceFolder);
     const selectedGenerator = generators.find(gen => gen.name === definition.generator);
-    const tidyScript = bTarget ? selectedGenerator?.tidyTargetScript : selectedGenerator?.tidyWorkspaceScript;
-    if (!selectedGenerator || !tidyScript || !fs.existsSync(tidyScript)) return undefined;
+    const script = selectedGenerator && scriptTask.getScript(selectedGenerator);
+    if (!selectedGenerator || !script || !fs.existsSync(script)) return undefined;
 
     const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
     const selectedWorkspace = workspaces.find(ws => ws.name === definition.workspace);
@@ -500,8 +529,8 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
 
     // Convert Windows path to Unix path for Git Bash on Windows
     const scriptPath = process.platform === 'win32'
-      ? vscode.Uri.file(tidyScript).path.replace(/^\/([a-z]):/, '/$1')
-      : tidyScript;
+      ? vscode.Uri.file(script).path.replace(/^\/([a-z]):/, '/$1')
+      : script;
 
     const execution = new vscode.ShellExecution(
       `${escapeShellArg(scriptPath)} ${args.map(escapeShellArg).join(' ')}`,
@@ -514,10 +543,10 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     const task = new vscode.Task(
       definition,
       workspaceFolder,
-      bTarget ? 'Tidy Target' : 'Tidy Workspace',
+      scriptTask.name,
       'Malterlib',
       execution,
-      tidyProblemMatchers
+      scriptTask.problemMatchers
     );
 
     task.group = vscode.TaskGroup.Build;
