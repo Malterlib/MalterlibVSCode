@@ -35,10 +35,17 @@ export class StatusBarController implements vscode.Disposable {
   private selectedWorkspaceFolder: vscode.WorkspaceFolder | null = null;
   private compileCommandsWatcher: vscode.Disposable | null = null;
   private compileCommandsWatcherPath: string | null = null;
+  // Watchers of merged compile_commands.json files outside the ConfigStore layout, by input key
+  private compileCommandsInputWatchers = new Map<string, { bases: string; watcher: vscode.Disposable }>();
   private compileCommandsTimer: NodeJS.Timeout | null = null;
+  // The keys of the compile_commands.json files that changed since the last check, see onCompileCommandsFileChanged
+  private changedCompileCommandsKeys = new Set<string>();
+  private changedCompileCommandsTimer: NodeJS.Timeout | null = null;
   // Selection and per-target inputs of the last requested compile_commands.json merge
   private compileCommandsSignature: string | null = null;
   private compileCommandsInputKeys = new Set<string>();
+  // The key of each input of the last merge, by its workspace, target and configuration, see getCompileCommandsInputKeyMap
+  private compileCommandsInputKeyMap = new Map<string, string>();
   private cascadeAutoSelectionTimer: NodeJS.Timeout | null = null;
   private lastLoggedMessage: string | null = null;
 
@@ -87,10 +94,12 @@ export class StatusBarController implements vscode.Disposable {
     this.disposables.forEach(d => d.dispose());
     this.compileCommandsWatcher?.dispose();
     this.compileCommandsWatcher = null;
+    this.setCompileCommandsInputWatchers([]);
     if (this.compileCommandsTimer) {
       clearTimeout(this.compileCommandsTimer);
       this.compileCommandsTimer = null;
     }
+    this.clearChangedCompileCommands();
     if (this.cascadeAutoSelectionTimer) {
       clearTimeout(this.cascadeAutoSelectionTimer);
       this.cascadeAutoSelectionTimer = null;
@@ -1132,8 +1141,10 @@ export class StatusBarController implements vscode.Disposable {
     // Watch before merging so that per-target files written while the merge runs are not missed
     this.setCompileCommandsWatcher(selection.generator.configStorePath);
     const inputs = this.getCompileCommandsInputs(selection);
+    this.setCompileCommandsInputWatchers(inputs, selection.workspaceFolder);
     this.compileCommandsSignature = this.getCompileCommandsSignature(selection, inputs);
     this.compileCommandsInputKeys = this.getCompileCommandsInputKeys(inputs);
+    this.compileCommandsInputKeyMap = this.getCompileCommandsInputKeyMap(inputs);
 
     try {
       this.output.appendLine('Generating compile_commands.json...');
@@ -1194,27 +1205,56 @@ export class StatusBarController implements vscode.Disposable {
   }
 
   /**
-   * Called for every per-target compile_commands.json in the selected generator's ConfigStore. Only files that are
-   * merged for the current selection matter: a file for a target or configuration the scanner doesn't know yet is
-   * picked up by the merge that follows the rescan that finds it.
+   * Called for every per-target compile_commands.json in the selected generator's ConfigStore, and for the merged files
+   * outside it. The changes are checked together shortly after, as a build system can write hundreds of them at once,
+   * and finding the keys of the current inputs can access the file system.
    */
-  private onCompileCommandsFileChanged(uri: vscode.Uri): void {
+  private onCompileCommandsFileChanged(inputKey: string): void {
+    this.changedCompileCommandsKeys.add(inputKey);
+    if (!this.changedCompileCommandsTimer)
+      this.changedCompileCommandsTimer = setTimeout(() => this.checkChangedCompileCommands(), 100);
+  }
+
+  /**
+   * Only files that are merged for the current selection matter: a file for a target or configuration the scanner
+   * doesn't know yet is picked up by the merge that follows the rescan that finds it.
+   */
+  private checkChangedCompileCommands(): void {
+    const changedKeys = [...this.changedCompileCommandsKeys];
+    this.clearChangedCompileCommands();
+
     const selection = this.getCompileCommandsSelection();
     if (!selection) {
       // The selection is being restored after a rescan. Make the merge check that follows the rescan regenerate,
-      // as this change can't be attributed now
+      // as these changes can't be attributed now
       this.compileCommandsSignature = null;
       return;
     }
 
-    const inputKey = CompileCommandsGenerator.getInputKey(uri.fsPath);
-    if (this.getCompileCommandsInputKeys(this.getCompileCommandsInputs(selection)).has(inputKey))
+    const inputs = this.getCompileCommandsInputs(selection);
+    const inputKeys = this.getCompileCommandsInputKeys(inputs);
+    // A symbolic link that's retargeted, into or out of the ConfigStore layout, changes the key of its input, which the
+    // events of its watchers report by its old key
+    const keyMap = this.getCompileCommandsInputKeyMap(inputs);
+    const bKeyChanged = [...keyMap].some(([input, key]) => {
+      const previous = this.compileCommandsInputKeyMap.get(input);
+      return previous !== undefined && previous !== key && changedKeys.includes(previous);
+    });
+    if (bKeyChanged || changedKeys.some(key => inputKeys.has(key)))
       this.scheduleCompileCommandsGeneration();
-    else if (this.compileCommandsInputKeys.has(inputKey)) {
+    if (changedKeys.some(key => !inputKeys.has(key) && this.compileCommandsInputKeys.has(key))) {
       // A file of the last merge whose target the scanner has dropped, possibly only while the ConfigStore is being
       // regenerated. If the rescan that finds it again restores the same inputs, the signature alone would not show
       // that its content changed, so make that check regenerate
       this.compileCommandsSignature = null;
+    }
+  }
+
+  private clearChangedCompileCommands(): void {
+    this.changedCompileCommandsKeys.clear();
+    if (this.changedCompileCommandsTimer) {
+      clearTimeout(this.changedCompileCommandsTimer);
+      this.changedCompileCommandsTimer = null;
     }
   }
 
@@ -1224,12 +1264,15 @@ export class StatusBarController implements vscode.Disposable {
    */
   private stopCompileCommandsTracking(): void {
     this.setCompileCommandsWatcher(null);
+    this.setCompileCommandsInputWatchers([]);
     this.compileCommandsSignature = null;
     this.compileCommandsInputKeys.clear();
+    this.compileCommandsInputKeyMap.clear();
     if (this.compileCommandsTimer) {
       clearTimeout(this.compileCommandsTimer);
       this.compileCommandsTimer = null;
     }
+    this.clearChangedCompileCommands();
   }
 
   /**
@@ -1243,10 +1286,53 @@ export class StatusBarController implements vscode.Disposable {
     // Create the new watcher before disposing the old one so there is no window without a watcher
     const previousWatcher = this.compileCommandsWatcher;
     this.compileCommandsWatcher = configStorePath
-      ? CompileCommandsGenerator.createWatcher(configStorePath, uri => this.onCompileCommandsFileChanged(uri))
+      ? CompileCommandsGenerator.createWatcher(configStorePath, uri => this.onCompileCommandsFileChanged(CompileCommandsGenerator.getConfigStoreKey(uri.fsPath)))
       : null;
     this.compileCommandsWatcherPath = configStorePath;
     previousWatcher?.dispose();
+  }
+
+  /**
+   * Watch the merged compile_commands.json files that are outside the ConfigStore layout, which another build system
+   * can name in its target configurations, and the files that symbolic links among them point to, also in the layout.
+   * A watcher of a file whose directory didn't exist is replaced once the directory exists, as merging again follows
+   * the file's creation, and so is the watcher of a link's target when the link changes, and a watcher of a directory
+   * that was replaced by another one. The merged output isn't
+   * watched, also when an input names it, as each merge writes it.
+   */
+  private setCompileCommandsInputWatchers(inputs: CompileCommandsInput[], workspaceFolder?: vscode.WorkspaceFolder): void {
+    const wanted = new Map<string, { path: string; base: string; identity?: string }[]>();
+    for (const input of inputs) {
+      const key = CompileCommandsGenerator.getInputKey(input);
+      if (!key || !input.compileCommandsPath || wanted.has(key) ||
+        (workspaceFolder && CompileCommandsGenerator.isOutput(input, workspaceFolder)))
+        continue;
+      // The ConfigStore's watcher watches the files in its layout, but reports a link's target by the target's key
+      const watchBases = CompileCommandsGenerator.getInputWatchBases(input.compileCommandsPath, !CompileCommandsGenerator.isInConfigStoreLayout(input));
+      if (watchBases.length)
+        wanted.set(key, watchBases);
+    }
+
+    // Create the new watchers before disposing the old ones so there is no window without a watcher
+    const previousWatchers: vscode.Disposable[] = [];
+    for (const [key, watchBases] of wanted) {
+      const bases = JSON.stringify(watchBases);
+      const existing = this.compileCommandsInputWatchers.get(key);
+      if (existing?.bases === bases)
+        continue;
+      if (existing)
+        previousWatchers.push(existing.watcher);
+      const watcher = vscode.Disposable.from(...watchBases.map(({ path: compileCommandsPath, base }) =>
+        CompileCommandsGenerator.createInputWatcher(compileCommandsPath, base, () => this.onCompileCommandsFileChanged(key))));
+      this.compileCommandsInputWatchers.set(key, { bases, watcher });
+    }
+    for (const [key, { watcher }] of this.compileCommandsInputWatchers) {
+      if (!wanted.has(key)) {
+        previousWatchers.push(watcher);
+        this.compileCommandsInputWatchers.delete(key);
+      }
+    }
+    previousWatchers.forEach(watcher => watcher.dispose());
   }
 
   private getCompileCommandsSelection(): CompileCommandsSelection | null {
@@ -1276,11 +1362,25 @@ export class StatusBarController implements vscode.Disposable {
     return CompileCommandsGenerator.getInputs(selection.workspace.path, selection.configuration, selection.generator.path);
   }
 
+  /**
+   * The keys of the inputs by their workspace, target and configuration
+   */
+  private getCompileCommandsInputKeyMap(inputs: CompileCommandsInput[]): Map<string, string> {
+    const keys = new Map<string, string>();
+    for (const input of inputs) {
+      const key = CompileCommandsGenerator.getInputKey(input);
+      if (key)
+        keys.set(JSON.stringify([input.workspaceName, input.targetName, input.configurationName]), key);
+    }
+    return keys;
+  }
+
   private getCompileCommandsInputKeys(inputs: CompileCommandsInput[]): Set<string> {
     const keys = new Set<string>();
     for (const input of inputs) {
-      if (input.compileCommandsPath)
-        keys.add(CompileCommandsGenerator.getInputKey(input.compileCommandsPath));
+      const key = CompileCommandsGenerator.getInputKey(input);
+      if (key)
+        keys.add(key);
     }
     return keys;
   }

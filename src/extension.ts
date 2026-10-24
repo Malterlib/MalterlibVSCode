@@ -70,21 +70,24 @@ async function activateTrusted(context: vscode.ExtensionContext, output: vscode.
   const projectDetector = MalterlibProjectDetector.initialize();
   context.subscriptions.push(projectDetector);
 
+  // One build system scanner per workspace folder. The detector reports every rescan of a folder, for example when
+  // a .MBuildSystem file or a ConfigStore is created, and not only when a folder becomes a Malterlib project.
+  const scanners = new Map<string, vscode.Disposable>();
+  context.subscriptions.push({ dispose: () => scanners.forEach(scanner => scanner.dispose()) });
+  const initializeScanner = (folder: vscode.WorkspaceFolder): boolean => {
+    if (scanners.has(folder.uri.fsPath) || !MalterlibProjectDetector.isMalterlibProject(folder))
+      return false;
+    scanners.set(folder.uri.fsPath, BuildSystemScanner.initialize(folder));
+    return true;
+  };
+
   // Initialize build system scanners for all workspace folders
-  if (vscode.workspace.workspaceFolders) {
-    for (const folder of vscode.workspace.workspaceFolders) {
-      if (MalterlibProjectDetector.isMalterlibProject(folder)) {
-        const scanner = BuildSystemScanner.initialize(folder);
-        context.subscriptions.push(scanner);
-      }
-    }
-  }
+  for (const folder of vscode.workspace.workspaceFolders ?? [])
+    initializeScanner(folder);
 
   // Listen for new Malterlib projects and initialize scanners
   MalterlibProjectDetector.onDidChangeDetectionAsync(async (workspaceFolder: vscode.WorkspaceFolder | undefined) => {
-    if (workspaceFolder && MalterlibProjectDetector.isMalterlibProject(workspaceFolder)) {
-      const scanner = BuildSystemScanner.initialize(workspaceFolder);
-      context.subscriptions.push(scanner);
+    if (workspaceFolder && initializeScanner(workspaceFolder)) {
       // Ensure initial scan for this workspace completes before detector queue drains
       await BuildSystemScanner.waitForScannerQueue();
       statusBar.update();

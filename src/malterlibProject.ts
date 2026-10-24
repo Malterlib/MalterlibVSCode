@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import { promises as fsp } from 'fs';
+import * as path from 'path';
 
 export class MalterlibProjectDetector {
   private static malterlibProjects = new Set<string>();
+  private static readonly generatorJsonGlob = 'BuildSystem/*/ConfigStore/Generator.json';
 
   // --- Queue to serialize scans and avoid race conditions ---
   private static taskQueue: Array<{
@@ -120,25 +122,26 @@ export class MalterlibProjectDetector {
       })
     );
 
-    // Watch for file system changes to detect new .MBuildSystem files
+    // Watch for file system changes to detect new .MBuildSystem files and ConfigStores. Moving a directory of a
+    // ConfigStore into place, or away, can be reported for the directory only, and replacing it also as a change. The
+    // directories only change themselves when their entries do, and a rescan only checks what exists, so it's cheap.
+    const directoryGlobs = new Set(['BuildSystem', 'BuildSystem/*', 'BuildSystem/*/ConfigStore']);
     if (vscode.workspace.workspaceFolders) {
       for (const folder of vscode.workspace.workspaceFolders) {
-        const pattern = new vscode.RelativePattern(folder, '*.MBuildSystem');
-        const watcher = vscode.workspace.createFileSystemWatcher(pattern);
-        
-        watcher.onDidCreate(uri => {
-          const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-          if (workspaceFolder)
-            this.queueFolder(workspaceFolder);
-        });
+        for (const glob of ['*.MBuildSystem', this.generatorJsonGlob, ...directoryGlobs]) {
+          const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, glob), false, !directoryGlobs.has(glob), false);
+          const onEvent = (uri: vscode.Uri) => {
+            const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+            if (workspaceFolder)
+              this.queueFolder(workspaceFolder);
+          };
 
-        watcher.onDidDelete(uri => {
-          const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-          if (workspaceFolder)
-            this.queueFolder(workspaceFolder);
-        });
+          watcher.onDidCreate(onEvent);
+          watcher.onDidChange(onEvent);
+          watcher.onDidDelete(onEvent);
 
-        disposables.push(watcher);
+          disposables.push(watcher);
+        }
       }
     }
 
@@ -165,14 +168,14 @@ export class MalterlibProjectDetector {
   }
 
   /**
-   * Perform the actual scan of a workspace folder for .MBuildSystem files
+   * Perform the actual scan of a workspace folder for .MBuildSystem files and ConfigStores
    */
   private static async scanFolder(workspaceFolder: vscode.WorkspaceFolder): Promise<void> {
     const directoryPath = workspaceFolder.uri.fsPath;
     let hasMalterlibFile = false;
     try {
       const files = await fsp.readdir(directoryPath);
-      hasMalterlibFile = files.some(file => file.endsWith('.MBuildSystem'));
+      hasMalterlibFile = files.some(file => file.endsWith('.MBuildSystem')) || await this.hasConfigStore(directoryPath);
     } catch {
       hasMalterlibFile = false; // directory might not exist or be inaccessible
     }
@@ -182,6 +185,31 @@ export class MalterlibProjectDetector {
       this.malterlibProjects.add(directoryPath);
     else if (!hasMalterlibFile && hadProject)
       this.malterlibProjects.delete(directoryPath);
+  }
+
+  /**
+   * Check for a BuildSystem/<Name>/ConfigStore/Generator.json. Any build system can write a ConfigStore to use the
+   * build, tidy and debug integration, so a project doesn't need a .MBuildSystem file. See docs/config-store.md.
+   */
+  private static async hasConfigStore(directoryPath: string): Promise<boolean> {
+    const buildSystemPath = path.join(directoryPath, 'BuildSystem');
+    let generatorDirs: string[];
+    try {
+      const dirents = await fsp.readdir(buildSystemPath, { withFileTypes: true });
+      generatorDirs = dirents.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
+    } catch {
+      return false;
+    }
+
+    for (const generatorDir of generatorDirs) {
+      try {
+        await fsp.access(path.join(buildSystemPath, generatorDir, 'ConfigStore', 'Generator.json'));
+        return true;
+      } catch {
+        // Not a ConfigStore
+      }
+    }
+    return false;
   }
 
   /**

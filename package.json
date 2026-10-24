@@ -19,6 +19,8 @@
     "onLanguage:cpp",
     "onLanguage:malterlib-build",
     "workspaceContains:*.MBuildSystem",
+    "workspaceContains:BuildSystem",
+    "workspaceContains:BuildSystem/*/ConfigStore/Generator.json",
     "onDebugResolve:lldb",
     "onDebugDynamicConfigurations:lldb"
   ],

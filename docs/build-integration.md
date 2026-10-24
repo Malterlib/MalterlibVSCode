@@ -3,6 +3,8 @@
 ## Overview
 The extension provides deep integration with the Malterlib build system, allowing you to generate, build, and manage projects directly from VS Code.
 
+Everything the extension knows about the build comes from the [ConfigStore](config-store.md) that `mib generate` writes. Other build systems can write a ConfigStore of their own to use the status bar, the build and tidy tasks and the debug configurations without a `.MBuildSystem` file.
+
 ## Task System
 
 ### Predefined Tasks
@@ -20,8 +22,11 @@ Generates all workspaces in the project.
 This populates the generator dropdown with the generator that was used. Each generation adds that specific generator/path combination to the dropdown.
 
 **Currently Supported Generators**:
+- Ninja
 - Xcode (macOS)
 - Visual Studio (Windows)
+
+The generate tasks are only available for a ConfigStore that mib wrote. For other build systems, generating is up to the build scripts of the ConfigStore.
 
 **What it does**:
 1. Uses the previously selected generator from command line generation
@@ -41,12 +46,12 @@ Builds the entire selected workspace.
 
 **What it does**:
 1. Ensures project is generated
-2. Invokes platform build tool (Xcode or Visual Studio)
+2. Runs the ConfigStore's `BuildWorkspace.sh`, which for mib invokes Ninja, Xcode or Visual Studio
 3. Builds all targets in the workspace in dependency order
 4. Reports errors through problem matcher
 
 #### Malterlib: Build Target
-Builds a specific target selected from the status bar.
+Builds a specific target selected from the status bar, with the ConfigStore's `BuildTarget.sh`.
 
 **What it does**:
 1. Builds only the selected target
@@ -72,13 +77,13 @@ For enhanced problem matching capabilities, including support for more complex e
 ### 1. Project Detection
 
 **Automatic Project Detection**:
-The extension detects Malterlib projects by looking for `*.MBuildSystem` files in the project root directory.
+The extension detects Malterlib projects by looking for `*.MBuildSystem` files or `BuildSystem/*/ConfigStore/Generator.json` files in the project root directory.
 
 **Generator Detection**:
-Generators are discovered by scanning `BuildSystem/*/ConfigStore` directories, which contain JSON files describing each generated build configuration.
+Generators are discovered by scanning `BuildSystem/*/ConfigStore` directories, which contain JSON files describing each generated build configuration. See [ConfigStore](config-store.md) for the format.
 
 **Detection Process**:
-1. On activation, scans for `*.MBuildSystem` in project root
+1. On activation, scans for `*.MBuildSystem` or `BuildSystem/*/ConfigStore/Generator.json` in project root
 2. Scans `BuildSystem/*/ConfigStore` for generator configurations
 3. Populates dropdown with discovered generators
 4. Updates when generators are added or removed
@@ -100,12 +105,13 @@ The generation tasks run the `./mib generate` command with the appropriate optio
 **Generator Outputs**:
 | Generator | Creates |
 |-----------|----------|
+| Ninja | `build.ninja` files |
 | Xcode | `.xcodeproj`, `.xcworkspace` |
 | Visual Studio | `.vcxproj`, `.sln` |
 
 ### 4. Build Phase
 
-The build tasks invoke the appropriate platform build tool (Xcode or Visual Studio) with the selected configuration. Build output is displayed in the terminal and errors are automatically parsed into the Problems panel.
+The build tasks run the build scripts of the ConfigStore with the selected workspace, target and configuration. For mib, these invoke Ninja, Xcode or Visual Studio. Build output is displayed in the terminal and errors are automatically parsed into the Problems panel.
 
 ## Keyboard Shortcuts
 
@@ -129,5 +135,6 @@ Add to `keybindings.json`:
 ```
 
 ## Related Documentation
+- [ConfigStore](config-store.md) - The format the build integration reads, and how other build systems can write it
 - [Status Bar Controls](status-bar.md) - UI for build selection
 - [Debug Configuration](debug-configuration.md) - Debugging built targets

@@ -414,7 +414,15 @@ export class BuildSystemScanner {
 
     const disposables: vscode.Disposable[] = [];
 
-    // Watch for BuildSystem directory changes (watch patterns regardless of current existence)
+    // Watch for BuildSystem directory changes (watch patterns regardless of current existence). Moving or replacing
+    // the BuildSystem directory itself can be reported for it only, also as a change. It only changes itself when its
+    // generator directories do, so rescanning on its changes is cheap.
+    const buildSystemWatcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(workspaceFolder, 'BuildSystem'));
+    buildSystemWatcher.onDidCreate(() => this.queueBuildSystem(workspaceFolder, true));
+    buildSystemWatcher.onDidChange(() => this.queueBuildSystem(workspaceFolder, true));
+    buildSystemWatcher.onDidDelete(() => this.queueBuildSystem(workspaceFolder, true));
+    disposables.push(buildSystemWatcher);
+
     // Watch for new generator directories
     const generatorPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*');
     const generatorWatcher = vscode.workspace.createFileSystemWatcher(generatorPattern);
@@ -448,17 +456,42 @@ export class BuildSystemScanner {
     const workspacePattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*');
     const workspaceWatcher = vscode.workspace.createFileSystemWatcher(workspacePattern);
 
-    workspaceWatcher.onDidCreate(uri => {
+    // Generator.json is read when the BuildSystem directory is scanned. A build system other than mib can write it
+    // after creating the ConfigStore, or rewrite it.
+    const onWorkspaceCreatedOrDeleted = (uri: vscode.Uri) => {
+      if (path.basename(uri.fsPath) === 'Generator.json') {
+        this.queueBuildSystem(workspaceFolder, true);
+        return;
+      }
       const generatorPath = path.dirname(path.dirname(uri.fsPath));
       this.queueWorkspaces(generatorPath, true);
-    });
+    };
 
-    workspaceWatcher.onDidDelete(uri => {
-      const generatorPath = path.dirname(path.dirname(uri.fsPath));
-      this.queueWorkspaces(generatorPath, true);
+    workspaceWatcher.onDidCreate(onWorkspaceCreatedOrDeleted);
+    workspaceWatcher.onDidDelete(onWorkspaceCreatedOrDeleted);
+
+    // Only Generator.json: change events for the workspace directories would rescan on every write inside them
+    workspaceWatcher.onDidChange(uri => {
+      if (path.basename(uri.fsPath) === 'Generator.json')
+        this.queueBuildSystem(workspaceFolder, true);
     });
 
     disposables.push(workspaceWatcher);
+
+    // A workspace is only listed once it has a Workspace.json, which can be written after its directory is created
+    const workspaceJsonPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Workspace.json');
+    const workspaceJsonWatcher = vscode.workspace.createFileSystemWatcher(workspaceJsonPattern);
+
+    const onWorkspaceJsonChanged = (uri: vscode.Uri) => {
+      const generatorPath = path.dirname(path.dirname(path.dirname(uri.fsPath)));
+      this.queueWorkspaces(generatorPath, true);
+    };
+
+    workspaceJsonWatcher.onDidCreate(onWorkspaceJsonChanged);
+    workspaceJsonWatcher.onDidChange(onWorkspaceJsonChanged);
+    workspaceJsonWatcher.onDidDelete(onWorkspaceJsonChanged);
+
+    disposables.push(workspaceJsonWatcher);
 
     // Watch for workspace configuration changes
     const workspaceConfigPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Configs/*');

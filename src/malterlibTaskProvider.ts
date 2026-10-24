@@ -13,11 +13,12 @@ interface MalterlibTaskDefinition extends vscode.TaskDefinition {
   target?: string;
 }
 
+// Generator.json. Only a ConfigStore that mib generated has the fields that the generate tasks need.
 interface GeneratorConfig {
-  buildSystemFile: string;
-  generator: string;
-  generatorFamily: string;
-  outputDir: string;
+  buildSystemFile?: string;
+  generator?: string;
+  generatorFamily?: string;
+  outputDir?: string;
   priority?: number;
 }
 
@@ -208,11 +209,12 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     const selectedGenerator = generators.find(gen => gen.name === definition.generator);
     if (!selectedGenerator) return undefined;
 
+    // Another build system's ConfigStore has no build system file for mib to generate
     const generatorConfig = this.getGeneratorConfig(selectedGenerator.configStorePath);
-    if (!generatorConfig) return undefined;
+    if (!generatorConfig?.buildSystemFile || !generatorConfig.generator || !generatorConfig.outputDir) return undefined;
 
     // Build command arguments
-    const args = this.buildGenerateCommand(generatorConfig, definition);
+    const args = this.buildGenerateCommand(generatorConfig.buildSystemFile, generatorConfig.generator, generatorConfig.outputDir, definition);
 
     // Create the task
     const execution = new vscode.ShellExecution('./mib', args, {
@@ -271,7 +273,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     // Get generator configuration
     const generators = BuildSystemScanner.getGenerators(workspaceFolder);
     const selectedGenerator = generators.find(gen => gen.name === definition.generator);
-    if (!selectedGenerator || !selectedGenerator.buildWorkspaceScript) return undefined;
+    if (!selectedGenerator || !selectedGenerator.buildWorkspaceScript || !fs.existsSync(selectedGenerator.buildWorkspaceScript)) return undefined;
 
     // Get workspace configuration to determine platform and architecture
     const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
@@ -290,7 +292,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
       workspaceConfig.platform,
       workspaceConfig.architecture,
       workspaceConfig.configuration,
-      selectedGenerator.outputDir || 'BuildSystem/Default'
+      selectedGenerator.outputDir || selectedGenerator.path
     ];
 
     // Set environment variable for MalterlibWorkspaceRoot
@@ -352,7 +354,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     // Get generator configuration
     const generators = BuildSystemScanner.getGenerators(workspaceFolder);
     const selectedGenerator = generators.find(gen => gen.name === definition.generator);
-    if (!selectedGenerator || !selectedGenerator.buildTargetScript) return undefined;
+    if (!selectedGenerator || !selectedGenerator.buildTargetScript || !fs.existsSync(selectedGenerator.buildTargetScript)) return undefined;
 
     // Get workspace info
     const workspaces = BuildSystemScanner.getWorkspaces(selectedGenerator.path);
@@ -392,7 +394,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
       platform,
       architecture,
       configurationName,
-      selectedGenerator.outputDir || 'BuildSystem/Default'
+      selectedGenerator.outputDir || selectedGenerator.path
     ];
 
     // Set environment variable for MalterlibWorkspaceRoot
@@ -488,7 +490,7 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
       platform,
       architecture,
       configurationName,
-      selectedGenerator.outputDir || 'BuildSystem/Default'
+      selectedGenerator.outputDir || selectedGenerator.path
     ];
 
     const env = {
@@ -535,13 +537,13 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     return task;
   }
 
-  private buildGenerateCommand(generatorConfig: GeneratorConfig, definition: MalterlibTaskDefinition): string[] {
+  private buildGenerateCommand(buildSystemFile: string, generator: string, outputDir: string, definition: MalterlibTaskDefinition): string[] {
     const args = ['generate'];
 
     // Add required arguments based on generator config
-    args.push('--build-system', generatorConfig.buildSystemFile);
-    args.push('--generator', generatorConfig.generator);
-    args.push('--output-directory', generatorConfig.outputDir);
+    args.push('--build-system', buildSystemFile);
+    args.push('--generator', generator);
+    args.push('--output-directory', outputDir);
 
     // Add workspace if specified
     if (definition.workspace) args.push(definition.workspace);

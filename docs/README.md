@@ -16,6 +16,7 @@ For complete details on Malterlib standards and conventions:
 
 ### Build System Integration
 - **[Build Integration](build-integration.md)** - VS Code tasks, problem matchers, and automation
+- **[ConfigStore](config-store.md)** - The build description the extension reads, and how other build systems can provide one
 
 ### User Interface
 - **[Status Bar Controls](status-bar.md)** - Interactive status bar for build configuration
@@ -107,5 +108,5 @@ For mixed codebases that need coloring for non-Malterlib code (uses clangd's slo
 
 **VS Code**: 1.80.0 or later
 **Languages**: C, C++ (C++11 through C++23)
-**Build Systems**: Malterlib build system
+**Build Systems**: Malterlib build system, and any build system that writes a [ConfigStore](config-store.md)
 **Debuggers**: LLDB
