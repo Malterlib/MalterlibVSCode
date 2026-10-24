@@ -3,19 +3,20 @@
 ## Features
 
 ### Core Features
-* **[Syntax Highlighting](docs/syntax-highlighting.md)** - Advanced syntax highlighting for Malterlib C++ code with full support for naming conventions
-* **[Semantic Coloring](docs/semantic-coloring.md)** - Intelligent identifier coloring based on Malterlib prefix patterns and conventions
-* **[Build System Support](docs/build-system.md)** - Complete syntax highlighting for all Malterlib build file types (.MTarget, .MConfig, etc.)
-* **[Color Themes](docs/color-themes.md)** - Two professional themes optimized for Display P3 and sRGB color spaces
+* **[Syntax Highlighting](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/syntax-highlighting.md)** - Advanced syntax highlighting for Malterlib C++ code with full support for naming conventions
+* **[Semantic Coloring](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/semantic-coloring.md)** - Intelligent identifier coloring based on Malterlib prefix patterns and conventions
+* **[Build System Support](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/syntax-highlighting.md)** - Complete syntax highlighting for all Malterlib build file types (.MTarget, .MConfig, etc.)
+* **[Color Themes](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/color-themes.md)** - Two professional themes optimized for Display P3 and sRGB color spaces
 
 ### Developer Tools
-* **[Build System Integration](docs/build-integration.md)** - Integrated tasks for generate, build, clean operations with problem matchers
-* **[Status Bar Controls](docs/status-bar.md)** - Quick access to generator, workspace, configuration, and target selection
-* **[Debug Configuration](docs/debug-configuration.md)** - Dynamic debug configuration with multi-target support and LLDB integration
-* **[clangd Integration](docs/clangd-integration.md)** - Seamless integration with Malterlib-shipped clangd for enhanced language features
+* **[Build System Integration](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/build-integration.md)** - Integrated tasks for generate, build, clean operations with problem matchers
+* **[ConfigStore](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/config-store.md)** - The build description the extension reads, which lets other build systems use the build and launch integration
+* **[Status Bar Controls](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/status-bar.md)** - Quick access to generator, workspace, configuration, and target selection
+* **[Debug Configuration](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/debug-configuration.md)** - Dynamic debug configuration with multi-target support and LLDB integration
+* **[clangd Integration](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/clangd-integration.md)** - Seamless integration with Malterlib-shipped clangd for enhanced language features
 
 ### 📚 Documentation
-For comprehensive documentation on all features, see the **[Documentation Index](docs/README.md)**.
+For comprehensive documentation on all features, see the **[Documentation Index](https://github.com/Malterlib/MalterlibVSCode/blob/master/docs/README.md)**.
 
 ---
 

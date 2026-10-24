@@ -5,11 +5,12 @@
 ### Core Features
 * **[Syntax Highlighting](docs/syntax-highlighting.md)** - Advanced syntax highlighting for Malterlib C++ code with full support for naming conventions
 * **[Semantic Coloring](docs/semantic-coloring.md)** - Intelligent identifier coloring based on Malterlib prefix patterns and conventions
-* **[Build System Support](docs/build-system.md)** - Complete syntax highlighting for all Malterlib build file types (.MTarget, .MConfig, etc.)
+* **[Build System Support](docs/syntax-highlighting.md)** - Complete syntax highlighting for all Malterlib build file types (.MTarget, .MConfig, etc.)
 * **[Color Themes](docs/color-themes.md)** - Two professional themes optimized for Display P3 and sRGB color spaces
 
 ### Developer Tools
 * **[Build System Integration](docs/build-integration.md)** - Integrated tasks for generate, build, clean operations with problem matchers
+* **[ConfigStore](docs/config-store.md)** - The build description the extension reads, which lets other build systems use the build and launch integration
 * **[Status Bar Controls](docs/status-bar.md)** - Quick access to generator, workspace, configuration, and target selection
 * **[Debug Configuration](docs/debug-configuration.md)** - Dynamic debug configuration with multi-target support and LLDB integration
 * **[clangd Integration](docs/clangd-integration.md)** - Seamless integration with Malterlib-shipped clangd for enhanced language features

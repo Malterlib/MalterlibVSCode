@@ -4,6 +4,7 @@ Generate README.md from README-template.md, replacing {RecommendedSettings} with
 """
 import json
 import pathlib
+import re
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TEMPLATE_PATH = ROOT / "README-template.md"
@@ -11,6 +12,7 @@ SETTINGS_PATH = ROOT / "settings.json"
 SETTINGS_SRGB_PATH = ROOT / "settingsSRGB.json"
 CLANGD_PATH = ROOT / ".clangd"
 OUT_PATH = ROOT / "README.md"
+PACKAGE_PATH = ROOT / "package.json"
 
 with TEMPLATE_PATH.open("r", encoding="utf-8") as f:
     template = f.read()
@@ -39,6 +41,12 @@ settings_srgb_str_indented = filter_indented_lines(settings_srgb_str)
 readme = template.replace("{RecommendedSettings}", settings_str_indented)
 readme = readme.replace("{RecommendedSettingsSRGB}", settings_srgb_str_indented)
 readme = readme.replace("{RecommendedClangD}", clangd_content.strip())
+
+# The extension page only opens http, https and mailto links, and docs/ isn't packaged, so link the documentation in the
+# repository. The template keeps relative links so it reads the same on GitHub.
+with PACKAGE_PATH.open("r", encoding="utf-8") as f:
+    repository_url = json.load(f)["repository"]["url"].removesuffix(".git")
+readme = re.sub(r"\]\((docs/[^)]*)\)", lambda match: f"]({repository_url}/blob/master/{match.group(1)})", readme)
 
 with OUT_PATH.open("w", encoding="utf-8") as f:
     f.write(readme)
