@@ -520,10 +520,10 @@
     "classification": "EClassification_Type"
   },
   "constant_int64": {
-    "classification": "EClassification_KeywordControlStatement"
+    "classification": "EClassification_KeywordPropertyModifiers"
   },
   "constant_uint64": {
-    "classification": "EClassification_KeywordControlStatement"
+    "classification": "EClassification_KeywordPropertyModifiers"
   },
   "constexpr": {
     "classification": "EClassification_KeywordPropertyModifiers"
