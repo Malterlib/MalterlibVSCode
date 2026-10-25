@@ -343,6 +343,9 @@
   "allocator_type": {
     "classification": "EClassification_Type"
   },
+  "always_inline": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
   "array": {
     "classification": "EClassification_KeywordCLR"
   },
@@ -649,6 +652,9 @@
   "exchange": {
     "classification": "EClassification_MemberFunctionPublic"
   },
+  "expect_analyzer": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
   "explicit": {
     "classification": "EClassification_KeywordPropertyModifiers"
   },
@@ -858,6 +864,9 @@
   "function_does_not_return": {
     "classification": "EClassification_KeywordPropertyModifiers"
   },
+  "function_does_not_return_analyzer": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
   "g_Test": {
     "classification": "EClassification_GlobalVariable",
     "example": true
@@ -941,6 +950,9 @@
   "inline_always_lambda": {
     "classification": "EClassification_KeywordPropertyModifiers"
   },
+  "inline_always_lto": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
   "inline_extralarge": {
     "classification": "EClassification_KeywordPropertyModifiers"
   },
@@ -951,6 +963,9 @@
     "classification": "EClassification_KeywordPropertyModifiers"
   },
   "inline_never": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "inline_never_coro_exception_workaround": {
     "classification": "EClassification_KeywordPropertyModifiers"
   },
   "inline_never_debug": {
@@ -1277,6 +1292,9 @@
   "make_unsigned": {
     "classification": "EClassification_TemplateType"
   },
+  "malloc_like": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
   "map": {
     "classification": "EClassification_TemplateType"
   },
@@ -1287,6 +1305,9 @@
     "classification": "EClassification_KeywordPropertyModifiers"
   },
   "mark_no_coroutine_debug": {
+    "classification": "EClassification_KeywordPropertyModifiers"
+  },
+  "mark_no_stack_protector": {
     "classification": "EClassification_KeywordPropertyModifiers"
   },
   "mark_nodebug": {
