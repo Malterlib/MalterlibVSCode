@@ -85,7 +85,30 @@ USED_MODIFIERS = required_modifiers
 # ---------------------------------------------------------------------------
 # Build regex rules mirroring the TypeScript classifier logic (without mods yet).
 # ---------------------------------------------------------------------------
-RULES: List[Tuple[str, str]] = []  # (regex, scope) – modifiers assigned later
+RULES: List[Tuple[List[str], str]] = []  # (regexes, scope) – modifiers assigned later
+
+# Malterlib's .editorconfig limits lines to 190 characters, and a rule's regex line is indented and quoted
+MAX_LINE_LENGTH = 190
+MAX_REGEX_LENGTH = MAX_LINE_LENGTH - len("      - regex: ''")
+
+def alternation_regexes(alternatives: List[str]) -> List[str]:
+    """Regexes that match one of the alternatives, split so that each fits on a line. Rules with the split regexes and
+    the same modifiers match the same names as one rule with all alternatives."""
+    regexes: List[str] = []
+    chunk: List[str] = []
+
+    def to_regex(parts: List[str]) -> str:
+        joined = "|".join(parts)
+        return rf"^({joined})$" if len(parts) > 1 else rf"^{joined}$"
+
+    for alternative in alternatives:
+        if chunk and len(to_regex(chunk + [alternative]).replace("'", "''")) > MAX_REGEX_LENGTH:
+            regexes.append(to_regex(chunk))
+            chunk = []
+        chunk.append(alternative)
+    if chunk:
+        regexes.append(to_regex(chunk))
+    return regexes
 
 # 1. Exact keyword rules (grouped per scope) – highest precedence
 scope_to_keywords: Dict[str, List[str]] = defaultdict(list)
@@ -93,13 +116,7 @@ for kw, scope in keywords.items():
     scope_to_keywords[scope].append(kw)
 
 for scope, kw_list in sorted(scope_to_keywords.items()):
-    kw_list_sorted = sorted(kw_list)
-    joined = "|".join(re.escape(k) for k in kw_list_sorted)
-    if '|' in joined:
-        regex = rf"^({joined})$"
-    else:
-        regex = rf"^{joined}$"
-    RULES.append((regex, scope))
+    RULES.append((alternation_regexes([re.escape(k) for k in sorted(kw_list)]), scope))
 
 # 2. Prefix rules – processed below and appended to RULES as they are generated
 
@@ -149,12 +166,7 @@ for scope, regex_list in scope_to_prefix_regexes.items():
     if not regex_list:
         continue
     stripped = [r[1:-1] if r.startswith("^") and r.endswith("$") else r for r in regex_list]
-    joined = "|".join(stripped)
-    if '|' in joined:
-        combined_regex = rf"^({joined})$"
-    else:
-        combined_regex = rf"^{joined}$"
-    RULES.append((combined_regex, scope))
+    RULES.append((alternation_regexes(stripped), scope))
 
 # ---------------------------------------------------------------------------
 # Assign modifier sets sequentially based on rule appearance.
@@ -177,27 +189,53 @@ def modifier_combo_generator():
 scope_to_mods_assigned: Dict[str, List[str]] = {}
 combo_iter = modifier_combo_generator()
 
-FINAL_RULES: List[Tuple[str, List[str], str]] = []
-for regex, scope in RULES:
+FINAL_RULES: List[Tuple[List[str], List[str], str]] = []
+for regexes, scope in RULES:
     mods = scope_to_mods_assigned.get(scope)
     if mods is None:
         mods = next(combo_iter)
         scope_to_mods_assigned[scope] = mods
-    FINAL_RULES.append((regex, mods, scope))
+    FINAL_RULES.append((regexes, mods, scope))
 
 # ---------------------------------------------------------------------------
 # Write .clangd YAML – use template if available
 # ---------------------------------------------------------------------------
 TEMPLATE_PATH = ROOT / ".clangd-template"
 
-def build_unknown_section(remaining_rules: List[Tuple[str, List[str], str]]) -> List[str]:
-    unknown_lines: List[str] = ["    Unknown:"]
-    for regex, mods, scope in remaining_rules:
+def build_rule_lines(regexes: List[str], mods: List[str], scope_comment: str, regex_indent: str = "      ",
+                     add_indent: str = "        ") -> List[str]:
+    lines: List[str] = []
+    for regex in regexes:
         regex_yaml = regex.replace("'", "''")
-        unknown_lines.append(f"      - regex: '{regex_yaml}'")
-        scope_comment = scope.replace('-', '.')
-        unknown_lines.append(f"        add: [{', '.join(mods)}]  # {scope_comment}")
-    return unknown_lines
+        lines.append(f"{regex_indent}- regex: '{regex_yaml}'")
+        lines.append(f"{add_indent}add: [{', '.join(mods)}]  # {scope_comment}")
+    return lines
+
+def build_rule_section(kinds: str, rules: List[Tuple[List[str], List[str], str]]) -> List[str]:
+    lines: List[str] = [f"    {kinds}:"]
+    for regexes, mods, scope in rules:
+        lines.extend(build_rule_lines(regexes, mods, scope.replace('-', '.')))
+    return lines
+
+def is_keyword(scope: str) -> bool:
+    return scope.startswith("malterlib-keyword-")
+
+def is_macro(scope: str) -> bool:
+    return scope == "malterlib-macro"
+
+def build_generated_sections() -> List[str]:
+    # Identifiers and keywords clangd gives no token (Unhighlighted) get all rules. Malterlib defines some keywords, such
+    # as inline_always, as macros, which the extension colors as keywords, so macro tokens get the keyword rules, but
+    # not the macro rules, as clangd knows they're macros. The tokens of names clangd knows but can't classify (Unknown),
+    # such as dependent names, are neither keywords nor macros.
+    # The macro rules precede the other prefix rules, which include the empty prefix of variables
+    return (
+        build_rule_section("Macro|Unhighlighted", [rule for rule in FINAL_RULES if is_keyword(rule[2])])
+        + build_rule_section("Unhighlighted", [rule for rule in FINAL_RULES if is_macro(rule[2])])
+        + build_rule_section(
+            "Unknown|Unhighlighted", [rule for rule in FINAL_RULES if not is_keyword(rule[2]) and not is_macro(rule[2])]
+        )
+    )
 
 if TEMPLATE_PATH.exists():
     template_lines = TEMPLATE_PATH.read_text(encoding="utf-8").splitlines()
@@ -205,9 +243,10 @@ if TEMPLATE_PATH.exists():
     # Map scope -> list of (regex, mods) so we can pop as we consume
     from collections import defaultdict as _dd
 
-    scope_to_remaining: Dict[str, List[Tuple[str, List[str]]]] = _dd(list)
-    for regex, mods, scope in FINAL_RULES:
-        scope_to_remaining[scope].append((regex, mods))
+    scope_to_remaining: Dict[str, List[Tuple[List[str], List[str]]]] = _dd(list)
+    for regexes, mods, scope in FINAL_RULES:
+        # The template's comments name the scopes in their TextMate form
+        scope_to_remaining[scope.replace("-", ".")].append((regexes, mods))
 
     output_lines: List[str] = []
     i = 0
@@ -225,38 +264,25 @@ if TEMPLATE_PATH.exists():
                 if scope_to_remaining.get(scope_tag):
                     pair = scope_to_remaining[scope_tag].pop(0)
                 if pair:
-                    regex_val, mods_val = pair
+                    regexes_val, mods_val = pair
                     # Build new regex and add lines preserving indentation
                     regex_indent = line[: line.index("- regex:")]
-                    regex_yaml = regex_val.replace("'", "''")
-                    new_regex_line = f"{regex_indent}- regex: '{regex_yaml}'"
-
                     add_indent = add_line[: add_line.index("add:")]
-                    mods_str = ", ".join(mods_val)
-                    new_add_line = f"{add_indent}add: [{mods_str}]  # {scope_tag}"
-
-                    output_lines.append(new_regex_line)
-                    output_lines.append(new_add_line)
+                    output_lines.extend(build_rule_lines(regexes_val, mods_val, scope_tag, regex_indent, add_indent))
                     i += 2
                     continue  # Skip to next iteration
         # Default: copy line
         output_lines.append(line)
         i += 1
 
-    # Always append an Unknown section containing *all* rules
-    output_lines.extend(build_unknown_section([(r, m, s) for r, m, s in FINAL_RULES]))
+    # Always append the sections for macros, for names clangd can't classify and for identifiers it gives no token
+    output_lines.extend(build_generated_sections())
 
     CLANGD_YAML.write_text("\n".join(output_lines) + "\n", encoding="utf-8")
-    print(f"Wrote {CLANGD_YAML.relative_to(ROOT)} using template with {len(FINAL_RULES)} total rules in Unknown section")
+    print(f"Wrote {CLANGD_YAML.relative_to(ROOT)} using template with {len(FINAL_RULES)} total rules for unhighlighted identifiers")
 else:
     # Fallback to old autogenerated style
-    clangd_lines: List[str] = ["SemanticTokens:", "  Rules:", "    Unknown:"]
-    for regex, mods, scope in FINAL_RULES:
-        # YAML single quotes – escape existing single quotes by doubling
-        regex_yaml = regex.replace("'", "''")
-        clangd_lines.append(f"      - regex: '{regex_yaml}'")
-        scope_comment = scope.replace('-', '.')
-        clangd_lines.append(f"        add: [{', '.join(mods)}]  # {scope_comment}")
+    clangd_lines: List[str] = ["SemanticTokens:", "  Rules:"] + build_generated_sections()
 
     CLANGD_YAML.write_text("\n".join(clangd_lines) + "\n", encoding="utf-8")
     print(f"Wrote {CLANGD_YAML.relative_to(ROOT)} with {len(FINAL_RULES)} rules (no template)")
