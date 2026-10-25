@@ -209,6 +209,11 @@ export function registerSemanticTokens(context: vscode.ExtensionContext, output:
   // Register providers
   const disposables: vscode.Disposable[] = [];
 
+  // Unbroken Code merges the tokens with clangd's, which refine them once clangd has parsed the file, and turns the
+  // setting on by default. Other editors only show the tokens of one provider, the one registered last, so there they
+  // replace clangd's.
+  const bMerge = vscode.languages.registerMergedDocumentSemanticTokensProvider !== undefined;
+
   function registerProviders() {
     // Dispose existing providers
     disposables.forEach(d => d.dispose());
@@ -216,12 +221,14 @@ export function registerSemanticTokens(context: vscode.ExtensionContext, output:
 
     // Check if semantic coloring is enabled
     const config = vscode.workspace.getConfiguration('malterlib');
-    const enableSemanticColoring = config.get<boolean>('enableSemanticColoring', true);
+    const enableSemanticColoring = config.get<boolean>('enableSemanticColoring', bMerge);
 
     if (enableSemanticColoring) {
       // Register new providers only when enabled
       for (const sel of langs) {
-        const disposable = vscode.languages.registerDocumentSemanticTokensProvider(sel, provider, legend);
+        const disposable = vscode.languages.registerMergedDocumentSemanticTokensProvider
+          ? vscode.languages.registerMergedDocumentSemanticTokensProvider(sel, provider, legend)
+          : vscode.languages.registerDocumentSemanticTokensProvider(sel, provider, legend);
         disposables.push(disposable);
       }
     }
@@ -239,8 +246,9 @@ export function registerSemanticTokens(context: vscode.ExtensionContext, output:
     }
   });
 
-  // Initialize providers after a brief delay
-  const timer = setTimeout(() => {
+  // Register again after a brief delay, after clangd's provider, so the tokens replace clangd's in editors that don't
+  // merge them
+  const timer = bMerge ? undefined : setTimeout(() => {
     registerProviders();
   }, 1000);
 

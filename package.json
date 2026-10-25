@@ -63,7 +63,7 @@
         "malterlib.enableSemanticColoring": {
           "type": "boolean",
           "default": false,
-          "description": "Enable semantic token coloring for Malterlib identifiers. This will override clangd coloring. Use if you are not using clangd shipped with Malterlib."
+          "description": "Color Malterlib identifiers by their naming convention as soon as a file opens. Unbroken Code merges this coloring with clangd's, which refines it once clangd has parsed the file, and turns it on by default. In VS Code it replaces clangd's coloring, so enable it only if you don't use the clangd shipped with Malterlib."
         },
         "malterlib.statusBarVisibility": {
           "type": "string",

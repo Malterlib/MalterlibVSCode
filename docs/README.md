@@ -86,7 +86,7 @@ For mixed codebases that need coloring for non-Malterlib code (uses clangd's slo
 
 ```json
 {
-    // Disable extension semantic coloring (this is the default)
+    // Disable extension semantic coloring (the default in VS Code; Unbroken Code merges it with clangd's and turns it on)
     "malterlib.enableSemanticColoring": false,
     
     // Use Malterlib-shipped clangd

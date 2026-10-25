@@ -65,7 +65,8 @@ Configure the Malterlib extension to work with clangd:
 
 ```json
 {
-    // Disable extension semantic coloring (clangd provides it)
+    // In VS Code, leave the extension's semantic coloring off, the default, so clangd's shows. Unbroken Code merges
+    // the two, so there it's on by default.
     "malterlib.enableSemanticColoring": false,
     
     // Optional: Configure clangd behavior

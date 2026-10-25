@@ -63,7 +63,7 @@ This is a VS Code extension for Malterlib C++ syntax highlighting and semantic c
 3. **Build File Support** - Syntax highlighting for Malterlib build system files
 
 ### Configuration
-- `malterlib.enableSemanticColoring` - Toggle semantic token coloring (default: false)
+- `malterlib.enableSemanticColoring` - Toggle semantic token coloring (default: false; Unbroken Code overrides it to true and merges the tokens with clangd's through `registerMergedDocumentSemanticTokensProvider`)
 - Designed to work alongside clangd for full language support
 
 ### Extension Activation

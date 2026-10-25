@@ -34,10 +34,14 @@ The VS Code extension implements the Malterlib coloring standard through:
 }
 ```
 
-## Extension vs clangd: Understanding the Trade-offs
+The default depends on the editor:
 
-### Important Note
-**You cannot have both semantic colorings simultaneously** - enabling Malterlib semantic coloring disables clangd's semantic token highlighting only. Other clangd features (code completion, diagnostics, go-to-definition, etc.) continue to work.
+- **Unbroken Code** turns it on. It merges the extension's coloring with clangd's: the extension colors a file as soon as it opens, and clangd's coloring refines it once clangd has parsed the file. Where both color an identifier, clangd's styles win, and any style clangd's coloring leaves unset, such as the color of a token the theme only makes bold, comes from the extension's.
+- **VS Code** turns it off. It shows the semantic coloring of only one provider, so turning it on replaces clangd's semantic coloring with the extension's. Other clangd features (code completion, diagnostics, go-to-definition, etc.) continue to work.
+
+## Extension vs clangd in VS Code: Understanding the Trade-offs
+
+In Unbroken Code you get both colorings, so there's nothing to choose. In VS Code you choose one of them.
 
 ### Extension Semantic Coloring + clangd Features
 **Advantages:**
@@ -88,6 +92,12 @@ The VS Code extension implements the Malterlib coloring standard through:
     "malterlib.enableSemanticColoring": false
 }
 ```
+
+### Merging in Other Extensions
+
+Unbroken Code adds `vscode.languages.registerMergedDocumentSemanticTokensProvider`, which registers a semantic tokens provider whose tokens are merged below those of the other providers instead of replacing them. It's `undefined` in other editors, which is how the extension tells whether it can merge its coloring.
+
+Several providers can merge their tokens. Each forms a layer, ordered by the `priority` of the optional metadata argument, higher on top, then by how well the providers' selectors match the document and how recently they were registered. The extension registers with the default priority, `0`, so an extension that should refine its coloring registers with a higher one.
 
 ## Related Documentation
 - [Syntax Highlighting](syntax-highlighting.md) - Basic highlighting features
