@@ -19,7 +19,7 @@ Generates all workspaces in the project.
 # or with custom output directory:
 ./mib generate --output-directory "$PWD/BuildSystem/MyBuildSystem"
 ```
-This populates the generator dropdown with the generator that was used. Each generation adds that specific generator/path combination to the dropdown.
+This populates the generator dropdown with the generator that was used. Each generation adds that specific generator/path combination to the dropdown. A build system generated outside the checkout is listed once mib has listed it in `BuildSystem/BuildSystems.json`, from MToolVersion 6 on (see [ConfigStore](config-store.md#location-and-detection)).
 
 **Currently Supported Generators**:
 - Ninja

@@ -298,14 +298,15 @@ export class StatusBarController implements vscode.Disposable {
     if (this.currentGenerator) {
       // Update status bar with restored values
       const hasMultipleWorkspaces = (vscode.workspace.workspaceFolders?.length ?? 0) > 1;
+      const generatorLabel = this.getGeneratorLabel(this.currentGenerator);
       const generatorText = hasMultipleWorkspaces && this.selectedWorkspaceFolder
-        ? `${this.selectedWorkspaceFolder.name} / ${this.currentGenerator}`
-        : this.currentGenerator;
+        ? `${this.selectedWorkspaceFolder.name} / ${generatorLabel}`
+        : generatorLabel;
 
       this.statusBar.setGeneratorText(generatorText);
       this.statusBar.setGeneratorTooltip(this.selectedWorkspaceFolder
-        ? `Current generator: ${this.currentGenerator} (${this.selectedWorkspaceFolder.name})`
-        : `Current generator: ${this.currentGenerator}`);
+        ? `Current generator: ${generatorLabel} (${this.selectedWorkspaceFolder.name})`
+        : `Current generator: ${generatorLabel}`);
 
       if (this.currentWorkspace) {
         this.statusBar.setWorkspaceText(this.currentWorkspace);
@@ -420,12 +421,12 @@ export class StatusBarController implements vscode.Disposable {
         // Only show workspace name if there are multiple workspace folders
         const hasMultipleWorkspaces = (vscode.workspace.workspaceFolders?.length ?? 0) > 1;
         const generatorText = hasMultipleWorkspaces
-          ? `${workspace.name} / ${defaultGenerator.name}`
-          : defaultGenerator.name;
+          ? `${workspace.name} / ${defaultGenerator.label}`
+          : defaultGenerator.label;
 
         this.statusBar.setGeneratorText(generatorText);
-        this.statusBar.setGeneratorTooltip(`Auto-selected generator: ${defaultGenerator.name} (${workspace.name})`);
-        this.output.appendLine(`Auto-selected generator: ${defaultGenerator.name} in ${workspace.name}`);
+        this.statusBar.setGeneratorTooltip(`Auto-selected generator: ${defaultGenerator.label} (${workspace.name})`);
+        this.output.appendLine(`Auto-selected generator: ${defaultGenerator.label} in ${workspace.name}`);
       } else {
         this.output.appendLine('Multiple generators available - manual selection required');
         return;
@@ -633,7 +634,7 @@ export class StatusBarController implements vscode.Disposable {
         const generators = BuildSystemScanner.getGenerators(wsFolder);
         for (const gen of generators) {
           allChoices.push({
-            label: `${wsFolder.name} / ${gen.name}`,
+            label: `${wsFolder.name} / ${gen.label}`,
             workspaceFolder: wsFolder,
             generator: gen
           });
@@ -647,10 +648,11 @@ export class StatusBarController implements vscode.Disposable {
 
       let selectedChoice: GeneratorChoice | undefined;
 
-      // Sort choices for display
-      const sortedChoices = allChoices.sort((a, b) => a.label.localeCompare(b.label));
+      // Sort choices for display, the host tools after the others
+      const sortedChoices = allChoices.sort((a, b) => Number(!!a.generator.hostTools) - Number(!!b.generator.hostTools) || a.label.localeCompare(b.label));
       const items = sortedChoices.map(choice => ({
         label: choice.label,
+        description: choice.generator.hostTools ? 'Host tools, which builds of the other build systems build' : undefined,
         detail: choice.generator.path,
         choice: choice
       }));
@@ -704,17 +706,17 @@ export class StatusBarController implements vscode.Disposable {
         // Only show workspace name if there are multiple workspace folders
         const hasMultipleWorkspaces = (vscode.workspace.workspaceFolders?.length ?? 0) > 1;
         const generatorText = hasMultipleWorkspaces
-          ? `${selectedChoice.workspaceFolder.name} / ${selectedChoice.generator.name}`
-          : selectedChoice.generator.name;
+          ? `${selectedChoice.workspaceFolder.name} / ${selectedChoice.generator.label}`
+          : selectedChoice.generator.label;
 
         this.statusBar.setGeneratorText(generatorText);
-        this.statusBar.setGeneratorTooltip(`Current generator: ${selectedChoice.generator.name} (${selectedChoice.workspaceFolder.name})`);
+        this.statusBar.setGeneratorTooltip(`Current generator: ${selectedChoice.generator.label} (${selectedChoice.workspaceFolder.name})`);
         this.statusBar.setWorkspaceText('No Workspace');
         this.statusBar.setConfigurationText('No Configuration');
         this.statusBar.setTargetText('All Targets');
         this.statusBar.setDebugTargetsText('No Debug Targets');
 
-        this.output.appendLine(`Generator selected: ${selectedChoice.generator.name} for workspace: ${selectedChoice.workspaceFolder.name}`);
+        this.output.appendLine(`Generator selected: ${selectedChoice.generator.label} for workspace: ${selectedChoice.workspaceFolder.name}`);
 
         // Store the selected workspace folder and trigger cascade
         this.selectedWorkspaceFolder = selectedChoice.workspaceFolder;
@@ -1333,6 +1335,14 @@ export class StatusBarController implements vscode.Disposable {
       }
     }
     previousWatchers.forEach(watcher => watcher.dispose());
+  }
+
+  /**
+   * The label of a build system of the selected workspace folder, its output directory, or its name when it's not found
+   */
+  private getGeneratorLabel(generatorName: string): string {
+    const generators = this.selectedWorkspaceFolder ? BuildSystemScanner.getGenerators(this.selectedWorkspaceFolder) : [];
+    return generators.find(generator => generator.name === generatorName)?.label ?? generatorName;
   }
 
   private getCompileCommandsSelection(): CompileCommandsSelection | null {

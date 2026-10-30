@@ -261,9 +261,11 @@ export class MalterlibTaskProvider implements vscode.TaskProvider {
     // Build command arguments
     const args = this.buildGenerateCommand(generatorConfig.buildSystemFile, generatorConfig.generator, generatorConfig.outputDir, definition);
 
-    // Create the task
+    // A generation of the build system that runs, for a build or in a terminal, makes an MTool of MToolVersion 6 or
+    // later refuse; MalterlibBuildLockWait waits for it instead, and older ones ignore it. Stopping the task stops a wait.
     const execution = new vscode.ShellExecution('./mib', args, {
-      cwd: workspaceFolder.uri.fsPath
+      cwd: workspaceFolder.uri.fsPath,
+      env: { MalterlibBuildLockWait: 'true' }
     });
 
     // Use fixed task names so VS Code remembers them

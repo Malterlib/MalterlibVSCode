@@ -11,17 +11,28 @@ tidy tasks, the debug configurations and the merged `compile_commands.json`. It 
 its own. A project that writes a ConfigStore doesn't need a `.MBuildSystem` file.
 
 ## Location and Detection
-A ConfigStore is at `BuildSystem/<Generator>/ConfigStore` in the root of a workspace folder. `<Generator>` is the
-name shown in the generator picker. A workspace folder can have any number of them, for example one per generator or
-build directory.
+A ConfigStore is at `<OutputDir>/ConfigStore`, where `<OutputDir>` is the output directory of a build system. A
+workspace folder can have any number of build systems, for example one per generator or build directory. The extension
+finds them in two places:
+- Every `BuildSystem/<Generator>` in the root of the workspace folder. The generator picker shows it as
+  `BuildSystem/<Generator>`.
+- The build systems that `BuildSystem/BuildSystems.json` lists, which mib writes for its build systems from MToolVersion
+  6 on. This includes build systems generated with `--output-directory` outside the checkout. The keys of its
+  `BuildSystems` object are the output directories, relative to the workspace folder or absolute, and the picker shows
+  them like that. A listed build system only counts when its directory has a ConfigStore, as a deleted one stays listed
+  until mib next updates the repositories. The extension only reads the file.
+
+`BuildSystem/HostTools` is the build system of the tools that builds run on the build host, which builds of the other
+build systems build from inside Ninja. The picker lists it after the others, and it's only selected when it's the only
+one or when you pick it.
 
 The extension treats a workspace folder as a Malterlib project when its root has a `*.MBuildSystem` file or a
-`BuildSystem/*/ConfigStore/Generator.json` file. Either one also activates the extension. The build system
-integration only runs in a trusted workspace.
+`BuildSystem/*/ConfigStore/Generator.json` file, or `BuildSystem/BuildSystems.json` lists a build system with one.
+Either of the first two also activates the extension. The build system integration only runs in a trusted workspace.
 
 ## Layout
 ```
-BuildSystem/<Generator>/
+<OutputDir>/
 ├── PostCopy.MConfig                            Optional, see PostCopy
 └── ConfigStore/
     ├── Generator.json                          Required
@@ -61,14 +72,15 @@ Describes the generator. For another build system, `{}` is enough.
 |-------|------|----------|
 | `priority` | number | Choosing the default generator when there are several. The highest wins. Malterlib uses `MalterlibGeneratorIDEPriority`. |
 | `buildSystemBasePath` | string | The working directory of the scripts and the default working directory of launched programs. It's also the value of `MalterlibWorkspaceRoot` (see Scripts). Defaults to the workspace folder. |
-| `outputDir` | string | The `BuildSystemDir` argument of the scripts. Defaults to the absolute path of `BuildSystem/<Generator>`. |
+| `outputDir` | string | The `BuildSystemDir` argument of the scripts. Defaults to the absolute path of the build system's directory, the `<OutputDir>` of the ConfigStore. |
 | `buildSystemFile` | string | mib only: the `.MBuildSystem` file passed to `mib generate --build-system`. |
 | `generator` | string | mib only: the generator passed to `mib generate --generator`, for example `Ninja`. |
 | `generatorFamily` | string | Informational: `Ninja`, `Xcode` or `VisualStudio` for mib. |
 
 The **Generate Workspace** and **Generate All** tasks run `./mib generate` in the workspace folder. They are only
 offered when `buildSystemFile`, `generator` and `outputDir` are all set, which in practice means mib wrote the
-ConfigStore.
+ConfigStore. They set `MalterlibBuildLockWait=true`, so that from MToolVersion 6 on they wait for another generation of
+the build system, such as one a build runs, instead of being refused. Stopping the task stops the wait.
 
 ## Workspace.json
 The presence of this file is what makes `<Workspace>` a workspace.
@@ -215,7 +227,7 @@ When a target's `compileCommands` is the `compile_commands.json` in the root of 
 that of an in-source CMake build, the build system writes it, and the extension leaves it alone instead of merging.
 
 ## PostCopy
-`BuildSystem/<Generator>/PostCopy.MConfig` lists where deployable projects are copied after the build. The debug
+`<OutputDir>/PostCopy.MConfig` lists where deployable projects are copied after the build. The debug
 configuration editor uses it to offer launch configurations for the deployed copies. The format is Malterlib's
 registry format:
 

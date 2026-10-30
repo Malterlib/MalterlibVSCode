@@ -174,7 +174,7 @@ export class BuildFileCommand implements vscode.Disposable {
       document.uri.fsPath
     );
     if (!task) {
-      vscode.window.showWarningMessage(`${fileName} can't be built with ${generator.name}.`);
+      vscode.window.showWarningMessage(`${fileName} can't be built with ${generator.label}.`);
       return;
     }
 

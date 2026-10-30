@@ -2,9 +2,18 @@ import * as vscode from 'vscode';
 import { promises as fsp } from 'fs';
 import * as path from 'path';
 import { PostCopyParser, PostCopyProject } from './postCopyParser';
+import { isInBuildSystemDirectory, readListedBuildSystems } from './buildSystemsListing';
+import { getDirectoryIdentity, getLinkTarget, watchDirectoryAndAncestors } from './directoryWatcher';
 
 export interface GeneratorInfo {
+  // The name of a build system in the checkout's BuildSystem directory, its directory name, and of one elsewhere its
+  // output directory as BuildSystems.json lists it, relative to the checkout or absolute
   name: string;
+  // The output directory as the pickers show it: BuildSystem/<Name>, or the path BuildSystems.json lists
+  label: string;
+  // BuildSystem/HostTools, the build system of the tools that builds run on the host, which builds of the other build
+  // systems build from inside ninja
+  hostTools?: boolean;
   path: string;
   configStorePath: string;
   priority?: number;
@@ -106,6 +115,10 @@ export class BuildSystemScanner {
   private static workspaces = new Map<string, WorkspaceInfo[]>();
   private static targets = new Map<string, TargetInfo[]>();
   private static configurations = new Map<string, ConfigurationInfo[]>();
+  // The watchers of the build systems outside the BuildSystem directory of each initialized workspace folder, and of the
+  // links that build systems are found through, by `outputDir:<Directory>` and `link:<Path>`, with the identity of the
+  // directory they watch
+  private static outOfTreeWatchers = new Map<string, Map<string, { watcher: vscode.Disposable; identity: string | undefined }>>();
 
   // Async listeners that the queue will await before considering a task complete
   private static asyncScanningListeners = new Set<(event: string) => Promise<void> | void>();
@@ -169,7 +182,8 @@ export class BuildSystemScanner {
 
     switch (task.kind) {
       case 'buildSystem':
-        return !!task.workspaceFolder && this.isEqualOrParent(path.join(task.workspaceFolder.uri.fsPath, 'BuildSystem'), candidatePath);
+        return !!task.workspaceFolder && (this.isEqualOrParent(path.join(task.workspaceFolder.uri.fsPath, 'BuildSystem'), candidatePath) ||
+          (this.generators.get(task.workspaceFolder.uri.fsPath) ?? []).some(generator => this.isEqualOrParent(generator.path, candidatePath)));
       case 'workspaces':
         return !!task.generatorPath && candidate.kind !== 'postCopyUpdate' && this.isEqualOrParent(path.join(task.generatorPath, 'ConfigStore'), candidatePath);
       case 'targets':
@@ -442,8 +456,39 @@ export class BuildSystemScanner {
 
     disposables.push(generatorWatcher);
 
+    disposables.push(...this.watchConfigStores(workspaceFolder, workspaceFolder.uri, 'BuildSystem/*/', workspaceFolder.uri, 'BuildSystem/*/ConfigStore/'));
+
+    // BuildSystems.json lists the build systems of the checkout, also those outside it, which are watched on their own
+    // when it's read. MTool replaces it by a rename, and only when its contents change.
+    const listingWatcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(workspaceFolder, 'BuildSystem/BuildSystems.json'));
+    listingWatcher.onDidCreate(() => this.queueBuildSystem(workspaceFolder, true));
+    listingWatcher.onDidChange(() => this.queueBuildSystem(workspaceFolder, true));
+    listingWatcher.onDidDelete(() => this.queueBuildSystem(workspaceFolder, true));
+    disposables.push(listingWatcher);
+
+    this.outOfTreeWatchers.set(workspaceFolder.uri.fsPath, new Map());
+    disposables.push({
+      dispose: () => {
+        this.outOfTreeWatchers.get(workspaceFolder.uri.fsPath)?.forEach(({ watcher }) => watcher.dispose());
+        this.outOfTreeWatchers.delete(workspaceFolder.uri.fsPath);
+      }
+    });
+
+    return vscode.Disposable.from(...disposables);
+  }
+
+  /**
+   * Watch the ConfigStores of build systems, of each directory that `prefix` matches in `base`: every
+   * `BuildSystem/<Name>/` of the workspace folder, or the output directory itself of a build system outside it. The
+   * paths of the events are the same relative to the build systems. A pattern with a `/` watches its base recursively,
+   * so the patterns inside the ConfigStore are relative to `configStoreBase` and `configStorePrefix`: the workspace
+   * folder, which is watched anyway, or the ConfigStore of a build system outside it, rather than its whole build.
+   */
+  private static watchConfigStores(workspaceFolder: vscode.WorkspaceFolder, base: vscode.Uri, prefix: string, configStoreBase: vscode.Uri, configStorePrefix: string): vscode.Disposable[] {
+    const disposables: vscode.Disposable[] = [];
+
     // Watch for ConfigStore changes
-    const configStorePattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore');
+    const configStorePattern = new vscode.RelativePattern(base, prefix + 'ConfigStore');
     const configStoreWatcher = vscode.workspace.createFileSystemWatcher(configStorePattern);
 
     configStoreWatcher.onDidCreate(() => {
@@ -458,7 +503,7 @@ export class BuildSystemScanner {
     disposables.push(configStoreWatcher);
 
     // Watch for workspace directory changes
-    const workspacePattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*');
+    const workspacePattern = new vscode.RelativePattern(configStoreBase, configStorePrefix + '*');
     const workspaceWatcher = vscode.workspace.createFileSystemWatcher(workspacePattern);
 
     // Generator.json is read when the BuildSystem directory is scanned. A build system other than mib can write it
@@ -484,7 +529,7 @@ export class BuildSystemScanner {
     disposables.push(workspaceWatcher);
 
     // A workspace is only listed once it has a Workspace.json, which can be written after its directory is created
-    const workspaceJsonPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Workspace.json');
+    const workspaceJsonPattern = new vscode.RelativePattern(configStoreBase, configStorePrefix + '*/Workspace.json');
     const workspaceJsonWatcher = vscode.workspace.createFileSystemWatcher(workspaceJsonPattern);
 
     const onWorkspaceJsonChanged = (uri: vscode.Uri) => {
@@ -499,7 +544,7 @@ export class BuildSystemScanner {
     disposables.push(workspaceJsonWatcher);
 
     // Watch for workspace configuration changes
-    const workspaceConfigPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Configs/*');
+    const workspaceConfigPattern = new vscode.RelativePattern(configStoreBase, configStorePrefix + '*/Configs/*');
     const workspaceConfigWatcher = vscode.workspace.createFileSystemWatcher(workspaceConfigPattern);
 
     workspaceConfigWatcher.onDidCreate(uri => {
@@ -523,7 +568,7 @@ export class BuildSystemScanner {
     disposables.push(workspaceConfigWatcher);
 
     // Watch for target changes
-    const targetPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Targets/*');
+    const targetPattern = new vscode.RelativePattern(configStoreBase, configStorePrefix + '*/Targets/*');
     const targetWatcher = vscode.workspace.createFileSystemWatcher(targetPattern);
 
     targetWatcher.onDidCreate(uri => {
@@ -548,7 +593,7 @@ export class BuildSystemScanner {
     disposables.push(targetWatcher);
 
     // Watch for configuration changes
-    const configPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/ConfigStore/*/Targets/*/Configs/*');
+    const configPattern = new vscode.RelativePattern(configStoreBase, configStorePrefix + '*/Targets/*/Configs/*');
     const configWatcher = vscode.workspace.createFileSystemWatcher(configPattern);
 
     const onConfigCreatedOrChanged = (uri: vscode.Uri) => {
@@ -570,7 +615,7 @@ export class BuildSystemScanner {
     disposables.push(configWatcher);
 
     // Watch for PostCopy.MConfig changes
-    const postCopyPattern = new vscode.RelativePattern(workspaceFolder, 'BuildSystem/*/PostCopy.MConfig');
+    const postCopyPattern = new vscode.RelativePattern(base, prefix + 'PostCopy.MConfig');
     const postCopyWatcher = vscode.workspace.createFileSystemWatcher(postCopyPattern);
 
     postCopyWatcher.onDidCreate(uri => {
@@ -590,7 +635,7 @@ export class BuildSystemScanner {
 
     disposables.push(postCopyWatcher);
 
-    return vscode.Disposable.from(...disposables);
+    return disposables;
   }
 
   /**
@@ -598,22 +643,22 @@ export class BuildSystemScanner {
    */
   public static getGenerators(workspaceFolder: vscode.WorkspaceFolder): GeneratorInfo[] {
     const generators = this.generators.get(workspaceFolder.uri.fsPath) || [];
-    return this.sortByPriority(generators);
+    // The host tools come after the others, which are built normally
+    const sorted = this.sortByPriority(generators);
+    return [...sorted.filter(generator => !generator.hostTools), ...sorted.filter(generator => generator.hostTools)];
   }
 
   /**
    * Get PostCopy projects for a specific generator
    */
   public static getPostCopyProjects(generatorPath: string): Map<string, PostCopyProject> | undefined {
-    // Find the workspace folder for this generator
-    const workspaceFolderPath = path.dirname(path.dirname(generatorPath));
-    const generators = this.generators.get(workspaceFolderPath);
-
-    if (!generators)
-      return undefined;
-
-    const generator = generators.find(g => g.path === generatorPath);
-    return generator?.postCopyProjects;
+    // A build system can be outside the workspace folder
+    for (const generators of this.generators.values()) {
+      const generator = generators.find(g => g.path === generatorPath);
+      if (generator)
+        return generator.postCopyProjects;
+    }
+    return undefined;
   }
 
   /**
@@ -693,16 +738,20 @@ export class BuildSystemScanner {
    * Get the default generator (fallback first, then highest priority, or auto-select if only one)
    */
   public static getDefaultGenerator(workspaceFolder: vscode.WorkspaceFolder, fallback?: string): GeneratorInfo | null {
-    const generators = this.getGenerators(workspaceFolder);
-    if (generators.length === 0) return null;
-    if (generators.length === 1) return generators[0];
+    const allGenerators = this.getGenerators(workspaceFolder);
+    if (allGenerators.length === 0) return null;
+    if (allGenerators.length === 1) return allGenerators[0];
 
     // Check if fallback exists in available generators
     if (fallback) {
-      const fallbackGenerator = generators.find(g => g.name === fallback);
+      const fallbackGenerator = allGenerators.find(g => g.name === fallback);
       if (fallbackGenerator)
         return fallbackGenerator;
     }
+
+    // The host tools are only selected by choice
+    const generators = allGenerators.filter(g => !g.hostTools);
+    if (generators.length === 1) return generators[0];
 
     // Find highest priority generator
     const withPriority = generators.filter(g => g.priority !== undefined);
@@ -924,104 +973,206 @@ export class BuildSystemScanner {
   }
 
   /**
-   * Scan the entire BuildSystem directory
+   * Scan the build systems of a workspace folder: the directories of its BuildSystem directory, which MTool scans too,
+   * as build systems from before BuildSystem/BuildSystems.json or that only an older MTool updated aren't in it, and the
+   * ones it lists elsewhere, such as those generated with --output-directory outside the checkout
    */
   private static async scanBuildSystem(workspaceFolder: vscode.WorkspaceFolder): Promise<void> {
-    const buildSystemPath = path.join(workspaceFolder.uri.fsPath, 'BuildSystem');
+    const checkout = workspaceFolder.uri.fsPath;
+    const buildSystemPath = path.join(checkout, 'BuildSystem');
 
-    const exists = await BuildSystemScanner.pathExists(buildSystemPath);
-    if (!exists) {
-      this.generators.set(workspaceFolder.uri.fsPath, []);
-      return;
-    }
+    // Paths as watcher events name them, as the caches are by path: on Windows with a lower case drive letter
+    const normalize = (filePath: string) => vscode.Uri.file(filePath).fsPath;
 
+    const candidates: { name: string; label: string; generatorPath: string; hostTools: boolean }[] = [];
+    // The build systems outside the BuildSystem directory, whose ConfigStores are watched where they are, as watchers
+    // don't follow links, also while their directories are missing, until they're generated again; and the links that
+    // build systems are found through, which are watched for being replaced or retargeted
+    const outputDirs: string[] = [];
+    const linkPaths: string[] = [];
     try {
       const dirents = await fsp.readdir(buildSystemPath, { withFileTypes: true });
-      const generatorDirs = dirents.filter(d => d.isDirectory()).map(d => d.name);
-
-      const generators: GeneratorInfo[] = [];
-
-      for (const generatorName of generatorDirs) {
-        const generatorPath = path.join(buildSystemPath, generatorName);
-        const configStorePath = path.join(generatorPath, 'ConfigStore');
-
-        if (await BuildSystemScanner.pathExists(configStorePath)) {
-          // Try to read data from Generator.json
-          let priority: number | undefined;
-          let buildSystemBasePath: string | undefined;
-          let buildSystemFile: string | undefined;
-          let generator: string | undefined;
-          let generatorFamily: string | undefined;
-          let outputDir: string | undefined;
-
-          const generatorJsonPath = path.join(configStorePath, 'Generator.json');
-          if (await BuildSystemScanner.pathExists(generatorJsonPath)) {
-            try {
-              const content = await fsp.readFile(generatorJsonPath, 'utf8');
-              const generatorJson = JSON.parse(content);
-              priority = generatorJson.priority;
-              buildSystemBasePath = generatorJson.buildSystemBasePath;
-              buildSystemFile = generatorJson.buildSystemFile;
-              generator = generatorJson.generator;
-              generatorFamily = generatorJson.generatorFamily;
-              outputDir = generatorJson.outputDir;
-            } catch (error) {
-              console.error(`Error reading Generator.json for ${generatorName}: ${error}`);
-            }
-          }
-
-          // Check for build scripts
-          let buildTargetScript: string | undefined;
-          let buildWorkspaceScript: string | undefined;
-
-          buildTargetScript = path.join(configStorePath, 'BuildTarget.sh');
-          buildWorkspaceScript = path.join(configStorePath, 'BuildWorkspace.sh');
-
-          // The tidy scripts take the same arguments as the build scripts. A build system without them has no tidy tasks.
-          const tidyTargetScript = path.join(configStorePath, 'TidyTarget.sh');
-          const tidyWorkspaceScript = path.join(configStorePath, 'TidyWorkspace.sh');
-
-          // FormatFile.sh formats an editor's buffer, and Format.sh and FormatCheck.sh take the arguments of the
-          // workspace scripts. A build system without them has no formatting.
-          const formatFileScript = path.join(configStorePath, 'FormatFile.sh');
-          const formatScript = path.join(configStorePath, 'Format.sh');
-          const formatCheckScript = path.join(configStorePath, 'FormatCheck.sh');
-
-          // Parse PostCopy.MConfig if it exists
-          let postCopyProjects: Map<string, PostCopyProject> | undefined;
-          const postCopyPath = path.join(generatorPath, 'PostCopy.MConfig');
-          if (await BuildSystemScanner.pathExists(postCopyPath))
-            postCopyProjects = await PostCopyParser.parse(postCopyPath);
-
-          generators.push({
-            name: generatorName,
-            path: generatorPath,
-            configStorePath,
-            priority,
-            buildSystemBasePath,
-            buildSystemFile,
-            generator,
-            generatorFamily,
-            outputDir,
-            buildTargetScript,
-            buildWorkspaceScript,
-            tidyTargetScript,
-            tidyWorkspaceScript,
-            formatFileScript,
-            formatScript,
-            formatCheckScript,
-            postCopyProjects
-          });
-
-          // Scan workspaces for this generator
-          await this.scanWorkspaces(generatorPath);
-        }
+      for (const dirent of dirents) {
+        let generatorPath = path.join(buildSystemPath, dirent.name);
+        if (dirent.isSymbolicLink()) {
+          const links: string[] = [];
+          const realPath = normalize(getLinkTarget(generatorPath, links));
+          linkPaths.push(...links.map(normalize));
+          if (!isInBuildSystemDirectory(checkout, realPath))
+            outputDirs.push(realPath);
+          if (!(await fsp.stat(realPath).catch(() => undefined))?.isDirectory())
+            continue;
+          generatorPath = realPath;
+        } else if (!dirent.isDirectory())
+          continue;
+        candidates.push({ name: dirent.name, label: `BuildSystem/${dirent.name}`, generatorPath, hostTools: dirent.name === 'HostTools' });
       }
+    } catch {
+      // No BuildSystem directory
+    }
 
-      this.generators.set(workspaceFolder.uri.fsPath, generators);
-    } catch (error) {
-      console.error(`Error scanning BuildSystem directory: ${error}`);
-      this.generators.set(workspaceFolder.uri.fsPath, []);
+    const isCandidate = (outputDir: string) => candidates.some(candidate =>
+      process.platform === 'linux' ? candidate.generatorPath === outputDir : candidate.generatorPath.toLowerCase() === outputDir.toLowerCase());
+    for (const outputDir of await readListedBuildSystems(checkout)) {
+      if (isInBuildSystemDirectory(checkout, outputDir))
+        continue;
+      // Such as a link in the checkout to a directory elsewhere that it's in. The links are watched also when it's a
+      // build system found already, as they can be retargeted to another.
+      const links: string[] = [];
+      const realPath = normalize(getLinkTarget(outputDir, links));
+      linkPaths.push(...links.map(normalize));
+      if (isCandidate(realPath))
+        continue;
+      outputDirs.push(realPath);
+      const relativePath = path.relative(checkout, outputDir);
+      const bInCheckout = relativePath !== '' && relativePath !== '..' && !relativePath.startsWith(`..${path.sep}`) && !path.isAbsolute(relativePath);
+      const listed = bInCheckout ? relativePath.split(path.sep).join('/') : outputDir;
+      candidates.push({ name: listed, label: listed, generatorPath: realPath, hostTools: false });
+    }
+    this.updateOutOfTreeWatchers(workspaceFolder, outputDirs, linkPaths);
+
+    const generators: GeneratorInfo[] = [];
+    for (const candidate of candidates) {
+      try {
+        const generator = await this.readGenerator(candidate.name, candidate.label, candidate.generatorPath, candidate.hostTools);
+        if (!generator)
+          continue;
+        generators.push(generator);
+
+        // Scan workspaces for this generator
+        await this.scanWorkspaces(candidate.generatorPath);
+      } catch (error) {
+        console.error(`Error scanning build system ${candidate.generatorPath}: ${error}`);
+      }
+    }
+    this.generators.set(checkout, generators);
+  }
+
+  /**
+   * Read a build system from its output directory, unless it has no ConfigStore, as a listed one whose directory was
+   * deleted
+   */
+  private static async readGenerator(generatorName: string, label: string, generatorPath: string, hostTools: boolean): Promise<GeneratorInfo | undefined> {
+    const configStorePath = path.join(generatorPath, 'ConfigStore');
+
+    if (!(await BuildSystemScanner.pathExists(configStorePath)))
+      return undefined;
+
+    // Try to read data from Generator.json
+    let priority: number | undefined;
+    let buildSystemBasePath: string | undefined;
+    let buildSystemFile: string | undefined;
+    let generator: string | undefined;
+    let generatorFamily: string | undefined;
+    let outputDir: string | undefined;
+
+    const generatorJsonPath = path.join(configStorePath, 'Generator.json');
+    if (await BuildSystemScanner.pathExists(generatorJsonPath)) {
+      try {
+        const content = await fsp.readFile(generatorJsonPath, 'utf8');
+        const generatorJson = JSON.parse(content);
+        priority = generatorJson.priority;
+        buildSystemBasePath = generatorJson.buildSystemBasePath;
+        buildSystemFile = generatorJson.buildSystemFile;
+        generator = generatorJson.generator;
+        generatorFamily = generatorJson.generatorFamily;
+        outputDir = generatorJson.outputDir;
+      } catch (error) {
+        console.error(`Error reading Generator.json for ${generatorName}: ${error}`);
+      }
+    }
+
+    // Check for build scripts
+    let buildTargetScript: string | undefined;
+    let buildWorkspaceScript: string | undefined;
+
+    buildTargetScript = path.join(configStorePath, 'BuildTarget.sh');
+    buildWorkspaceScript = path.join(configStorePath, 'BuildWorkspace.sh');
+
+    // The tidy scripts take the same arguments as the build scripts. A build system without them has no tidy tasks.
+    const tidyTargetScript = path.join(configStorePath, 'TidyTarget.sh');
+    const tidyWorkspaceScript = path.join(configStorePath, 'TidyWorkspace.sh');
+
+    // FormatFile.sh formats an editor's buffer, and Format.sh and FormatCheck.sh take the arguments of the
+    // workspace scripts. A build system without them has no formatting.
+    const formatFileScript = path.join(configStorePath, 'FormatFile.sh');
+    const formatScript = path.join(configStorePath, 'Format.sh');
+    const formatCheckScript = path.join(configStorePath, 'FormatCheck.sh');
+
+    // Parse PostCopy.MConfig if it exists
+    let postCopyProjects: Map<string, PostCopyProject> | undefined;
+    const postCopyPath = path.join(generatorPath, 'PostCopy.MConfig');
+    if (await BuildSystemScanner.pathExists(postCopyPath))
+      postCopyProjects = await PostCopyParser.parse(postCopyPath);
+
+    return {
+      name: generatorName,
+      label,
+      hostTools,
+      path: generatorPath,
+      configStorePath,
+      priority,
+      buildSystemBasePath,
+      buildSystemFile,
+      generator,
+      generatorFamily,
+      outputDir,
+      buildTargetScript,
+      buildWorkspaceScript,
+      tidyTargetScript,
+      tidyWorkspaceScript,
+      formatFileScript,
+      formatScript,
+      formatCheckScript,
+      postCopyProjects
+    };
+  }
+
+  /**
+   * Watch the build systems outside the workspace folder's BuildSystem directory, with the watchers of their ConfigStores
+   * and of their output directories, which generating them creates, and deleting them can be reported for only, and the
+   * links that build systems are found through, for being replaced or retargeted. A directory is watched also before it
+   * exists.
+   */
+  private static updateOutOfTreeWatchers(workspaceFolder: vscode.WorkspaceFolder, outputDirs: string[], linkPaths: string[]): void {
+    const watchers = this.outOfTreeWatchers.get(workspaceFolder.uri.fsPath);
+    if (!watchers)
+      return; // Not initialized
+
+    // A link's watchers only watch for it changing, while an output directory's also watch its ConfigStore, which is
+    // recursive and would watch everything below a link to a directory that a build system is somewhere in
+    const wanted = new Map<string, () => vscode.Disposable[]>();
+    const rescan = () => this.queueBuildSystem(workspaceFolder, true);
+    for (const linkPath of linkPaths)
+      wanted.set(`link:${linkPath}`, () => [watchDirectoryAndAncestors(linkPath, rescan)]);
+    for (const outputDir of outputDirs) {
+      // From the ConfigStore, which can be replaced too, which can be reported as a change of it only
+      wanted.set(`outputDir:${outputDir}`, () => [
+        ...this.watchConfigStores(workspaceFolder, vscode.Uri.file(outputDir), '', vscode.Uri.file(path.join(outputDir, 'ConfigStore')), ''),
+        watchDirectoryAndAncestors(path.join(outputDir, 'ConfigStore'), rescan)
+      ]);
+    }
+    // The watchers of an output directory are also based at its ConfigStore, which can be created or replaced after them
+    const identityOf = (key: string) => {
+      const watched = key.slice(key.indexOf(':') + 1);
+      const identity = getDirectoryIdentity(watched);
+      return key.startsWith('outputDir:') ? `${identity}/${getDirectoryIdentity(path.join(watched, 'ConfigStore'))}` : identity;
+    };
+
+    // A watcher watches the directory a link pointed to when it was made, so a link that's retargeted, or a directory
+    // that's replaced, needs new ones
+    for (const [key, { watcher, identity }] of watchers) {
+      if (!wanted.has(key) || identityOf(key) !== identity) {
+        watcher.dispose();
+        watchers.delete(key);
+      }
+    }
+
+    for (const [key, createWatchers] of wanted) {
+      if (watchers.has(key))
+        continue;
+      const identity = identityOf(key);
+      watchers.set(key, { watcher: vscode.Disposable.from(...createWatchers()), identity });
     }
   }
 
@@ -1145,23 +1296,15 @@ export class BuildSystemScanner {
    * Update PostCopy data for a generator
    */
   private static async updatePostCopyData(generatorPath: string): Promise<void> {
-    // Find the workspace folder for this generator
-    const workspaceFolderPath = path.dirname(path.dirname(generatorPath));
-    const generators = this.generators.get(workspaceFolderPath);
-
-    if (!generators) {
-      console.log(`[BuildSystemScanner] No generators found for ${workspaceFolderPath}, skipping PostCopy update`);
-      return;
-    }
-
-    // Find the specific generator
-    const generatorIndex = generators.findIndex(g => g.path === generatorPath);
-    if (generatorIndex === -1) {
+    // Find the workspace folder for this generator, which can be outside it
+    const found = Array.from(this.generators).find(([, generators]) => generators.some(g => g.path === generatorPath));
+    if (!found) {
       console.log(`[BuildSystemScanner] Generator not found at ${generatorPath}, skipping PostCopy update`);
       return;
     }
 
-    const generator = generators[generatorIndex];
+    const [workspaceFolderPath, generators] = found;
+    const generator = generators.find(g => g.path === generatorPath)!;
 
     // Parse PostCopy.MConfig if it exists
     const postCopyPath = path.join(generatorPath, 'PostCopy.MConfig');

@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import { existsSync, lstatSync, promises as fsp, readlinkSync, realpathSync, statSync } from 'fs';
+import { existsSync, promises as fsp, realpathSync } from 'fs';
 import * as path from 'path';
 import { BuildSystemScanner } from './buildSystemScanner';
+import { getDirectoryIdentity, getLinkTarget, watchDirectoryAndAncestors } from './directoryWatcher';
 
 export interface CompileCommand {
   directory: string;
@@ -565,58 +566,16 @@ export class CompileCommandsGenerator {
   public static getInputWatchBases(compileCommandsPath: string, bWatchPath: boolean): { path: string; base: string; identity?: string }[] {
     const watchBase = (watched: string) => {
       const base = this.getInputWatchBase(watched);
-      return { path: watched, base, identity: this.getDirectoryIdentity(base) };
+      return { path: watched, base, identity: getDirectoryIdentity(base) };
     };
     const bases = bWatchPath ? [watchBase(compileCommandsPath)] : [];
     const links: string[] = [];
-    const target = this.getLinkTarget(compileCommandsPath, links);
+    const target = getLinkTarget(compileCommandsPath, links);
     for (const watched of [...links, target]) {
       if (watched !== path.normalize(compileCommandsPath) && !bases.some(base => base.path === watched))
         bases.push(watchBase(watched));
     }
     return bases;
-  }
-
-  /**
-   * The identity of a directory, which another directory that replaces it doesn't have
-   */
-  private static getDirectoryIdentity(directory: string): string | undefined {
-    try {
-      const stat = statSync(directory);
-      return `${stat.dev}:${stat.ino}`;
-    } catch {
-      return undefined;
-    }
-  }
-
-  /**
-   * The file a path names with its symbolic links resolved, also when the file or directory a link points to doesn't
-   * exist yet
-   */
-  private static getLinkTarget(filePath: string, links: string[]): string {
-    const absolutePath = path.resolve(filePath);
-    let resolved = path.parse(absolutePath).root;
-    const components = absolutePath.slice(resolved.length).split(path.sep).filter(component => component);
-    while (components.length) {
-      const next = path.join(resolved, components.shift()!);
-      let link: string | undefined;
-      try {
-        if (links.length < 40 && lstatSync(next).isSymbolicLink())
-          link = readlinkSync(next);
-      } catch {
-        // Doesn't exist (yet)
-      }
-      if (link === undefined) {
-        resolved = next;
-        continue;
-      }
-      // Resolve the link's target, followed by the rest of the path
-      links.push(next);
-      const target = path.resolve(resolved, link);
-      resolved = path.parse(target).root;
-      components.unshift(...target.slice(resolved.length).split(path.sep).filter(component => component));
-    }
-    return resolved;
   }
 
   /**
@@ -659,35 +618,8 @@ export class CompileCommandsGenerator {
       }));
     }
 
-    // Deleting, moving or replacing the directory, or a directory it's in, such as a build directory, can be reported
-    // for that directory only, by the watcher of its parent. A replacement can be reported as a change, which a
-    // directory also gets when its entries change, so it's told apart by its identity. Directories in the root aren't
-    // moved.
-    for (let directory = base; path.dirname(path.dirname(directory)) !== path.dirname(directory); directory = path.dirname(directory)) {
-      const name = path.basename(directory);
-      const isDirectory = (uri: vscode.Uri) => {
-        const eventName = path.basename(uri.fsPath);
-        return caseSensitive ? eventName === name : eventName.toLowerCase() === name.toLowerCase();
-      };
-      let directoryIdentity = this.getDirectoryIdentity(directory);
-      const directoryWatcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(vscode.Uri.file(path.dirname(directory)), name.replace(/[[\]{}*?]/g, '?')));
-      const onDirectoryEvent = (uri: vscode.Uri, bChange: boolean) => {
-        if (!isDirectory(uri))
-          return;
-        const current = this.getDirectoryIdentity(directory);
-        if (bChange && current === directoryIdentity)
-          return;
-        directoryIdentity = current;
-        listener();
-      };
-      disposables.push(
-        directoryWatcher,
-        directoryWatcher.onDidCreate(uri => onDirectoryEvent(uri, false)),
-        directoryWatcher.onDidChange(uri => onDirectoryEvent(uri, true)),
-        directoryWatcher.onDidDelete(uri => onDirectoryEvent(uri, false))
-      );
-    }
+    // Deleting, moving or replacing the directory, or a directory it's in, such as a build directory
+    disposables.push(watchDirectoryAndAncestors(base, listener));
     return vscode.Disposable.from(...disposables);
   }
 

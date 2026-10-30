@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { promises as fsp } from 'fs';
 import * as path from 'path';
+import { readListedBuildSystems } from './buildSystemsListing';
 
 export class MalterlibProjectDetector {
   private static malterlibProjects = new Set<string>();
@@ -125,11 +126,12 @@ export class MalterlibProjectDetector {
     // Watch for file system changes to detect new .MBuildSystem files and ConfigStores. Moving a directory of a
     // ConfigStore into place, or away, can be reported for the directory only, and replacing it also as a change. The
     // directories only change themselves when their entries do, and a rescan only checks what exists, so it's cheap.
-    const directoryGlobs = new Set(['BuildSystem', 'BuildSystem/*', 'BuildSystem/*/ConfigStore']);
+    // BuildSystems.json lists the build systems elsewhere, and changes when they do.
+    const changeGlobs = new Set(['BuildSystem', 'BuildSystem/*', 'BuildSystem/*/ConfigStore', 'BuildSystem/BuildSystems.json']);
     if (vscode.workspace.workspaceFolders) {
       for (const folder of vscode.workspace.workspaceFolders) {
-        for (const glob of ['*.MBuildSystem', this.generatorJsonGlob, ...directoryGlobs]) {
-          const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, glob), false, !directoryGlobs.has(glob), false);
+        for (const glob of ['*.MBuildSystem', this.generatorJsonGlob, ...changeGlobs]) {
+          const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, glob), false, !changeGlobs.has(glob), false);
           const onEvent = (uri: vscode.Uri) => {
             const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
             if (workspaceFolder)
@@ -188,22 +190,24 @@ export class MalterlibProjectDetector {
   }
 
   /**
-   * Check for a BuildSystem/<Name>/ConfigStore/Generator.json. Any build system can write a ConfigStore to use the
-   * build, tidy and debug integration, so a project doesn't need a .MBuildSystem file. See docs/config-store.md.
+   * Check for a BuildSystem/<Name>/ConfigStore/Generator.json, or one in a build system that BuildSystem/BuildSystems.json
+   * lists elsewhere. Any build system can write a ConfigStore to use the build, tidy and debug integration, so a project
+   * doesn't need a .MBuildSystem file. See docs/config-store.md.
    */
   private static async hasConfigStore(directoryPath: string): Promise<boolean> {
     const buildSystemPath = path.join(directoryPath, 'BuildSystem');
     let generatorDirs: string[];
     try {
       const dirents = await fsp.readdir(buildSystemPath, { withFileTypes: true });
-      generatorDirs = dirents.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
+      generatorDirs = dirents.filter(dirent => dirent.isDirectory()).map(dirent => path.join(buildSystemPath, dirent.name));
     } catch {
       return false;
     }
+    generatorDirs.push(...await readListedBuildSystems(directoryPath));
 
     for (const generatorDir of generatorDirs) {
       try {
-        await fsp.access(path.join(buildSystemPath, generatorDir, 'ConfigStore', 'Generator.json'));
+        await fsp.access(path.join(generatorDir, 'ConfigStore', 'Generator.json'));
         return true;
       } catch {
         // Not a ConfigStore
