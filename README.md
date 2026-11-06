@@ -1,4 +1,4 @@
-# Malterlib Syntax Coloring README
+# Malterlib Syntax Coloring
 
 ## Features
 
