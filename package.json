@@ -18,6 +18,8 @@
   "activationEvents": [
     "onLanguage:c",
     "onLanguage:cpp",
+    "onLanguage:objective-c",
+    "onLanguage:objective-cpp",
     "onLanguage:malterlib-build",
     "workspaceContains:*.MBuildSystem",
     "workspaceContains:BuildSystem",

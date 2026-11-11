@@ -2,6 +2,121 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// The characters classifyIdentifier takes as upper case after a prefix, and those of identifiers
+const upperCaseClass = '[A-Z0-9\\u00C0-\\u00DF]';
+const identifierCharClass = '[A-Za-z0-9_\\u00C0-\\u00FF]';
+// The workbench only takes a match that ends where a word does, but an alternation stops at its first alternative that
+// matches, so each rule checks the end itself: (in|int) would otherwise match "in" of "int" and fail.
+const identifierEnd = `(?!${identifierCharClass})`;
+
+function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// The keywords that debugger values hold as code, in types and constants: NMib::TCVector<int const *>, nullptr
+const valueKeywordScopes = new Set([
+  'malterlib-keyword-builtin-character-types',
+  'malterlib-keyword-builtin-constants',
+  'malterlib-keyword-builtin-float-types',
+  'malterlib-keyword-builtin-integer-types',
+  'malterlib-keyword-builtin-type-modifiers',
+  'malterlib-keyword-builtin-types',
+  'malterlib-keyword-builtin-vector-types',
+  'malterlib-keyword-qualifier',
+  'malterlib-keyword-this',
+  'malterlib-keyword-type-specification',
+  'malterlib-namespace',
+]);
+
+interface CodeFragmentTokenRule<Kind> {
+  regex: string;
+  tokenType: string;
+  kinds?: readonly Kind[];
+}
+
+/**
+ * Rules that color code fragments, such as the types in compiler messages, as classifyIdentifier colors the identifiers
+ * of documents: exact keywords first, then the prefixes, longest first. The rules of a prefix length only differ in
+ * where they're tried among those of other lengths, so they're grouped by scope within a length. Before them come the
+ * floating point constants Malterlib's debugger formatters show, which aren't C++.
+ *
+ * @param kinds.butValues The kinds of fragments other than debugger values. Values show prose such as "Start of time"
+ * and "4 key-value pairs" more often than the names of local variables, capitalized words without a prefix, or the
+ * keywords that are also words, such as value and for, so those are only colored in the other kinds, and in values
+ * where a summary names a member: {IntrusiveList:4 elements} or { Value = 7 }.
+ * @param kinds.values The kind of debugger values.
+ */
+export function buildCodeFragmentTokenRules<Kind>(
+  keywords: Record<string, string>,
+  prefixInfo: Record<string, { scope: string; variable: boolean }>,
+  kinds?: { readonly butValues: readonly Kind[]; readonly values: Kind }
+): CodeFragmentTokenRule<Kind>[] {
+  const kindsButValues = kinds?.butValues;
+  const rules: CodeFragmentTokenRule<Kind>[] = [];
+  const addRule = (tokenType: string, alternatives: string[], kinds?: readonly Kind[]) => {
+    if (alternatives.length)
+      rules.push({ regex: alternatives.length > 1 ? `(?:${alternatives.join('|')})` : alternatives[0], tokenType, ...kinds ? { kinds } : {} });
+  };
+
+  // -Inf, SNaN, QNaN, and the denormal numbers the formatters mark: 1.401298464324817E-45#denorm. Only values hold
+  // them, as elsewhere Inf is a name.
+  const valueKinds = kinds ? [kinds.values] : undefined;
+  rules.push({ regex: `[-+]?(?:Inf|SNaN|QNaN|NaN)${identifierEnd}`, tokenType: 'number', ...valueKinds ? { kinds: valueKinds } : {} });
+  rules.push({ regex: `[-+]?(?:\\d[\\d']*(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)#denorm${identifierEnd}`, tokenType: 'number', ...valueKinds ? { kinds: valueKinds } : {} });
+
+  // By scope, and by whether values hold them: keywords that are also words, such as value and for, are left out of
+  // values unless values hold their scope as code, while exact names, such as CFStr, aren't words
+  const keywordsByScope = new Map<string, { all: string[]; butValues: string[] }>();
+  for (const [keyword, scope] of Object.entries(keywords)) {
+    // Keywords such as [[ don't end in an identifier character, and a match only has to end where a word does
+    const end = /[A-Za-z0-9_]$/.test(keyword) ? identifierEnd : '';
+    const group = keywordsByScope.get(scope) ?? { all: [], butValues: [] };
+    keywordsByScope.set(scope, group);
+    (/^[a-z]+$/.test(keyword) && !valueKeywordScopes.has(scope) ? group.butValues : group.all).push(escapeRegex(keyword) + end);
+  }
+  for (const [scope, { all, butValues }] of keywordsByScope) {
+    addRule(scope, all);
+    addRule(scope, butValues, kindsButValues);
+  }
+
+  const prefixesByLength = new Map<number, string[]>();
+  for (const prefix of Object.keys(prefixInfo))
+    prefixesByLength.set(prefix.length, [...prefixesByLength.get(prefix.length) ?? [], prefix]);
+  for (const length of [...prefixesByLength.keys()].sort((a, b) => b - a)) {
+    // The enum and CoreFoundation type rules go first, as their prefixes' general rules match their names too
+    const specialCases: { regex: string; tokenType: string }[] = [];
+    const byScope = new Map<string, string[]>();
+    const add = (scope: string, regex: string) => byScope.set(scope, [...byScope.get(scope) ?? [], regex]);
+    for (const prefix of prefixesByLength.get(length)!) {
+      const { scope, variable } = prefixInfo[prefix];
+      const escaped = escapeRegex(prefix);
+      // A variable prefix can have one concept character between it and the upper case character: m_pData. Digits count
+      // as upper case, but an identifier can't start with one, and fragments, unlike the identifiers of documents,
+      // hold numbers: Atomic0, but not 32.
+      if (variable)
+        add(scope, `${prefix ? '' : '(?![0-9])'}${escaped}[binpfro]?${upperCaseClass}${identifierCharClass}*${identifierEnd}`);
+      else if (prefix === 'E') {
+        // An enum has no underscore, an enumerator has one: EDigestType, EDigestType_SHA256
+        specialCases.push({ regex: `E${upperCaseClass}[A-Za-z0-9\\u00C0-\\u00FF]*${identifierEnd}`, tokenType: 'malterlib-enum' });
+        add(scope, `E${upperCaseClass}${identifierCharClass}*${identifierEnd}`);
+      } else if (prefix === 'CF') {
+        // CoreFoundation types end in Ref, which can be the upper case character's: CFRef
+        specialCases.push({ regex: `CF(?=${upperCaseClass})${identifierCharClass}*Ref${identifierEnd}`, tokenType: 'malterlib-type' });
+        add(scope, `CF${upperCaseClass}${identifierCharClass}*${identifierEnd}`);
+      } else
+        add(scope, `${escaped}${upperCaseClass}${identifierCharClass}*${identifierEnd}`);
+    }
+    rules.push(...specialCases);
+    for (const [scope, alternatives] of byScope) {
+      addRule(scope, alternatives, length === 0 ? kindsButValues : undefined);
+      // The names of a summary's members in values, after { or , and before : or =
+      if (length === 0 && kinds)
+        addRule(scope, alternatives.map(alternative => `(?<=[{,]\\s*)${alternative}(?=\\s*[:=])`), [kinds.values]);
+    }
+  }
+  return rules;
+}
+
 export function registerSemanticTokens(context: vscode.ExtensionContext, output: vscode.OutputChannel): vscode.Disposable {
   const extensionRoot = context.extensionPath;
 
@@ -205,6 +320,7 @@ export function registerSemanticTokens(context: vscode.ExtensionContext, output:
 
   const provider = new MalterlibProvider();
   const langs = [{ scheme: '*', language: 'c' }, { scheme: '*', language: 'cpp' }];
+  const codeFragmentLangs = ['c', 'cpp', 'objective-c', 'objective-cpp'].map(language => ({ scheme: '*', language }));
 
   // Register providers
   const disposables: vscode.Disposable[] = [];
@@ -230,6 +346,13 @@ export function registerSemanticTokens(context: vscode.ExtensionContext, output:
           ? vscode.languages.registerMergedDocumentSemanticTokensProvider(sel, provider, legend)
           : vscode.languages.registerDocumentSemanticTokensProvider(sel, provider, legend);
         disposables.push(disposable);
+      }
+      // Unbroken Code colors the code fragments shown outside editors, such as the types in compiler messages and the
+      // debugger's variables, with the rules of the documents they come from
+      if (vscode.languages.registerCodeFragmentTokenRules) {
+        const { Name, Type, Value, Quoted, StackFrame } = vscode.CodeFragmentKind;
+        const rules = buildCodeFragmentTokenRules(keywords, prefixInfo, { butValues: [Name, Type, Quoted, StackFrame], values: Value });
+        disposables.push(vscode.languages.registerCodeFragmentTokenRules(codeFragmentLangs, rules));
       }
     }
   }

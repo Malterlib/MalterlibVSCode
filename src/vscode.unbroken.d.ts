@@ -22,4 +22,45 @@ declare module 'vscode' {
      */
     export const registerMergedDocumentSemanticTokensProvider: ((selector: DocumentSelector, provider: DocumentSemanticTokensProvider, legend: SemanticTokensLegend, metadata?: MergedDocumentSemanticTokensProviderMetadata) => Disposable) | undefined;
   }
+
+  /**
+   * A rule that colors the words of short pieces of code shown outside editors, such as the names and types of debugger
+   * variables and the types compilers quote in their messages.
+   */
+  export interface CodeFragmentTokenRule {
+    /**
+     * JavaScript regular expression source. It is tried where a word starts in the fragment (and at other characters),
+     * and a match counts only if it ends where a word ends, so `int` doesn't match the start of `int32`.
+     */
+    readonly regex: string;
+    /** A semantic token type, declared in the extension's `semanticTokenTypes` contribution, that the theme colors. */
+    readonly tokenType: string;
+    readonly tokenModifiers?: readonly string[];
+    /** The kinds of fragments the rule applies to, all when unset. */
+    readonly kinds?: readonly CodeFragmentKind[];
+  }
+
+  /**
+   * What a code fragment is. Editors without registerCodeFragmentTokenRules don't have it either.
+   */
+  export enum CodeFragmentKind {
+    /** The name of a debugger variable or watch expression. */
+    Name = 1,
+    /** The type of a debugger variable or watch expression. */
+    Type = 2,
+    /** The value of a debugger variable or watch expression. */
+    Value = 3,
+    /** Code that a message, such as a compiler error, quotes. */
+    Quoted = 4,
+    /** The name of a stack frame, such as the signature of a function. */
+    StackFrame = 5
+  }
+
+  export namespace languages {
+    /**
+     * Register rules that color the code fragments of the documents the selector matches. Rules are tried in order, the
+     * first match wins; registrations are ordered by selector score, then most recent first.
+     */
+    export const registerCodeFragmentTokenRules: ((selector: DocumentSelector, rules: readonly CodeFragmentTokenRule[]) => Disposable) | undefined;
+  }
 }
