@@ -63,4 +63,35 @@ declare module 'vscode' {
      */
     export const registerCodeFragmentTokenRules: ((selector: DocumentSelector, rules: readonly CodeFragmentTokenRule[]) => Disposable) | undefined;
   }
+
+  export interface CodeFragmentFormattingOptions {
+    /** The width, in columns, the fragment should fit. */
+    readonly maxColumns: number;
+    readonly tabSize: number;
+    readonly insertSpaces: boolean;
+  }
+
+  export interface CodeFragmentFormattingContext {
+    /** The document the fragments come from, such as the file of a diagnostic or a stack frame. */
+    readonly uri: Uri;
+    readonly languageId: string;
+  }
+
+  /**
+   * Lays out short pieces of code shown outside editors, such as the types compilers quote in their messages, over lines.
+   */
+  export interface CodeFragmentFormattingProvider {
+    /**
+     * Returns, for each fragment, its text laid out over lines, or undefined to leave it as is. Or undefined, rather than
+     * an array, when they can't be laid out now, so they are asked for again.
+     */
+    provideCodeFragmentFormatting(context: CodeFragmentFormattingContext, fragments: readonly string[], options: CodeFragmentFormattingOptions, token: CancellationToken): ProviderResult<(string | undefined)[]>;
+  }
+
+  export namespace languages {
+    /**
+     * Register a provider that lays out the code fragments of the documents the selector matches.
+     */
+    export const registerCodeFragmentFormattingProvider: ((selector: DocumentSelector, provider: CodeFragmentFormattingProvider) => Disposable) | undefined;
+  }
 }

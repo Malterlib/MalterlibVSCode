@@ -12,6 +12,7 @@ import { StatusBarController } from './statusBarController';
 import { CompileCommandsGenerator } from './compileCommandsGenerator';
 import { MalterlibConfigEditorProvider } from './malterlibConfigEditorProvider';
 import { MalterlibFormattingProvider } from './malterlibFormattingProvider';
+import { MalterlibCodeFragmentFormattingProvider } from './codeFragmentFormattingProvider';
 import { BuildFileCommand } from './buildFile';
 
 // This method is called when your extension is activated
@@ -151,6 +152,14 @@ async function activateTrusted(context: vscode.ExtensionContext, output: vscode.
     output
   );
   context.subscriptions.push(formattingProvider.register());
+
+  // Lay out the code fragments Unbroken Code shows outside editors, such as the types in compiler messages, with it too
+  context.subscriptions.push(new MalterlibCodeFragmentFormattingProvider(
+    () => statusController.getSelectionSnapshot().generator,
+    () => statusController.getSelectedWorkspaceFolder(),
+    statusController.onSelectionChanged,
+    output
+  ).register());
 
   // Register semantic tokens via helper
   context.subscriptions.push(registerSemanticTokens(context, output));
