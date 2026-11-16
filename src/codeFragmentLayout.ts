@@ -1,10 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Lays out code fragments, such as the types compilers quote in their messages, with MTool Format. Each fragment is
-// wrapped in code that parses, so the formatter lays it out as it would in a source file: it joins a statement onto one
-// line and then splits it, outermost break first, only where it exceeds max_line_length. These functions are pure, apart
-// from finding the style, so they can be tested without an editor.
+// Lays out code fragments, such as the types compilers quote in their messages, with MTool Format. Its format server
+// takes the fragments as they are. For an MTool without it, each fragment is wrapped in code that parses, so the formatter
+// lays it out as it would in a source file: it joins a statement onto one line and then splits it, outermost break first,
+// only where it exceeds max_line_length. These functions are pure, apart from finding the style, so they can be tested
+// without an editor.
 
 export interface FragmentLayoutOptions {
   readonly maxColumns: number;
@@ -341,6 +342,43 @@ export function extractFormattedFragments(formatted: string, fragments: readonly
     }
     return restoreFragment(fragment, body);
   });
+}
+
+/**
+ * The fragments as requests to a format server: each with its text and kind, the width and indentation to lay it out
+ * with, and the directory it comes from, whose style reads the names
+ */
+export function buildFragmentRequests(fragments: readonly PreparedFragment[], options: FragmentLayoutOptions, directory: string): Record<string, unknown>[] {
+  return fragments.map(fragment => ({
+    request: 'fragment',
+    text: fragment.text,
+    kind: fragment.kind,
+    maxColumns: options.maxColumns,
+    indentStyle: options.insertSpaces ? 'space' : 'tab',
+    indentSize: options.tabSize,
+    directory
+  }));
+}
+
+/**
+ * Each fragment's text from a format server's answers, one for each fragment in their order, with its text or an
+ * error. A fragment it gave an error for is undefined, and so is the whole result when the answers aren't those of the
+ * fragments, each with a text or an error.
+ */
+export function parseFragmentAnswers(answers: readonly Record<string, unknown>[], fragments: readonly PreparedFragment[]): (string | undefined)[] | undefined {
+  if (answers.length !== fragments.length)
+    return undefined;
+
+  const texts: (string | undefined)[] = [];
+  for (const [index, { text, error }] of answers.entries()) {
+    if (typeof text === 'string')
+      texts.push(restoreFragment(fragments[index], text.split('\n')));
+    else if (typeof error === 'string')
+      texts.push(undefined);
+    else
+      return undefined;
+  }
+  return texts;
 }
 
 /** The fragment's formatted lines with what the placeholders stand for, if they have the fragment's words and brackets */

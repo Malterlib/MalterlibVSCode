@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { spawn } from 'child_process';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { BuildSystemScanner, GeneratorInfo } from './buildSystemScanner';
 import { MalterlibProjectDetector } from './malterlibProject';
 
@@ -41,36 +41,52 @@ export interface FormatResult {
 
 /**
  * The ConfigStore to format with: the selected generator's in the selected workspace folder, or the one with the
- * highest priority
+ * highest priority, among those with a FormatServer.sh or a FormatFile.sh
  */
 export function getFormatGenerator(
   workspaceFolder: vscode.WorkspaceFolder,
   selectedWorkspaceFolder: vscode.WorkspaceFolder | null,
   selectedGenerator: string | null
 ): GeneratorInfo | undefined {
-  const generators = BuildSystemScanner.getGenerators(workspaceFolder)
-    .filter(generator => generator.formatFileScript && fs.existsSync(generator.formatFileScript));
+  return selectGenerator(
+    workspaceFolder, selectedWorkspaceFolder, selectedGenerator,
+    generator => scriptExists(generator.formatServerScript) || scriptExists(generator.formatFileScript));
+}
+
+export function scriptExists(script: string | undefined): script is string {
+  return !!script && fs.existsSync(script);
+}
+
+function selectGenerator(
+  workspaceFolder: vscode.WorkspaceFolder,
+  selectedWorkspaceFolder: vscode.WorkspaceFolder | null,
+  selectedGenerator: string | null,
+  usable: (generator: GeneratorInfo) => boolean
+): GeneratorInfo | undefined {
+  const generators = BuildSystemScanner.getGenerators(workspaceFolder).filter(usable);
   const selected = selectedWorkspaceFolder?.uri.fsPath === workspaceFolder.uri.fsPath ? selectedGenerator : null;
   return generators.find(generator => generator.name === selected) ?? generators[0];
 }
 
 /**
- * Calls the listener when the FormatFile.sh scripts of the workspace's Malterlib projects can have come or gone: when
- * the build systems are scanned again, projects are detected, the workspace folders change, or a script is created or
- * deleted, which the scanner doesn't watch.
+ * Calls the listener when the FormatFile.sh and FormatServer.sh scripts of the workspace's Malterlib projects can
+ * have come or gone: when the build systems are scanned again, projects are detected, the workspace folders change, or a
+ * script is created or deleted, which the scanner doesn't watch.
  */
 /** A pattern that matches only a file, whose name can have characters of glob syntax, which ? matches */
 export function singleFilePattern(file: string): vscode.RelativePattern {
   return new vscode.RelativePattern(vscode.Uri.file(path.dirname(file)), path.basename(file).replace(/[[\]{}*?]/g, '?'));
 }
 
-export function onDidChangeFormatFileScripts(listener: (scriptsChanged: boolean) => void): vscode.Disposable {
+export function onDidChangeFormatFileScripts(listener: (changedScript: string | undefined) => void): vscode.Disposable {
   const scriptWatchers = new Map<string, vscode.Disposable>();
-  // Notifies whether a script was created, deleted or changed, or only which scripts there are can have changed
-  const update = (notify: boolean, scriptsChanged = false) => {
+  // Notifies with the script that was created, deleted or changed, or without one when only which scripts there are can
+  // have changed
+  const update = (notify: boolean, changedScript?: string) => {
     const scripts = new Set((vscode.workspace.workspaceFolders ?? [])
       .filter(folder => MalterlibProjectDetector.isMalterlibProject(folder))
-      .flatMap(folder => BuildSystemScanner.getGenerators(folder).flatMap(generator => generator.formatFileScript ?? [])));
+      .flatMap(folder => BuildSystemScanner.getGenerators(folder))
+      .flatMap(generator => [generator.formatFileScript, generator.formatServerScript].flatMap(script => script ?? [])));
     for (const [script, watcher] of scriptWatchers) {
       if (!scripts.has(script)) {
         watcher.dispose();
@@ -83,12 +99,12 @@ export function onDidChangeFormatFileScripts(listener: (scriptsChanged: boolean)
       const watcher = vscode.workspace.createFileSystemWatcher(singleFilePattern(script));
       scriptWatchers.set(script, vscode.Disposable.from(
         watcher,
-        watcher.onDidCreate(() => update(true, true)),
-        watcher.onDidChange(() => update(true, true)),
-        watcher.onDidDelete(() => update(true, true))));
+        watcher.onDidCreate(() => update(true, script)),
+        watcher.onDidChange(() => update(true, script)),
+        watcher.onDidDelete(() => update(true, script))));
     }
     if (notify)
-      listener(scriptsChanged);
+      listener(changedScript);
   };
   update(false);
   return vscode.Disposable.from(
@@ -106,16 +122,49 @@ export function onDidChangeFormatFileScripts(listener: (scriptsChanged: boolean)
  * Cancelling stops the script and the formatter it runs, and resolves with a null code.
  */
 export function runFormatFileScript(generator: GeneratorInfo, workspaceFolder: vscode.WorkspaceFolder, args: string[], input: string, token: vscode.CancellationToken): Promise<FormatResult> {
-  return new Promise(resolve => {
-    const cwd = generator.buildSystemBasePath || workspaceFolder.uri.fsPath;
-    const env = { ...process.env, MalterlibWorkspaceRoot: cwd };
+  return runConfigStoreScript(generator.formatFileScript!, generator, workspaceFolder, args, input, token);
+}
 
-    // On Windows the ConfigStore's scripts run in Git Bash, like the tasks. Elsewhere the script gets its own process
-    // group, so cancelling can stop the formatter it runs too.
-    const script = generator.formatFileScript!;
-    const child = process.platform === 'win32'
-      ? spawn(findGitBash(), [vscode.Uri.file(script).path.replace(/^\/([a-z]):/, '/$1'), ...args], { cwd, env })
-      : spawn(script, args, { cwd, env, detached: true });
+/**
+ * Starts a script of the ConfigStore with the working directory and environment of its scripts. On Windows they run in
+ * Git Bash, like the tasks. Elsewhere the script gets its own process group, so stopping it can stop what it runs too.
+ */
+export function spawnConfigStoreScript(script: string, generator: GeneratorInfo, workspaceFolder: vscode.WorkspaceFolder, args: string[]): ChildProcessWithoutNullStreams {
+  const cwd = generator.buildSystemBasePath || workspaceFolder.uri.fsPath;
+  const env = { ...process.env, MalterlibWorkspaceRoot: cwd };
+  return process.platform === 'win32'
+    ? spawn(findGitBash(), [vscode.Uri.file(script).path.replace(/^\/([a-z]):/, '/$1'), ...args], { cwd, env })
+    : spawn(script, args, { cwd, env, detached: true });
+}
+
+/** Stops a script of the ConfigStore and the processes it runs */
+export function stopConfigStoreScript(child: ChildProcessWithoutNullStreams): void {
+  if (child.pid === undefined)
+    return;
+  try {
+    if (process.platform === 'win32')
+      spawn('taskkill', ['/pid', String(child.pid), '/T', '/F']).on('error', () => { });
+    else
+      process.kill(-child.pid, 'SIGTERM');
+  } catch {
+    // Already exited
+  }
+}
+
+/**
+ * Runs a script of the ConfigStore that reads its input from stdin and writes its result to stdout, such as
+ * FormatFile.sh. Cancelling stops the script and what it runs, and resolves with a null code.
+ */
+export function runConfigStoreScript(
+  script: string,
+  generator: GeneratorInfo,
+  workspaceFolder: vscode.WorkspaceFolder,
+  args: string[],
+  input: string,
+  token: vscode.CancellationToken
+): Promise<FormatResult> {
+  return new Promise(resolve => {
+    const child = spawnConfigStoreScript(script, generator, workspaceFolder, args);
 
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
@@ -124,16 +173,7 @@ export function runFormatFileScript(generator: GeneratorInfo, workspaceFolder: v
 
     // The processes the script runs keep its output open, so don't wait for them to exit
     const cancellation = token.onCancellationRequested(() => {
-      if (child.pid !== undefined) {
-        try {
-          if (process.platform === 'win32')
-            spawn('taskkill', ['/pid', String(child.pid), '/T', '/F']).on('error', () => { });
-          else
-            process.kill(-child.pid, 'SIGTERM');
-        } catch {
-          // Already exited
-        }
-      }
+      stopConfigStoreScript(child);
       finish(null);
     });
     let resolved = false;

@@ -4,27 +4,33 @@ import * as os from 'os';
 import * as path from 'path';
 import {
   buildEditorConfig,
+  buildFragmentRequests,
   buildFragmentSource,
   buildStyleDocument,
   extractFormattedFragments,
   findStyleDocument,
   fitsColumns,
   FragmentLayoutOptions,
+  parseFragmentAnswers,
   PreparedFragment,
   prepareFragment
 } from './codeFragmentLayout';
 import { GeneratorInfo } from './buildSystemScanner';
-import { getFormatGenerator, onDidChangeFormatFileScripts, runFormatFileScript, singleFilePattern } from './formatFileScript';
+import { getFormatGenerator, onDidChangeFormatFileScripts, runFormatFileScript, scriptExists, singleFilePattern } from './formatFileScript';
+import { FormatServers } from './formatServer';
 import { MalterlibProjectDetector } from './malterlibProject';
 
 /**
  * Lays out the code fragments Unbroken Code shows outside editors, such as the types in compiler messages and the
- * debugger's variables, with the ConfigStore's FormatFile.sh, which runs MTool Format for Malterlib.
+ * debugger's variables, with MTool Format for Malterlib.
  *
- * MTool Format has no mode for fragments yet (Mal-241), so the fragments of a request are wrapped in code that parses,
- * written as one source to format, and taken out of the formatted source again. The source's settings come from an
- * .editorconfig and a .malterlib-format in a temporary directory, one per style and options, which extends the style of
- * the directory the fragments come from. Replace this with MTool Format's fragment mode once it has one.
+ * The ConfigStore's format server, FormatServer.sh, which runs MTool Format --server and is kept running, takes the
+ * fragments of a request as they are and reads the style of the directory they come from.
+ *
+ * A ConfigStore without the script, or whose MTool has no --server yet, lays them out with FormatFile.sh: the fragments
+ * are wrapped in code that parses, written as one source to format, and taken out of the formatted source again. The
+ * source's settings come from an .editorconfig and a .malterlib-format in a temporary directory, one per style and
+ * options, which extends the style of the directory the fragments come from.
  */
 export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragmentFormattingProvider, vscode.Disposable {
   // C++ only: the wrappers are C++, and the C++ profile would write C code in its style, such as with trailing return types
@@ -45,11 +51,11 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
   private readonly styleWatchers = new Map<string, vscode.Disposable>();
   private readonly watchedStyles = new Set<string>();
   private readonly onDidChangeExternalStyle = new vscode.EventEmitter<void>();
-
   constructor(
     private getSelectedGenerator: () => string | null,
     private getSelectedWorkspaceFolder: () => vscode.WorkspaceFolder | null,
     private onDidChangeSelection: vscode.Event<unknown>,
+    private servers: FormatServers,
     private output: vscode.OutputChannel
   ) { }
 
@@ -62,8 +68,8 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
     if (!registerProvider)
       return this;
 
-    // Registered while a Malterlib folder has a FormatFile.sh, and again when the folders that have one change, which
-    // makes the editor forget the fragments it was told to leave as they are
+    // Registered while a Malterlib folder has a script to lay fragments out with, and again when the folders that have
+    // one change, which makes the editor forget the fragments it was told to leave as they are
     let registration: vscode.Disposable | undefined;
     let registeredFolders: string | undefined;
     const update = () => {
@@ -72,9 +78,12 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
         .filter(folder => MalterlibProjectDetector.isMalterlibProject(folder))
         .flatMap(folder => {
           const generator = getFormatGenerator(folder, selectedWorkspaceFolder, this.getSelectedGenerator());
-          return generator ? [`${folder.uri.toString()}\t${generator.formatFileScript}`] : [];
+          if (!generator)
+            return [];
+          const scripts = [generator.formatFileScript, generator.formatServerScript].map(script => scriptExists(script) ? script : '');
+          return [`${folder.uri.toString()}\t${scripts.join('\t')}`];
         });
-      // The FormatFile.sh each folder's fragments are laid out with: another one, such as of another ConfigStore selected,
+      // The scripts each folder's fragments are laid out with: another one, such as of another ConfigStore selected,
       // registers again, which makes the editor forget the layouts of the one before
       // And the selected folder, whose formatter lays out files outside the workspace folders
       const key = [selectedWorkspaceFolder?.uri.toString() ?? '', ...formatters].join('\n');
@@ -91,8 +100,8 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
     };
     // A script created again or changed where one was can lay out differently, so it registers again
     const scripts = vscode.Disposable.from(
-      onDidChangeFormatFileScripts(scriptsChanged => {
-        if (scriptsChanged)
+      onDidChangeFormatFileScripts(changedScript => {
+        if (changedScript !== undefined)
           registeredFolders = undefined;
         update();
       }),
@@ -117,6 +126,12 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
       styles.onDidCreate(onDidChangeStyle),
       styles.onDidDelete(onDidChangeStyle),
       this.onDidChangeExternalStyle.event(onDidChangeStyle),
+      // The editor remembers the layouts it is given, so those without a format server that failed are asked for again
+      // once it is tried again, by registering again
+      this.servers.onDidRetry(() => {
+        registeredFolders = undefined;
+        update();
+      }),
       { dispose: () => registration?.dispose() },
       this
     );
@@ -193,11 +208,22 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
   }
 
 
-  async provideCodeFragmentFormatting(
+  provideCodeFragmentFormatting(
     context: vscode.CodeFragmentFormattingContext,
     fragments: readonly string[],
     options: vscode.CodeFragmentFormattingOptions,
     token: vscode.CancellationToken
+  ): Promise<(string | undefined)[] | undefined> {
+    return this.layOut(context, fragments, options, token, true);
+  }
+
+  /** The fragments laid out by the format server, if it is to be used and the ConfigStore has one that works, or with FormatFile.sh */
+  private async layOut(
+    context: vscode.CodeFragmentFormattingContext,
+    fragments: readonly string[],
+    options: vscode.CodeFragmentFormattingOptions,
+    token: vscode.CancellationToken,
+    useServer: boolean
   ): Promise<(string | undefined)[] | undefined> {
     const results: (string | undefined)[] = fragments.map(() => undefined);
     const layoutOptions: FragmentLayoutOptions = { maxColumns: options.maxColumns, tabSize: options.tabSize, insertSpaces: options.insertSpaces };
@@ -214,7 +240,11 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
     const stylePath = findStyleDocument(directory);
     this.watchStyles(directory, stylePath);
     const generation = this.generation;
-    const keyPrefix = JSON.stringify([source.generator.formatFileScript ?? '', stylePath ?? '', layoutOptions.maxColumns, layoutOptions.tabSize, layoutOptions.insertSpaces]);
+    // A fragment with a NUL character can't be given to a format server
+    useServer &&= !indices.some(index => fragments[index].includes('\0'));
+    const serverScript = useServer && this.servers.isUsable(source.generator.formatServerScript) ? source.generator.formatServerScript : undefined;
+    const keyPrefix = JSON.stringify(
+      [serverScript ?? source.generator.formatFileScript ?? '', stylePath ?? '', layoutOptions.maxColumns, layoutOptions.tabSize, layoutOptions.insertSpaces]);
 
     const pending: { index: number; key: string; fragment: PreparedFragment; fits: boolean }[] = [];
     for (const index of indices) {
@@ -230,6 +260,38 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
         this.remember(key, undefined);
     }
     if (!pending.length)
+      return results;
+
+    const finish = (texts: ReadonlyMap<number, string | undefined>) => {
+      pending.forEach(entry => {
+        // Written as it already is, it's left as it is
+        const text = texts.get(entry.index);
+        const value = text === fragments[entry.index] ? undefined : text;
+        results[entry.index] = value;
+        if (generation === this.generation)
+          this.remember(entry.key, value);
+      });
+      return results;
+    };
+
+    if (serverScript) {
+      // A request that is cancelled is still answered, and a script that fails it has failed all the same
+      const answers = await this.servers.request(serverScript, source.generator, source.workspaceFolder, buildFragmentRequests(pending.map(entry => entry.fragment), layoutOptions, directory));
+      const laidOut = answers && parseFragmentAnswers(answers, pending.map(entry => entry.fragment));
+      if (answers && !laidOut)
+        this.servers.fail(serverScript, 'It answered fragments with neither a text nor an error');
+      // No answer either when the provider registered again meanwhile, as its scripts changed: the editor asks again
+      if (token.isCancellationRequested || (!laidOut && generation !== this.generation))
+        return undefined;
+      if (laidOut)
+        return finish(new Map(pending.map((entry, i) => [entry.index, laidOut[i]])));
+      // The server failed, so they are laid out the way an MTool without --server lays them out, which isn't remembered
+      // under the server's key
+      return this.layOut(context, fragments, options, token, false);
+    }
+
+    // A ConfigStore with only a FormatServer.sh, which failed, has nothing to lay them out with for now
+    if (!scriptExists(source.generator.formatFileScript))
       return results;
 
     // A fragment that fits is written as the formatter writes code, on one line, which it would split within the width
@@ -256,15 +318,7 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
       widened.forEach((entry, i) => texts.set(entry.index, laidOut[i]));
     }
 
-    pending.forEach(entry => {
-      // Written as it already is, it's left as it is
-      const text = texts.get(entry.index);
-      const value = text === fragments[entry.index] ? undefined : text;
-      results[entry.index] = value;
-      if (generation === this.generation)
-        this.remember(entry.key, value);
-    });
-    return results;
+    return finish(texts);
   }
 
   /** The fragments formatted, or undefined when formatting failed, which is reported */
@@ -310,8 +364,8 @@ export class MalterlibCodeFragmentFormattingProvider implements vscode.CodeFragm
   }
 
   /**
-   * The ConfigStore whose FormatFile.sh lays out the fragments: that of the workspace folder of the document they come
-   * from, or for a document outside the Malterlib folders, the selected folder's, or the first folder's that has one.
+   * The ConfigStore whose scripts lay out the fragments: that of the workspace folder of the document they come from,
+   * or for a document outside the Malterlib folders, the selected folder's, or the first folder's that has one.
    */
   private findGenerator(uri: vscode.Uri): { generator: GeneratorInfo; workspaceFolder: vscode.WorkspaceFolder } | undefined {
     const selectedWorkspaceFolder = this.getSelectedWorkspaceFolder();

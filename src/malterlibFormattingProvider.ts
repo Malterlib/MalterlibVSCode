@@ -1,14 +1,20 @@
 import * as vscode from 'vscode';
 import { GeneratorInfo } from './buildSystemScanner';
-import { getFormatGenerator, onDidChangeFormatFileScripts, runFormatFileScript } from './formatFileScript';
+import { FormatResult, getFormatGenerator, onDidChangeFormatFileScripts, runFormatFileScript, scriptExists } from './formatFileScript';
+import { FormatAnswer, FormatServers, toUtf8Text } from './formatServer';
 import { MalterlibProjectDetector } from './malterlibProject';
 
 /**
- * Formats documents and selections with the FormatFile.sh script of a ConfigStore. FormatFile.sh <File> [<Offset>
- * <Length>] reads the document from stdin and writes it formatted to stdout, with the selection's offset and length in
- * UTF-8 bytes. It exits with 0 when it wrote the document, 1 when it did but some violations have no automatic fix, and
- * 3 when the file doesn't opt in to formatting. Malterlib's runs MTool Format --stdin; another build system can supply
- * its own.
+ * Formats documents and selections with the scripts of a ConfigStore.
+ *
+ * FormatServer.sh is kept running, and is given the document, with the selection's offset and length in UTF-8 bytes, as
+ * a request, which it answers with the document formatted. Malterlib's runs MTool Format --server.
+ *
+ * A ConfigStore without it, or whose script fails, as with an MTool that has no --server yet, formats with FormatFile.sh
+ * if it has one, which is run for each document: FormatFile.sh <File> [<Offset> <Length>] reads the document from stdin
+ * and writes it formatted to stdout. It exits with 0 when it wrote the document, 1 when it did but some violations have
+ * no automatic fix, and 3 when the file doesn't opt in to formatting. Malterlib's runs MTool Format --stdin; another
+ * build system can supply its own.
  */
 export class MalterlibFormattingProvider implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
   private static readonly languages = ['c', 'cpp', 'objective-c', 'objective-cpp', 'malterlib-build'];
@@ -16,13 +22,14 @@ export class MalterlibFormattingProvider implements vscode.DocumentFormattingEdi
   constructor(
     private getSelectedGenerator: () => string | null,
     private getSelectedWorkspaceFolder: () => vscode.WorkspaceFolder | null,
+    private servers: FormatServers,
     private output: vscode.OutputChannel
   ) { }
 
   /**
-   * Register the provider for the documents of the workspace folders with a ConfigStore that has a FormatFile.sh, so it
-   * isn't another formatter to choose from in other C and C++ workspaces. The registration follows the folders, and the
-   * FormatFile.sh scripts, which the scanner doesn't watch.
+   * Register the provider for the documents of the workspace folders with a ConfigStore that has a script to format
+   * with, so it isn't another formatter to choose from in other C and C++ workspaces. The registration follows the
+   * folders, and the scripts, which the scanner doesn't watch.
    */
   register(): vscode.Disposable {
     let registration: vscode.Disposable | undefined;
@@ -68,23 +75,43 @@ export class MalterlibFormattingProvider implements vscode.DocumentFormattingEdi
 
     const generator = this.getGenerator(workspaceFolder);
     if (!generator) {
-      vscode.window.setStatusBarMessage('Malterlib: No ConfigStore has a FormatFile.sh to format with', 5000);
+      vscode.window.setStatusBarMessage('Malterlib: No ConfigStore has a script to format with', 5000);
       return [];
     }
 
     const source = document.getText();
-    const args = [document.uri.fsPath];
-    if (range) {
-      const offset = Buffer.byteLength(source.slice(0, document.offsetAt(range.start)), 'utf8');
-      const length = Buffer.byteLength(document.getText(range), 'utf8');
-      args.push(String(offset), String(length));
-    }
-
-    const result = await runFormatFileScript(generator, workspaceFolder, args, source, token);
-    if (token.isCancellationRequested)
-      return [];
+    const selection = range && {
+      offset: Buffer.byteLength(source.slice(0, document.offsetAt(range.start)), 'utf8'),
+      length: Buffer.byteLength(document.getText(range), 'utf8')
+    };
 
     const fileName = vscode.workspace.asRelativePath(document.uri, false);
+    let result: FormatResult | undefined;
+    // A document with a NUL character can't be given to a format server
+    if (this.servers.isUsable(generator.formatServerScript) && !source.includes('\0')) {
+      const script = generator.formatServerScript;
+      const answer = (await this.servers.request(script, generator, workspaceFolder, [{ request: 'file', path: document.uri.fsPath, source, ...selection }]))?.[0];
+      // The source as the server gets it, which is what a document that stays as it is, is
+      result = answer && MalterlibFormattingProvider.getServerResult(answer, toUtf8Text(source));
+      if (answer && !result)
+        this.servers.fail(script, 'It answered a file with none of a text, unchanged, excluded and an error');
+      if (token.isCancellationRequested)
+        return [];
+    }
+    // Without a format server, or with one that failed, the way an MTool without --server formats
+    if (!result) {
+      if (!scriptExists(generator.formatFileScript)) {
+        vscode.window.showErrorMessage(`Malterlib: Formatting ${fileName} failed, see the Malterlib output`);
+        return [];
+      }
+      const args = [document.uri.fsPath];
+      if (selection)
+        args.push(String(selection.offset), String(selection.length));
+      result = await runFormatFileScript(generator, workspaceFolder, args, source, token);
+      if (token.isCancellationRequested)
+        return [];
+    }
+
     if (result.code === 3) {
       vscode.window.setStatusBarMessage(`Malterlib: ${fileName} doesn't opt in to formatting`, 5000);
       return [];
@@ -133,6 +160,22 @@ export class MalterlibFormattingProvider implements vscode.DocumentFormattingEdi
       formattedEnd++;
     }
     return [vscode.TextEdit.replace(new vscode.Range(document.positionAt(start), document.positionAt(sourceEnd)), formatted.substring(start, formattedEnd))];
+  }
+
+  /**
+   * A format server's answer for a file as FormatFile.sh gives it, by its exit code, stdout and stderr, or undefined
+   * for what is no answer for a file
+   */
+  private static getServerResult(answer: FormatAnswer, source: string): FormatResult | undefined {
+    const report = typeof answer.report === 'string' ? answer.report : '';
+    if (typeof answer.error === 'string')
+      return { code: 2, stdout: '', stderr: report ? `${report}\n${answer.error}` : answer.error };
+    if (answer.excluded === true)
+      return { code: 3, stdout: '', stderr: report };
+    const text = typeof answer.text === 'string' ? answer.text : answer.unchanged === true ? source : undefined;
+    if (text === undefined)
+      return undefined;
+    return { code: answer.unresolved === true ? 1 : 0, stdout: text, stderr: report };
   }
 
   private getGenerator(workspaceFolder: vscode.WorkspaceFolder): GeneratorInfo | undefined {

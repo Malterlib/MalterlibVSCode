@@ -43,6 +43,7 @@ Either of the first two also activates the extension. The build system integrati
     ├── Format.sh                               Optional, the Format task
     ├── FormatCheck.sh                          Optional, the Check Format task
     ├── FormatFile.sh                           Optional, formatting documents and selections in the editor
+    ├── FormatServer.sh                         Optional, formatting in the editor while it is kept running
     └── <Workspace>/
         ├── Workspace.json                      Required for the workspace to be listed
         ├── Configs/
@@ -189,10 +190,42 @@ includers has been. Of the source files that include it, the one
 whose editor was active most recently is built, then one open in the editor, then one of the selected target.
 
 ## Formatting in the Editor
-**Format Document** and **Format Selection** run `FormatFile.sh` for C, C++, Objective-C and Malterlib build files in
-the project. Formatting on save, paste and type uses it too when the Malterlib extension is the default formatter
-(`editor.defaultFormatter` is `Malterlib.malterlib`). The selected generator's script is used, or the one of the
-generator with the highest priority that has one.
+**Format Document** and **Format Selection** format C, C++, Objective-C and Malterlib build files in the project with
+the scripts of the ConfigStore. Formatting on save, paste and type uses them too when the Malterlib extension is the
+default formatter (`editor.defaultFormatter` is `Malterlib.malterlib`). The selected generator's scripts are used, or
+those of the generator with the highest priority that has one of them. The working directory and environment are the
+same as for the other scripts.
+
+### The Format Server
+The extension runs `FormatServer.sh`, without arguments, when it first formats, and keeps it running: it writes what
+is to be formatted to the script's stdin as requests, and reads the answers from its stdout. So formatting doesn't
+start a program each time.
+
+- Stdin gets a request, a JSON object, on each line, and stdout gets a JSON object on a line for each, in the same
+  order, when the line has been read. A request has an `id`, which its answer has too.
+- A document is `{"request": "file", "id": 1, "path": "...", "source": "..."}`: `source` is the document, which may
+  have unsaved changes, and `path` its absolute path, which the formatting settings are resolved from as if the document
+  were saved there. `offset` and `length` select the range to format, in UTF-8 bytes of the source; without them the
+  whole document is formatted. The file is left alone.
+- Its answer has `text`, the whole formatted document, or `"unchanged": true` for one that stays as it is, and
+  `"unresolved": true` when violations without an automatic fix remain. It has `"excluded": true` for a file that
+  doesn't opt in to formatting, and `error` for one that can't be formatted. `report` describes the violations and
+  errors, which the extension logs in the Malterlib output.
+- The request `{"request": "executable", "id": 1}` is answered with `{"executable": "..."}`, the path of the program
+  that formats. The extension asks when it has started the script, and before each request compares the file at the
+  path with what it was then: when it is another one, as after the program is built, the script is started again.
+  Without an answer of that form the script is kept running.
+- The script exits when its stdin ends. One that exits without answering a request it was given, with what it wrote to
+  stderr, doesn't answer a request within 30 seconds, or answers with what is no answer to the request, has failed. One
+  that has exited between requests is started again for the next.
+
+mib's script runs `MTool Format --server`, which formats the files that opt in with `malterlib_format` in
+`.editorconfig`. A script that failed, as with an MTool that has no `--server` yet, is tried again after a minute, and
+until then the extension formats as it does for a generator without the script.
+
+### FormatFile.sh
+A generator without a format server, or whose format server failed, formats with `FormatFile.sh` if it has one, which
+is run for each document.
 
 ```
 FormatFile.sh File [Offset Length]
@@ -207,8 +240,25 @@ FormatFile.sh File [Offset Length]
   fix remain, which it describes on stderr and the extension logs in the Malterlib output. It's 3 when the file doesn't
   opt in to formatting, and anything else is an error, described on stderr.
 
-The working directory and environment are the same as for the other scripts. mib's script runs
-`MTool Format --stdin`, which formats the files that opt in with `malterlib_format` in `.editorconfig`.
+mib's script runs `MTool Format --stdin`.
+
+## Code Fragments
+Unbroken Code shows code outside editors, such as the types and signatures in compiler messages and the debugger's
+variables, and lays the long ones out over lines. For C++ the extension asks the format server for the fragments of a
+message.
+
+- A fragment is
+  `{"request": "fragment", "id": 1, "text": "...", "kind": "type", "maxColumns": 80, "indentStyle": "tab", "indentSize": 4, "directory": "..."}`.
+  The kind is `type`, `signature` or `expression`.
+- Its answer is `{"id": 1, "text": "..."}` with the fragment laid out, or has `error` for one that is left as it is.
+- A fragment that fits `maxColumns` stays on one line. One that doesn't is split, the outermost construct first, and
+  its lines are indented with tabs, or with `indentSize` spaces.
+- The directory is that of the file the fragments come from, whose style, the nearest `.malterlib-format`, reads the
+  names.
+
+A generator without a format server, or whose format server failed, lays the fragments out with `FormatFile.sh` if it
+has one: they are wrapped in code that parses, formatted as a document, and taken out of it again. When the format
+server is tried again, the fragments laid out without it are laid out again.
 
 ## Compile Commands
 The extension merges the `compile_commands.json` files of the selected workspace and configuration. The result is

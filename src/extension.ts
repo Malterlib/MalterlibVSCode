@@ -12,6 +12,7 @@ import { StatusBarController } from './statusBarController';
 import { CompileCommandsGenerator } from './compileCommandsGenerator';
 import { MalterlibConfigEditorProvider } from './malterlibConfigEditorProvider';
 import { MalterlibFormattingProvider } from './malterlibFormattingProvider';
+import { FormatServers } from './formatServer';
 import { MalterlibCodeFragmentFormattingProvider } from './codeFragmentFormattingProvider';
 import { BuildFileCommand } from './buildFile';
 
@@ -145,10 +146,13 @@ async function activateTrusted(context: vscode.ExtensionContext, output: vscode.
     output
   ));
 
-  // Format documents and selections with the ConfigStore's FormatFile.sh
+  // Format documents and selections with the ConfigStore's format server, which is kept running, or its FormatFile.sh
+  const formatServers = new FormatServers(output);
+  context.subscriptions.push(formatServers);
   const formattingProvider = new MalterlibFormattingProvider(
     () => statusController.getSelectionSnapshot().generator,
     () => statusController.getSelectedWorkspaceFolder(),
+    formatServers,
     output
   );
   context.subscriptions.push(formattingProvider.register());
@@ -158,6 +162,7 @@ async function activateTrusted(context: vscode.ExtensionContext, output: vscode.
     () => statusController.getSelectionSnapshot().generator,
     () => statusController.getSelectedWorkspaceFolder(),
     statusController.onSelectionChanged,
+    formatServers,
     output
   ).register());
 

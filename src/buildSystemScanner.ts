@@ -27,6 +27,7 @@ export interface GeneratorInfo {
   tidyTargetScript?: string;
   tidyWorkspaceScript?: string;
   formatFileScript?: string;
+  formatServerScript?: string;
   formatScript?: string;
   formatCheckScript?: string;
   postCopyProjects?: Map<string, PostCopyProject>;
@@ -1093,9 +1094,11 @@ export class BuildSystemScanner {
     const tidyTargetScript = path.join(configStorePath, 'TidyTarget.sh');
     const tidyWorkspaceScript = path.join(configStorePath, 'TidyWorkspace.sh');
 
-    // FormatFile.sh formats an editor's buffer, and Format.sh and FormatCheck.sh take the arguments of the
-    // workspace scripts. A build system without them has no formatting.
+    // FormatServer.sh formats an editor's buffers and the code shown outside editors while it is kept running,
+    // FormatFile.sh formats a buffer each time it is run, and Format.sh and
+    // FormatCheck.sh take the arguments of the workspace scripts. A build system without them has no formatting.
     const formatFileScript = path.join(configStorePath, 'FormatFile.sh');
+    const formatServerScript = path.join(configStorePath, 'FormatServer.sh');
     const formatScript = path.join(configStorePath, 'Format.sh');
     const formatCheckScript = path.join(configStorePath, 'FormatCheck.sh');
 
@@ -1122,6 +1125,7 @@ export class BuildSystemScanner {
       tidyTargetScript,
       tidyWorkspaceScript,
       formatFileScript,
+      formatServerScript,
       formatScript,
       formatCheckScript,
       postCopyProjects
